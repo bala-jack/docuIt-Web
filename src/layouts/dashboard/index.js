@@ -12,7 +12,7 @@ import React, { useEffect, useState } from 'react';
 import { dashboard } from "../../services/index";
 
 
-function Dashboard() {
+function AdminDashboard() {
   const [data, setData] = useState({});
 
   useEffect(() => {
@@ -42,6 +42,7 @@ function Dashboard() {
                 heading=" Total Users"
                 // title="Active Users"
                 count={data.totalUsers}
+                role='admin'
               />
             </MDBox>
           </Grid>
@@ -81,4 +82,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default AdminDashboard;

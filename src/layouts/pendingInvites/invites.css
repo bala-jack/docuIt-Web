@@ -1,0 +1,32 @@
+.invites-card {
+     padding: 30px 20px;
+     width: 100%;
+}
+
+.accept-invite {
+     color: green !important;
+     font-weight: 800;
+}
+
+.reject-invite {
+     color: red !important;
+     font-weight: 800;
+}
+
+.pending-invites {
+     display: flex;
+     justify-content: flex-start;
+     align-items: center;
+     padding: 10px;
+}
+
+.invitepopUp {
+     width: 27%;
+     max-width: 400px;
+     justify-content: flex-start !important;
+}
+
+.invitepopUp-form {
+     width: 191%;
+     max-width: 359px;
+}

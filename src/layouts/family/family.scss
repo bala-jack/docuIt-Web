@@ -1,0 +1,30 @@
+.floating-label-group {
+     position: relative;
+     margin-bottom: 15px;
+ 
+     .floating-label{
+         font-size: 13px;
+         color: #cccccc;
+         position: absolute;
+         pointer-events: none;
+         top: 21px;
+         left: 12px;
+         transition: all 0.1s ease;
+         bottom: 72px;
+         }
+       
+       
+       
+       input:focus  + .floating-label,
+       input:not(:focus):valid + .floating-label {
+         top: 2px;
+         font-size: 11px;
+         opacity: 1;
+         color: #fb0404;
+         background-color: white;
+         overflow: hidden;
+         padding: 0 4px 0 4px;
+        
+       }
+   }
+   

@@ -23,9 +23,15 @@ import { useMaterialUIController, setMiniSidenav } from "./context/index";
 import brandWhite from "assets/images/logo_dockit.png";
 import { useAuth } from "context/AuthContext";
 import SignIn from './layouts/authentication/sign-in'
+import SignUp from './layouts/authentication/sign-up'
+import ForgetPin from './layouts/authentication/sign-up/forgetPin.js'
+import Verify from './layouts/authentication/sign-up/verify.js'
+import Setpin from './layouts/authentication/sign-up/setpin.js'
+
+
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, UserData, setuserdata } = useAuth();
   const {
     miniSidenav,
     layout,
@@ -51,6 +57,17 @@ export default function App() {
   };
   // Setting page scroll to 0 when changing the route
   useEffect(() => {
+    const localeStorageValue = localStorage.getItem('docuItuserDetails');
+    if (localeStorageValue) {
+      try {
+        const userDetails = JSON.parse(localeStorageValue);
+        setuserdata(userDetails);
+      } catch (error) {
+        console.error('Error parsing JSON:', error);
+      }
+    }
+    // const localeStorageMember = localStorage.getItem('familymember');
+
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
   }, [pathname]);
@@ -63,11 +80,15 @@ export default function App() {
 
       if (route.route) {
         return isAuthenticated ? <Route exact path={route.route} element={route.component} key={route.key} />
-        : <Route path="/signIn" element={<SignIn />} key='signIn' />;
+          : <Route path="/signIn" element={<SignIn />} key='signIn' />;
       }
 
       return null;
     });
+
+  // const routeList = routes.filter(routeItem => (UserData?.roles?.[0].name === routeItem.role) || (routeItem.role === 'Comman'))
+
+
 
   return (
     <ThemeProvider theme={theme}>
@@ -84,7 +105,12 @@ export default function App() {
           />
         </>
       )}
+
       <Routes>
+        <Route path="/signUp" element={<SignUp />} key='signUp' />;
+        <Route path="/forgetPin" element={<ForgetPin />} key='forgetPin' />;
+        <Route path="/verify" element={<Verify />} key='verify' />;
+        <Route path="/setpin" element={<Setpin />} key='setpin' />;
         {getRoutes(routes, isAuthenticated)}
         <Route path="*" element={<Navigate to="/signIn" />} />
       </Routes>
