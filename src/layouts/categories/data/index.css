@@ -1,0 +1,10 @@
+.icon {
+    opacity: 0 !important;
+    transform: scale(0.8) !important;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.icon-active {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+}
