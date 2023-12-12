@@ -1,0 +1,7 @@
+.notification-badge {
+     border-radius: 20px;
+     margin-top: -15px;
+     background-color: red;
+     color: white;
+     padding: 2px;
+}

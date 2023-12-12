@@ -11,6 +11,11 @@ import AdminDashboard from "./layouts/dashboard";
 import FamilyMembers from "layouts/familyMembers";
 import FamilyMember from "./layouts/family";
 import PendingInvites from "layouts/pendingInvites";
+import Documents from "layouts/Documents";
+import Assets from "layouts/Documents/Assets";
+import LifeIns from "layouts/Documents/lifeInsurance";
+import HealthIns from "layouts/Documents/healthInsurance";
+import FinanceAcc from "layouts/Documents/financeAcoounts";
 
 
 
@@ -38,6 +43,50 @@ const routes = [
 
   {
     type: "collapse",
+    name: "Documents",
+    key: "documents",
+    icon: <Icon fontSize="small">text_snippet</Icon>,
+    route: "/documents",
+    component: <Documents />,
+    role: 'User',
+    // subRoute: [
+    //   {
+    //     name: "Assets",
+    //     key: "assets",
+    //     icon: <Icon fontSize="small">source</Icon>,
+    //     route: "/documents/assets",
+    //     component: <Assets />,
+    //     role: 'User',
+    //   },]
+    //   {
+    //     name: "Life Insurance",
+    //     key: "lifeinsurance",
+    //     icon: <Icon fontSize="small">source</Icon>,
+    //     route: "/documents/lifeinsurance",
+    //     component: <LifeIns />,
+    //     role: 'User',
+    //   },
+    //   {
+    //     name: "Health Insurance",
+    //     key: "healthinsurance",
+    //     icon: <Icon fontSize="small">source</Icon>,
+    //     route: "/documents/healthinsurance",
+    //     component: <HealthIns />,
+    //     role: 'User',
+    //   },
+    //   {
+    //     name: "Finance Accounts",
+    //     key: "financeaccounts",
+    //     icon: <Icon fontSize="small">source</Icon>,
+    //     route: "/documents/financeaccounts",
+    //     component: <FinanceAcc />,
+    //     role: 'User',
+    //   },
+    // ]
+  },
+
+  {
+    type: "collapse",
     name: "Family",
     key: "family",
     icon: <Icon fontSize="small">diversity_3</Icon>,
@@ -45,6 +94,7 @@ const routes = [
     component: <Family />,
     role: 'User',
   },
+
   {
     // type: "collapse",
     // name: "FamilyMember",
@@ -54,15 +104,18 @@ const routes = [
     component: <Family />,
     role: 'User',
   },
+
   {
-    type: "collapse",
-    name: "Pending Invites",
+    // type: "collapse",
+    // name: "Pending Invites",
     key: "pendinginvites",
-    icon: <Icon fontSize="small">notifications</Icon>,
+    // icon: <Icon fontSize="small">notifications</Icon>,
     route: "/pendinginvites",
     component: <PendingInvites />,
     role: 'User',
   },
+
+
   // {
   //   type: "collapse",
   //   name: "Categories",

@@ -3,7 +3,7 @@ import MDBox from "components/MDBox";
 import { useAuth } from "context/AuthContext";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import DashboardProfile from "examples/Navbars/DashboardProfile";
+// import DashboardProfile from "examples/Navbars/DashboardProfile";
 import { useState } from "react";
 import { useEffect } from "react";
 import { listPendingInvites } from "services";
@@ -52,7 +52,7 @@ function PendingInvites() {
      console.log('setInvitesPending', invitesPending);
      return (
           <DashboardLayout>
-               <DashboardProfile />
+            
                <DashboardNavbar />
                <MDBox className='mdbboxfamily'>
                     <h2>Pending Invites</h2>

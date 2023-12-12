@@ -1,5 +1,6 @@
 import axios from "axios"
 import { BASE_URL } from "./config"
+import { useAuth } from "context/AuthContext"
 
 
 
@@ -22,7 +23,7 @@ const axiosAuthInstance = axios.create({
         'AllowedOrigin': '*',
         'X-Requested-With': 'XMLHttpRequest'
     }
-}) 
+})
 
 axiosAuthInstance.interceptors.request.use(config => axiosRequest(config))
 
@@ -134,12 +135,12 @@ export const editFamily = async (params) => {
 }
 
 export const deleteFamily = async (params) => {
-       console.log(params);
+    console.log(params);
     // const token = localStorage.getItem('docuItToken')
     // if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
     //     axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
     // }
-    return await axiosAuthInstance.delete(`family/deleteFamily`, { data : params});
+    return await axiosAuthInstance.delete(`family/deleteFamily`, { data: params });
 }
 
 export const listFamilyMembers = async (param) => {
@@ -156,7 +157,7 @@ export const removeFamilyMembers = async (params) => {
     }
     return await axiosInstance.get(`family/removeFamilyMembers`, params);
 }
-export const  inviteUser = async (params) => {
+export const inviteUser = async (params) => {
     const token = localStorage.getItem('docuItToken')
     if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
         axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
@@ -164,7 +165,7 @@ export const  inviteUser = async (params) => {
     return await axiosInstance.post(`family/inviteUser`, params);
 }
 
-export const  listPendingInvites = async (params) => {
+export const listPendingInvites = async (params) => {
     const token = localStorage.getItem('docuItToken')
     if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
         axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
@@ -172,14 +173,21 @@ export const  listPendingInvites = async (params) => {
     return await axiosInstance.get(`family/listPendingInvites?userId=` + params);
 }
 
-export const  acceptInvite = async (params) => {
+export const acceptInvite = async (params) => {
     const token = localStorage.getItem('docuItToken')
     if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
         axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
     }
-    return await axiosInstance.post(`/family/acceptInvite` , params);
+    return await axiosInstance.post(`/family/acceptInvite`, params);
 }
 
+export const findUser = async (params) => {
+    const token = localStorage.getItem('docuItToken')
+    if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
+        axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return await axiosInstance.get(`category/find/user/` + params);
+}
 
 // Integration
 

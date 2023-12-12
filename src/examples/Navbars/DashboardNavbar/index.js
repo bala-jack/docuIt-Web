@@ -1,5 +1,5 @@
 // react-router components
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 // prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
@@ -24,11 +24,16 @@ import {
   navbarMobileMenu,
 } from "./styles";
 
+import '../DashboardNavbar/style.css';
+
 // DocuIt React context
 import {
   useMaterialUIController,
   setMiniSidenav,
 } from "../../../context";
+import { Button } from "@mui/material";
+import { useEffect, useState } from "react";
+
 
 function DashboardNavbar({ absolute, light, isMini }) {
   const [controller, dispatch] = useMaterialUIController();
@@ -36,6 +41,10 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const route = useLocation().pathname.split("/").slice(1);
 
   const handleMiniSidenav = () => setMiniSidenav(dispatch, !miniSidenav);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [inviteCount, setInviteCount] = useState(0);
 
   // Styles for the navbar icons
   const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
@@ -50,6 +59,26 @@ function DashboardNavbar({ absolute, light, isMini }) {
     },
   });
 
+  const handleNotofication = () => {
+    navigate('/pendinginvites');
+    // history.push('/pendinginvites');
+    setInviteCount(0);
+    console.log('Clicked');
+  }
+
+  const checkInviteData = () => {
+    // Replace this with your actual logic to check for invite data
+    const hasPendingInvites = Math.random() < 0.5; // Example: 50% chance of having invites
+
+    if (hasPendingInvites) {
+      setInviteCount((prevCount) => prevCount + 1);
+    }
+  };
+
+  useEffect(() => {
+    checkInviteData();
+  }, [location]);
+
   return (
     <AppBar
       position={"static"}
@@ -60,6 +89,15 @@ function DashboardNavbar({ absolute, light, isMini }) {
         <MDBox color="inherit" mb={{ xs: 1, md: 0 }} sx={(theme) => navbarRow(theme, { isMini })}>
           <Breadcrumbs icon="home" title={route[route.length - 1]} route={route} light={light} />
         </MDBox>
+        <div style={{ width: '80%', display: 'flex', justifyContent: 'end' }}>
+          <Button onClick={handleNotofication}>
+            <Icon size="large">
+              <h3>notifications</h3>
+            </Icon>
+            {inviteCount > 0 && <div className="notification-badge">{inviteCount}</div>}
+          </Button>
+        </div>
+
         {isMini ? null : (
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
             <MDBox pr={1}>

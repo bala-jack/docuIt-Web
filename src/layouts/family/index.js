@@ -46,6 +46,7 @@ function Family() {
      const { familyName } = useParams();
      const navigate = useNavigate();
      // const history = useHistory();
+     const enabled = phoneNumbers.length < 9;
 
      useEffect(() => {
           const fetchData = async () => {
@@ -58,63 +59,66 @@ function Family() {
                               createdBy: familyItem.createdBy
                          }));
                          setFamilyData(extractedData);
-                         localStorage.setItem('docuItFamilyData', JSON.stringify(extractedData));
+                         // localStorage.setItem('docuItFamilyData', JSON.stringify(extractedData));
                     }
                } catch (err) {
                     console.error("API call failed:", err);
                }
           };
 
-          const storedFamilyData = localStorage.getItem('docuItFamilyData');
-          if (storedFamilyData) {
-               try {
-                    const parsedFamilyData = JSON.parse(storedFamilyData);
-                    setFamilyData(parsedFamilyData);
-               } catch (error) {
-                    console.error('Error parsing JSON:', error);
-               }
-          }
+          // const storedFamilyData = localStorage.getItem('docuItFamilyData');
+          // if (storedFamilyData) {
+          //      try {
+          //           const parsedFamilyData = JSON.parse(storedFamilyData);
+          //           setFamilyData(parsedFamilyData);
+          //      } catch (error) {
+          //           console.error('Error parsing JSON:', error);
+          //      }
+          // }
 
-          const localeStorageMember = localStorage.getItem('docuItMemberDetails');
-          if (localeStorageMember && !isFamilyMembersPage) {
-               try {
-                    const MemberDetails = JSON.parse(localeStorageMember);
-                    setFamilyMemberData(MemberDetails);
-               } catch (error) {
-                    console.error('Error parsing JSON:', error);
-               }
-          }
+          // const localeStorageMember = localStorage.getItem('docuItMemberDetails');
+          // if (localeStorageMember && !isFamilyMembersPage) {
+          //      try {
+          //           const MemberDetails = JSON.parse(localeStorageMember);
+          //           setFamilyMemberData(MemberDetails);
+          //      } catch (error) {
+          //           console.error('Error parsing JSON:', error);
+          //      }
+          // }
 
 
           fetchData();
      }, [UserData, setFamilyData, setFamilyMemberData, sFamilyMember]);
 
-     useEffect(() => {
-          // Check if the family name is present in the URL
-          if (familyName) {
-               // Set the family name in localStorage
-               localStorage.setItem('docuItFamilyData', familyData);
-               setIsFamilyMembersPage(true);
-               setsFamilyMember(true);
-               setHideListFamily(false);
-               handleFamilyNameClick();
-          }
-     }, [familyName]);
+     // useEffect(() => {
+     //      // Check if the family name is present in the URL
+     //      if (familyName) {
+     //           // Set the family name in localStorage
+     //           localStorage.setItem('docuItFamilyData', familyData);
+     //           setIsFamilyMembersPage(true);
+     //           setsFamilyMember(true);
+     //           setHideListFamily(false);
+     //           handleFamilyNameClick();
+     //      }
+     // }, [familyName]);
 
      const handleFamilyNameClick = async (familyItem) => {
-          navigate(`/family/${familyItem.name}`);
-          setsFamilyMember(true);
-          setHideListFamily(false);
-          setIsFamilyMembersPage(true);
+
 
           try {
                const familId = familyItem.id;
                const { data } = await listFamilyMembers(familId);
                console.log('>>>>>>>>>>>>>', data);
+               if (data?.status === 'SUCCESS') {
+                    navigate(`/family/${familyItem.name}`);
+                    setsFamilyMember(true);
+                    setHideListFamily(false);
+                    setIsFamilyMembersPage(true);
+               }
                if (data && data.response && Array.isArray(data.response.MemberList)) {
                     setfamilyMemberData(data.response.MemberList.map(member => member.user));
                     setFamilyMemberData(data.response.MemberList.map(member => member.user));
-                    localStorage.setItem('docuItMemberDetails', JSON.stringify(data?.response?.MemberList?.user));
+                    // localStorage.setItem('docuItMemberDetails', JSON.stringify(data?.response?.MemberList?.user));
                } else {
                     console.error('Invalid data structure:', data);
                }
@@ -122,7 +126,6 @@ function Family() {
           catch (error) {
                console.error('Error fetching data:', error);
           }
-
      };
 
      const handleInvite = () => {
@@ -141,18 +144,34 @@ function Family() {
 
      const handleSave = async (index) => {
           try {
-               const isNameExists = familyData.find(item => item.id === index);
+               const isNameExists = familyData.find(item => item.id === index?.id);
                if (isNameExists?.name === isEditing) {
-                    setErrorFlashMessage('Family name is already registered');
                     setShowPopup(false);
+                    setErrorFlashMessage('Family name is already registered');
                     setTimeout(() => {
                          setErrorFlashMessage('');
                     }, 1000);
                     return;
                }
 
+               // const alreadyExists  = familyData.filter(item => item.name.trim() === index?.name.trim());
+               const alreadyExists = familyData.filter(item => {
+                    console.log('Comparinfg:', item.name, index?.name);
+                    return item.name === index?.name;
+               });
+               if (alreadyExists?.name === isEditing) {
+                    setShowPopup(false);
+                    setErrorFlashMessage('Family name is already registered');
+                    setTimeout(() => {
+                         setErrorFlashMessage('');
+                    }, 1000);
+                    return;
+               }
+               console.log('AlreadyExists', alreadyExists?.name === isEditing);
+
+
                const updatedData = familyData.map(item => {
-                    if (item.id === index) {
+                    if (item.id === index.id) {
                          return {
                               ...item,
                               name: isEditing
@@ -178,6 +197,7 @@ function Family() {
 
                     }, 1000);
                }
+
           } catch (err) {
                console.error('Error saving family:', err);
           }
@@ -238,7 +258,7 @@ function Family() {
           //      setphoneNumbersError('');
           // }
           try {
-
+               console.log('>>>>>>>>>>>memberinvite FamilyID', familyId)
                const invitedBy = UserData.id;
                const { data } = await inviteUser({ familyId, invitedBy, phoneNumbers: [phoneNumbers[0]] });
                console.log('Succes', data);
@@ -260,23 +280,44 @@ function Family() {
      const handleAddInput = (e) => {
           setAdd(e.target.value);
      }
-     const handleAddsave = async () => {
 
+     const handleAddsave = async () => {
           try {
                const adminIdAdd = Add;
                const val = { name: adminIdAdd, adminId: UserData.id }
+               // const isNameAlready = familyData.find(item => item.name === adminIdAdd);
+
+               // if (isNameAlready) {
+               //      setAddPop(false);
+               //      setErrorFlashMessage('Family name is already registered');
+               //      setTimeout(() => {
+               //           setErrorFlashMessage('');
+               //      }, 1000);
+               //      return;
+               // }
+               // const isNameExists = familyData.some((family) => family.name === adminIdAdd);
+               // if (isNameExists) {
+               //      setAddPop(false);
+               //      setErrorFlashMessage('Family name is already registered');
+               //      setTimeout(() => {
+               //           setErrorFlashMessage('');
+               //      }, 1000);
+               //      return;
+               // }
+
                const { data } = await addFamily(val);
                if (data?.status === 'SUCCESS') {
                     const newFamily = data?.response?.familyDetails;
+                    setAddPop(false);
                     setFamilyData(prevData => [...prevData, newFamily]);
                     setFlashMessage('Family Added successfully!');
-                    setAddPop(false);
                     setAdd('');
                     setTimeout(() => {
                          setFlashMessage('');
                     }, 1000);
 
                }
+
           } catch (error) {
                console.error('Error Save family:', error);
           }
@@ -295,12 +336,11 @@ function Family() {
      const handleChangeUserId = (value) => {
           setphoneNumbers(value);
      }
-     const handleNotofication = () => {
-          console.log('handleNotofication clicked')
-     }
+
      console.log('familyMemberData????????????????', FamilyMemberData);
      console.log('UserData>>>>>>>>>>>', UserData);
      console.log('familyData--------------', familyData);
+
 
      return (
           <DashboardLayout className='mainContent'>
@@ -332,7 +372,7 @@ function Family() {
                               </div>
                          </div>
 
-                         <Card>
+                         <Card style={{ width: '37%' }}>
 
                               <Card>
                                    {ErrorflashMessage && (
@@ -355,16 +395,21 @@ function Family() {
                                              <div className="overlay" onClick={closePopup}>
                                                   <div className="popup" onClick={preventClose}>
                                                        <div className="popup-content">
-                                                            <div className='flash-message'>
-                                                                 <Input type="text"
-                                                                      placeholder="Enter...."
-                                                                      value={Add}
-                                                                      onChange={(e) => handleAddInput(e)}
-                                                                      className='pop-up-input' />
-
+                                                            <div className='pop-input-div'>
+                                                                 <h3 style={{ padding: '28px' }}>Enter Family Name</h3>
+                                                                 <div className='edit-Input'>
+                                                                      <Icon fontSize="small">diversity_3</Icon>
+                                                                      <Input type="text"
+                                                                           placeholder="Enter...."
+                                                                           value={Add}
+                                                                           onChange={(e) => handleAddInput(e)}
+                                                                           className='pop-up-input' />
+                                                                 </div>
                                                             </div>
-                                                            <Button variant="contained" color="error" onClick={togglePopup} className='btn-pop'>Close</Button>
-                                                            <Button variant="contained" color="success" onClick={() => handleAddsave()}>Save</Button>
+                                                            <div className='btn-pop'>
+                                                                 <MDButton variant="contained" color="error" onClick={togglePopup} className='btn-pop'>Close</MDButton>
+                                                                 <MDButton variant="contained" color="success" onClick={() => handleAddsave()}>Save</MDButton>
+                                                            </div>
                                                        </div>
                                                   </div>
                                              </div>
@@ -373,17 +418,13 @@ function Family() {
 
 
                               </Card>
-                              <Table>
-
+                              <Table className='family-Table'>
                                    <MDBox>
-
-                                        <thead>
+                                        <tbody>
                                              <tr>
                                                   <th>Family Name</th>
                                                   <th>Action</th>
                                              </tr>
-                                        </thead>
-                                        <tbody>
                                              {familyData.map((item, index) => (
                                                   <>
                                                        <tr key={index}>
@@ -394,17 +435,36 @@ function Family() {
                                                                                 <div className="popup" onClick={preventClose}>
                                                                                      <div className="popup-content">
                                                                                           <div className='pop-input-div'>
-                                                                                               <Input
-                                                                                                    type="text"
-                                                                                                    value={isEditing}
-                                                                                                    onChange={(e) => handleEditInput(index, e.target.value)}
-                                                                                                    className='pop-up-input'
-                                                                                               />
+                                                                                               <h3 style={{ padding: '28px' }}>Change Family Name</h3>
+                                                                                               <div className='edit-Input'>
+                                                                                                    <Icon fontSize="small">diversity_3</Icon>
+                                                                                                    <Input
+                                                                                                         type="text"
+                                                                                                         value={isEditing}
+                                                                                                         onChange={(e) => handleEditInput(index, e.target.value)}
+                                                                                                         className='pop-up-input'
+                                                                                                    />
+                                                                                               </div>
                                                                                           </div>
-
-                                                                                          <Button variant="contained" color="error" onClick={togglePopup} className='btn-pop'>Close</Button>
-                                                                                          <Button variant="contained" color="success" onClick={() => handleSave(item.id)}>Save</Button>
-
+                                                                                          <div className='btn-pop'>
+                                                                                               <MDButton variant="contained" color="error" onClick={togglePopup}>Close</MDButton>
+                                                                                               <MDButton variant="contained" color="success" onClick={() => handleSave(item)}>Save</MDButton>
+                                                                                          </div>
+                                                                                          <Card>
+                                                                                               {ErrorflashMessage && (
+                                                                                                    <div>
+                                                                                                         <div className="overlay" onClick={closePopup}>
+                                                                                                              <div className="popup">
+                                                                                                                   <div className="popup-content">
+                                                                                                                        <div className='Errorflash-message'>
+                                                                                                                             {ErrorflashMessage}
+                                                                                                                        </div>
+                                                                                                                   </div>
+                                                                                                              </div>
+                                                                                                         </div>
+                                                                                                    </div>
+                                                                                               )}
+                                                                                          </Card>
                                                                                      </div>
                                                                                 </div>
                                                                            </div>
@@ -434,14 +494,14 @@ function Family() {
                                    <div className="addbtn">
                                         <h2>Family Users Management</h2>
                                         <div>
-                                             <Button className="btnNotofication" onClick={handleNotofication}><Icon size="large"><h3>notifications</h3></Icon> </Button>
+                                             {/* <Button className="btnNotofication" onClick={handleNotofication}><Icon size="large"><h3>notifications</h3></Icon> </Button> */}
                                              <Button variant="contained" className="btnfamilylist" onClick={handleInvite}>Invite + </Button>
                                         </div>
                                    </div>
-                                   <Card>
+                                   <Card style={{ width: '34%' }}>
                                         <>
                                              <div>
-                                                  <Table>
+                                                  <Table className='family-Table'>
                                                        <MDBox>
                                                             <thead>
                                                                  <tr>
@@ -469,31 +529,40 @@ function Family() {
                                                                                      <div className="popup" onClick={preventClose}>
                                                                                           <div className="popup-content">
                                                                                                <div className='pop-input-div'>
-                                                                                                    <MDBox mb={2}>
-                                                                                                         <h3>Invite User</h3>
-                                                                                                         <Input
-                                                                                                              name="phoneNumbers"
-                                                                                                              label="phoneNumbers"
-                                                                                                              country={'in'}
-                                                                                                              fullWidth
-                                                                                                              onChange={(e) => handleInviteChange(e.target.value)}
-                                                                                                              value={phoneNumbers}
-                                                                                                         />
-                                                                                                    </MDBox>
+                                                                                                    <form>
+                                                                                                         <MDBox mb={2}>
+                                                                                                              <h3>Invite User</h3>
+                                                                                                              <Input
+                                                                                                                   placeholder="Phone Number"
+                                                                                                                   label="phoneNumbers"
+                                                                                                                   country={'in'}
+                                                                                                                   value={phoneNumbers}
+                                                                                                                   fullWidth
+                                                                                                                   onChange={(e) => handleInviteChange(e.target.value)}
+                                                                                                                   inputProps={{
+                                                                                                                        required: true,
+                                                                                                                   }}
+
+                                                                                                              />
+                                                                                                         </MDBox>
+                                                                                                    </form>
                                                                                                     <MDBox mt={4} mb={1}>
-                                                                                                         {familyData.map((item) => (
+                                                                                                         {familyData.length > 0 && (
                                                                                                               <MDButton
+                                                                                                                   key={familyData[0].id}
                                                                                                                    type="submit"
                                                                                                                    variant="gradient"
-                                                                                                                   onClick={() => handleInviteSubmit(item.id)}
+                                                                                                                   onClick={() => handleInviteSubmit(familyData[0].id)}
                                                                                                                    color="docuit"
                                                                                                                    fullWidth
+                                                                                                                   disabled={!enabled}
                                                                                                               >
                                                                                                                    Invite
-                                                                                                              </MDButton>
-                                                                                                         ))}
 
+                                                                                                              </MDButton>
+                                                                                                         )}
                                                                                                     </MDBox>
+
                                                                                                </div>
                                                                                           </div>
                                                                                      </div>

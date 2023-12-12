@@ -11,6 +11,7 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(!!token);
     const [UserData, setuserdata] = useState(null);
     const [FamilyMemberData, setFamilyMemberData] = useState(null);
+    const [category, setcategory] = useState(null);
 
 
     const loginSuccess = async () => {
@@ -23,6 +24,8 @@ export const AuthProvider = ({ children }) => {
 
     const value = {
         UserData,
+        category,
+        setcategory,
         isAuthenticated,
         loginSuccess,
         logoutSuccess,

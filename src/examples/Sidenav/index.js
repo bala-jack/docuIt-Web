@@ -1,9 +1,9 @@
 
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // react-router-dom components
-import { useLocation, NavLink } from "react-router-dom";
+import { useLocation, NavLink, useNavigate } from "react-router-dom";
 
 // prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
@@ -34,13 +34,24 @@ import {
 } from "context";
 import { logout } from "services";
 import { useAuth } from "context/AuthContext";
+import { Avatar } from "@mui/material";
+import Assets from "layouts/Documents/Assets";
+import { findUser } from "services";
+
 
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode } = controller;
+  const navigate = useNavigate();
   const location = useLocation();
   const collapseName = location.pathname.replace("/", "");
-  const {logoutSuccess} = useAuth()
+  const { logoutSuccess, UserData, setcategory } = useAuth()
+  //Praveen Change
+  const [openCollapse, setOpenCollapse] = useState(null);
+  const [categoryDetails, setCategoryDetails] = useState([]);
+  const [activeCategory, setActiveCategory] = useState(null);
+
+
 
   let textColor = "white";
 
@@ -53,6 +64,24 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const closeSidenav = () => setMiniSidenav(dispatch, true);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userId = UserData?.id;
+        const { data } = await findUser(userId);
+
+        if (data?.response?.categoryDetails) {
+          const extractedData = data.response.categoryDetails.map((categoryDetails) => ({
+            categoryId: categoryDetails.categoryId,
+            categoryName: categoryDetails.categoryName,
+            fileCount: categoryDetails.fileCount
+          }));
+          setCategoryDetails(extractedData);
+          setcategory(extractedData);
+        }
+      } catch (err) {
+        console.error("API call failed:", err);
+      }
+    }
     // A function that sets the mini state of the sidenav.
     function handleMiniSidenav() {
       setMiniSidenav(dispatch, window.innerWidth < 1200);
@@ -67,25 +96,83 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
 
     // Call the handleMiniSidenav function to set the state with the initial value.
     handleMiniSidenav();
-
+    fetchData();
     // Remove event listener on cleanup
     return () => window.removeEventListener("resize", handleMiniSidenav);
-  }, [dispatch, location]);
+  }, [dispatch, location, findUser]);
 
-  const handleSidenave = (name) => {
-    if (name === 'Logout') {
-      logout()
-      logoutSuccess()
+  const handleSidenave = (name, route) => {
+    if (route && route.route) {
+      setOpenCollapse(route.key); // Highlight the active collapse
+      navigate(route.route); // Navigate to the specified route
+    } else if (name === 'Logout') {
+      logout();
+      logoutSuccess();
+      navigate("/signIn");
     }
+    // if (name === 'Logout') {
+    //   logout()
+    //   logoutSuccess()
+    // }
 
     console.log(name)
   }
 
+  const handleToggleCollapse = (key, categoryDetails) => {
+    setOpenCollapse((prevOpenCollapse) => (prevOpenCollapse === key ? null : key));
+    setActiveCategory(categoryDetails);
+  };
+  const handleToggleNavigate = (categoryId, categoryName) => {
+    navigate(`/documents/${categoryName}`);
+    setActiveCategory(categoryName);
+  }
+
   // Render all the routes from the routes.js (All the visible items on the Sidenav)
-  const renderRoutes = routes.map(({ type, name, icon, title, noCollapse, key, href, route }) => {
+  const renderRoutes = (routes || []).map(({ type, name, icon, count, title, noCollapse, key, href, route, subRoute }) => {
     let returnValue;
 
-    if (type === "collapse") {
+    if (name === "Documents") {
+      returnValue = (
+        <div key={key}>
+          <div onClick={() => handleToggleCollapse(key, categoryDetails)}>
+            <SidenavCollapse name={name} icon={icon} key={key} />
+          </div>
+          {openCollapse === key && (
+            <List style={{paddingLeft:'22px'}}>
+              {categoryDetails.map((category) => (
+                <div
+                  key={category.categoryId}
+                  onClick={() => handleToggleNavigate(category.categoryId, category.categoryName)}
+                >
+
+                  <SidenavCollapse
+                    name={category.categoryName}
+                    icon={icon}
+                    count={category.fileCount}
+                    active={
+                      openCollapse === category.categoryId ||
+                      (activeCategory && activeCategory === category.categoryName) ||
+                      location.pathname === `/documents/${category.categoryName}`
+                    }
+                  // active={openCollapse === category.categoryId || activeCategory === category.categoryName}
+                  />
+                </div>
+              ))}
+              {/* {(subRoute || []).map((subRoute) => (
+                <Link key={subRoute.key} to={subRoute.route} onClick={() => handleSidenave(subRoute.name, subRoute)}>
+                  <SidenavCollapse name={subRoute.name}
+                    icon={icon}
+                    active={key === collapseName}
+                    noCollapse={noCollapse}
+                    route={route}
+                  />
+                </Link>
+              ))} */}
+            </List>
+          )}
+        </div>
+      );
+    } else if (type === "collapse") {
       returnValue = href ? (
         <Link
           href={href}
@@ -101,6 +188,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             noCollapse={noCollapse}
           />
         </Link>
+
       ) : (
         <NavLink key={key} to={route} onClick={() => handleSidenave(name)}>
           <SidenavCollapse name={name} icon={icon} active={key === collapseName} />
@@ -138,6 +226,30 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
     return returnValue;
   });
 
+  //Avatar Color
+  const stringAvatar = (name) => {
+    return {
+      sx: {
+        bgcolor: stringToColor(name),
+      },
+      children: `${name ? name.charAt(0).toUpperCase() : ''}`,
+    };
+  };
+
+  const stringToColor = (string) => {
+    if (!string) {
+      return '#000000';
+    }
+    let hash = 0;
+    for (let i = 0; i < string.length; i++) {
+      hash = string.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const color = Math.abs(hash).toString(16).substring(0, 6);
+    return `#${'0'.repeat(6 - color.length)}${color}`;
+  };
+  //Avatar color ends
+
+  console.log('categoryDetails}}}}}}}}}}}}}', categoryDetails);
   return (
     <SidenavRoot
       {...rest}
@@ -158,9 +270,17 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             <Icon sx={{ fontWeight: "bold" }}>close</Icon>
           </MDTypography>
         </MDBox>
-        <MDBox component={NavLink} to="/" display="flex" alignItems='flex-start'>
-          {brand && <MDBox component="img" src={brand} alt="Brand" width="2rem" />}
-          {/* <MDAvatar src={image} name={name} size="sm" variant="rounded" /> */}
+
+        <MDBox component={NavLink} to="/dashboard" display="flex" alignItems='flex-start'>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {brand && <MDBox component="img" src={brand} alt="Brand" width="2rem" />}
+            <div style={{ display: 'flex', paddingLeft: '48px', alignItems: 'center' }}>
+              <span style={{ paddingRight: '5px' }}><Avatar {...stringAvatar(UserData?.name)} /></span>
+              <span>
+                <h4 style={{ color: 'white' }}>{UserData?.name}</h4>
+              </span>
+            </div>
+          </div>
           <MDBox
             width={!brandName && "100%"}
             sx={(theme) => sidenavLogoLabel(theme, { miniSidenav })}
@@ -178,6 +298,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
         }
       />
       <List>{renderRoutes}</List>
+
     </SidenavRoot>
   );
 }
