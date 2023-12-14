@@ -117,10 +117,10 @@ export default function App() {
         <Route path="/verify" element={<Verify />} key='verify' />;
         <Route path="/setpin" element={<Setpin />} key='setpin' />;
         {/* {category.map((item) => { */}
-          <Route path="documents/Life Insurance" element={<LifeIns />}  />;
-          <Route path="documents/Assets" element={<Assets />} />;
+          <Route path="/documents/Life Insurance" element={<LifeIns />}  />;
+          {/* <Route path="documents/Assets" element={<Assets />} />;
           <Route path="documents/Health Insurance" element={<HealthIns />}  />;
-          <Route path="documents/Finance Accounts" element={<FinanceAcc />}  />;
+          <Route path="documents/Finance Accounts" element={<FinanceAcc />}  />; */}
         {/* })} */}
         {getRoutes(routes, isAuthenticated)}
         <Route path="*" element={<Navigate to="/signIn" />} />

@@ -49,6 +49,7 @@ const routes = [
     route: "/documents",
     component: <Documents />,
     role: 'User',
+    // fileCount: 0,
     // subRoute: [
     //   {
     //     name: "Assets",

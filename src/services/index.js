@@ -14,6 +14,15 @@ const axiosInstance = axios.create({
     }
 })
 
+const axiosUpload = axios.create({
+    baseURL: BASE_URL,
+    headers: {
+        'Content-Type': 'multipart/form-data',
+        'accept': '*/*',
+        'AllowedOrigin': '*',
+        'X-Requested-With': 'XMLHttpRequest'
+    }
+})
 
 const axiosAuthInstance = axios.create({
     baseURL: BASE_URL,
@@ -26,6 +35,7 @@ const axiosAuthInstance = axios.create({
 })
 
 axiosAuthInstance.interceptors.request.use(config => axiosRequest(config))
+
 
 const axiosRequest = (config) => {
     const token = localStorage.getItem('docuItToken')
@@ -135,7 +145,6 @@ export const editFamily = async (params) => {
 }
 
 export const deleteFamily = async (params) => {
-    console.log(params);
     // const token = localStorage.getItem('docuItToken')
     // if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
     //     axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
@@ -187,6 +196,34 @@ export const findUser = async (params) => {
         axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
     }
     return await axiosInstance.get(`category/find/user/` + params);
+}
+
+export const UsercategoryList = async (params) => {
+    const userId = params.userId;
+    const categoryId = params.categoryId;
+    const token = localStorage.getItem('docuItToken')
+    if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
+        axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return await axiosInstance.get(`category/find/user/${userId}/category/${categoryId}`);
+}
+
+export const uploadDocuments = async (userId, param) => {
+
+    const token = localStorage.getItem('docuItToken')
+    if (token && axiosUpload.defaults.headers['Authorization'] !== `Bearer ${token}`) {
+        axiosUpload.defaults.headers['Content-Type'] = 'multipart/form-data';
+        axiosUpload.defaults.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return await axiosUpload.post(`document/uploadDocument?userId=${userId}`,  param);
+}
+
+export const saveDocuments = async (params) => {
+    const token = localStorage.getItem('docuItToken')
+    if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
+        axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return await axiosInstance.post(`document/saveDocument`, params);
 }
 
 // Integration

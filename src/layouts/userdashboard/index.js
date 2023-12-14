@@ -17,6 +17,8 @@ import Icon from "@mui/material/Icon";
 import './userdash.css';
 import { Viewer, SpecialZoomLevel } from '@react-pdf-viewer/core';
 
+import PDFViewer from 'pdf-viewer-reactjs'
+
 function Dashboard() {
   pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
   const [datas, setData] = useState([]);
@@ -69,29 +71,31 @@ function Dashboard() {
 
         </div> */}
         <h2 className="card-head">Recent Activity</h2>
+        {console.log('UDData>>>>>', datas)}
 
-        {datas.map((item, index) => (
+        {/* {datas.map((item, index) => (
           <>
             {console.log('PDF URL:', item.url)}
 
             <Card>
-
+            {console.log('Item:', item.url)}
               <div className="thumbnail-container" key={index}>
 
                 <div className="recent-view">
                   <div>
-                    {/* <Document file={{ url: item.url.startsWith('http') ? 'https://cors-anywhere.herokuapp.com/' + item.url : item.url }}>
+                    <Document file={{ url: item.url }}>
 
                     {console.log('encodeURI(item.url)', item)}
                     <Page pageNumber={1} /> defaultScale={SpecialZoomLevel.PageFit}
-                  </Document> */}
+                  </Document>
+
                     <Viewer fileUrl={corsAnywhereUrl + item.url} className="pdf-img" />
-                    {/* <Viewer
+                    <Viewer
                       fileUrl={corsAnywhereUrl + item.url}
                       httpHeaders={{ Authorization: `Bearer ${isAuthenticated}` }}
                       className="pdf-img"
                       onError={(error) => console.error('PDF Viewer Error:', error)}
-                    /> */}
+                    />
 
                   </div>
                   <div className="doc-details">
@@ -103,11 +107,13 @@ function Dashboard() {
                 </div>
               </div>
             </Card>
-
-            {/* item.createdAt.substring(item.createdAt.length - 17, item.createdAt.length) */}
-
-          </>
-        ))}
+   </>
+        ))} */}
+        <PDFViewer
+          document={{
+            url: 'https://arxiv.org/pdf/quant-ph/0410100.pdf',
+          }}
+        />
 
       </DashboardLayout>
     </>
