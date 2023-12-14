@@ -27,10 +27,6 @@ import SignUp from './layouts/authentication/sign-up'
 import ForgetPin from './layouts/authentication/sign-up/forgetPin.js'
 import Verify from './layouts/authentication/sign-up/verify.js'
 import Setpin from './layouts/authentication/sign-up/setpin.js'
-import Assets from "layouts/Documents/Assets";
-import LifeIns from "layouts/Documents/lifeInsurance";
-import HealthIns from "layouts/Documents/healthInsurance";
-import FinanceAcc from "layouts/Documents/financeAcoounts";
 
 
 export default function App() {
@@ -116,12 +112,6 @@ export default function App() {
         <Route path="/forgetPin" element={<ForgetPin />} key='forgetPin' />;
         <Route path="/verify" element={<Verify />} key='verify' />;
         <Route path="/setpin" element={<Setpin />} key='setpin' />;
-        {/* {category.map((item) => { */}
-          <Route path="/documents/Life Insurance" element={<LifeIns />}  />;
-          {/* <Route path="documents/Assets" element={<Assets />} />;
-          <Route path="documents/Health Insurance" element={<HealthIns />}  />;
-          <Route path="documents/Finance Accounts" element={<FinanceAcc />}  />; */}
-        {/* })} */}
         {getRoutes(routes, isAuthenticated)}
         <Route path="*" element={<Navigate to="/signIn" />} />
       </Routes>

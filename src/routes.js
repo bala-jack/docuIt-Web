@@ -7,16 +7,8 @@ import Dashboard from "./layouts/userdashboard";
 // @mui icons
 import Icon from "@mui/material/Icon";
 import Family from "layouts/family";
-import AdminDashboard from "./layouts/dashboard";
-import FamilyMembers from "layouts/familyMembers";
-import FamilyMember from "./layouts/family";
 import PendingInvites from "layouts/pendingInvites";
 import Documents from "layouts/Documents";
-import Assets from "layouts/Documents/Assets";
-import LifeIns from "layouts/Documents/lifeInsurance";
-import HealthIns from "layouts/Documents/healthInsurance";
-import FinanceAcc from "layouts/Documents/financeAcoounts";
-
 
 
 const routes = [
@@ -31,15 +23,6 @@ const routes = [
     role: 'User'
 
   },
-  // {
-  //   type: "collapse",
-  //   name: "AdminDashboard",
-  //   key: "admindashboard",
-  //   icon: <Icon fontSize="small">dashboard</Icon>,
-  //   route: "/dashboard",
-  //   component: <AdminDashboard />,
-  //   role : 'admin',
-  // },
 
   {
     type: "collapse",
@@ -49,41 +32,6 @@ const routes = [
     route: "/documents",
     component: <Documents />,
     role: 'User',
-    // fileCount: 0,
-    // subRoute: [
-    //   {
-    //     name: "Assets",
-    //     key: "assets",
-    //     icon: <Icon fontSize="small">source</Icon>,
-    //     route: "/documents/assets",
-    //     component: <Assets />,
-    //     role: 'User',
-    //   },]
-    //   {
-    //     name: "Life Insurance",
-    //     key: "lifeinsurance",
-    //     icon: <Icon fontSize="small">source</Icon>,
-    //     route: "/documents/lifeinsurance",
-    //     component: <LifeIns />,
-    //     role: 'User',
-    //   },
-    //   {
-    //     name: "Health Insurance",
-    //     key: "healthinsurance",
-    //     icon: <Icon fontSize="small">source</Icon>,
-    //     route: "/documents/healthinsurance",
-    //     component: <HealthIns />,
-    //     role: 'User',
-    //   },
-    //   {
-    //     name: "Finance Accounts",
-    //     key: "financeaccounts",
-    //     icon: <Icon fontSize="small">source</Icon>,
-    //     route: "/documents/financeaccounts",
-    //     component: <FinanceAcc />,
-    //     role: 'User',
-    //   },
-    // ]
   },
 
   {

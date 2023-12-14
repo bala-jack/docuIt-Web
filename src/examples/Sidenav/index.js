@@ -35,7 +35,6 @@ import {
 import { logout } from "services";
 import { useAuth } from "context/AuthContext";
 import { Avatar, Collapse, ListItemButton, ListItemText } from "@mui/material";
-import Assets from "layouts/Documents/Assets";
 import { findUser } from "services";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 
@@ -141,7 +140,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           </ListItemButton>
           <Collapse in={openCollapse} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              <ListItemButton sx={{ pl: 4 }} style={{display:'flow'}}>
+              <ListItemButton sx={{ pl: 4 }} style={{ display: 'flow' }}>
                 {categoryDetails.map((item, index) => (
                   <div
                     key={item.categoryId}

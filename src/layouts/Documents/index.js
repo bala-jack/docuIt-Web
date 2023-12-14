@@ -1,18 +1,20 @@
 import { useAuth } from "context/AuthContext";
 import { useEffect } from "react";
 import { UsercategoryList } from "services";
-import { Box, Button, Card, Icon, SpeedDial, SpeedDialAction, SpeedDialIcon } from "@mui/material";
+import { Button, Card, Icon } from "@mui/material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import { useState } from "react";
 import { Grid } from "react-loader-spinner";
 import Moment from "react-moment";
-
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import styled from "@emotion/styled";
 import { saveDocuments } from "services";
-import { useParams } from "react-router-dom";
 import { uploadDocuments } from "services";
+import { pdfjs } from 'react-pdf';
+import { Viewer, Worker } from '@react-pdf-viewer/core';
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 const VisuallyHiddenInput = styled('input')({
      clip: 'rect(0 0 0 0)',
@@ -29,15 +31,14 @@ const VisuallyHiddenInput = styled('input')({
 const ALLOWED_FILE_TYPES = ["application/pdf", "image/png"];
 
 function Documents() {
-     const { category, UserData, categoryName } = useAuth();
+     const { category, UserData, isAuthenticated } = useAuth();
      const [flashMessage, setFlashMessage] = useState('');
      const [isLoading, setIsLoading] = useState(false);
      const [LifeData, setLifeData] = useState([]);
      const [uploadClicked, setUploadClicked] = useState(false);
      const [selectFile, setSelectedFile] = useState(null);
      const userId = UserData?.id;
-     // cons categoryName = category
-     console.log('categoryId---------', category)
+     pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
 
      useEffect(() => {
           const fetchData = async () => {
@@ -171,11 +172,22 @@ function Documents() {
                               <Grid></Grid>
                          )}
                          {LifeData.map((item, index) => (
-                              <Card>
-                                   <div className="thumbnail-container" key={index}>
+                              <Card style={{ marginTop: '40px', marginBottom: '40px' }} key={index}>
+                                   <div style={{display:'flex', justifyContent:'end', padding:'10px', cursor:'pointer'}}>
+                                     <Icon fontSize="small">more_vert</Icon>
+                                     </div>
+                                   <div className="thumbnail-container">
                                         <div className="recent-view">
-                                             <div>
-                                                  {/* <Viewer fileUrl={corsAnywhereUrl + item.url} className="pdf-img" /> */}
+                                             <div style={{ height: '96%' }}>
+                                                  <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}>
+                                                       <Viewer
+                                                            // fileUrl={`https://cors-anywhere.herokuapp.com/${item.url}`}
+                                                            fileUrl={'http://s3.ap-south-1.amazonaws.com/docuit-dev/dockit/f1ecde14-cd12-4aea-9d56-407b450d0e97/reactjs_session1.pdf'}
+                                                            httpHeaders={{ Authorization: `Bearer ${isAuthenticated}`, 'Content-Type': 'application/pdf' }}
+                                                            className="pdf-img"
+                                                            onError={(error) => console.error('PDF Viewer Error:', error)}
+                                                       />
+                                                  </Worker>
                                              </div>
                                              <div className="doc-details">
                                                   <h5>{item.documentName}</h5>

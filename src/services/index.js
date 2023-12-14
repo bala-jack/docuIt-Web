@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
         'Content-Type': 'application/json',
         'accept': '*/*',
         'AllowedOrigin': '*',
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
     }
 })
 
@@ -215,7 +215,7 @@ export const uploadDocuments = async (userId, param) => {
         axiosUpload.defaults.headers['Content-Type'] = 'multipart/form-data';
         axiosUpload.defaults.headers['Authorization'] = `Bearer ${token}`;
     }
-    return await axiosUpload.post(`document/uploadDocument?userId=${userId}`,  param);
+    return await axiosUpload.post(`document/uploadDocument?userId=${userId}`, param);
 }
 
 export const saveDocuments = async (params) => {

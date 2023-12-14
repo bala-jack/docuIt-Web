@@ -3,28 +3,24 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import React, { useEffect, useState } from 'react';
 import { userdashboard } from "../../services/index";
-import MDBox from "components/MDBox";
 import { Card } from "@mui/material";
-import { docupload } from "../../services/index";
-import { Link } from "react-router-dom";
 import Moment from 'react-moment';
 import 'moment-timezone';
 import { useAuth } from "context/AuthContext";
 //import { Document, Page } from 'react-pdf';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { pdfjs } from 'react-pdf';
 import './userdash.css';
-import Icon from "@mui/material/Icon";
 import './userdash.css';
-import { Viewer, SpecialZoomLevel } from '@react-pdf-viewer/core';
+import { Viewer, Worker } from '@react-pdf-viewer/core';
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
-import PDFViewer from 'pdf-viewer-reactjs'
 
 function Dashboard() {
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
   const [datas, setData] = useState([]);
-  const { UserData, setuserdata, isAuthenticated } = useAuth();
+  const { UserData, isAuthenticated } = useAuth();
   const vals = UserData?.id;
-  const corsAnywhereUrl = 'https://cors-anywhere.herokuapp.com/';
+  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
   console.log(UserData?.id);
 
 
@@ -46,57 +42,25 @@ function Dashboard() {
     <>
       <DashboardLayout>
         <DashboardNavbar />
-
-        {/* <div className="card-box">
-          <Link to="/usercategory">
-            <Card className="userdash-card">
-              <div className="doc-card">
-                <span className="icon-userdash"><Icon fontSize="large">topic</Icon></span>
-
-                <h4>My Documents</h4>
-              </div>
-
-            </Card>
-          </Link>
-
-          <Link to="/family" style={{}}>
-            <Card className="userdash-card">
-              <div className="doc-card">
-                <span className="icon-userdash"><Icon fontSize="large">groupAdd</Icon></span>
-
-                <h4>My Family</h4>
-              </div>
-            </Card>
-          </Link>
-
-        </div> */}
         <h2 className="card-head">Recent Activity</h2>
         {console.log('UDData>>>>>', datas)}
 
-        {/* {datas.map((item, index) => (
+        {datas.map((item, index) => (
           <>
             {console.log('PDF URL:', item.url)}
-
-            <Card>
-            {console.log('Item:', item.url)}
-              <div className="thumbnail-container" key={index}>
-
+            <Card key={index} style={{ marginTop: '40px', marginBottom: '40px' }}>
+              {console.log('Item:', item.id)}
+              <div className="thumbnail-container" key={item.id}>
                 <div className="recent-view">
-                  <div>
-                    <Document file={{ url: item.url }}>
-
-                    {console.log('encodeURI(item.url)', item)}
-                    <Page pageNumber={1} /> defaultScale={SpecialZoomLevel.PageFit}
-                  </Document>
-
-                    <Viewer fileUrl={corsAnywhereUrl + item.url} className="pdf-img" />
-                    <Viewer
-                      fileUrl={corsAnywhereUrl + item.url}
-                      httpHeaders={{ Authorization: `Bearer ${isAuthenticated}` }}
-                      className="pdf-img"
-                      onError={(error) => console.error('PDF Viewer Error:', error)}
-                    />
-
+                  <div style={{ height: '96%' }}>
+                    <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}>
+                      <Viewer
+                        fileUrl={'http://s3.ap-south-1.amazonaws.com/docuit-dev/dockit/f1ecde14-cd12-4aea-9d56-407b450d0e97/reactjs_session1.pdf'}
+                        httpHeaders={{ Authorization: `Bearer ${isAuthenticated}`, 'Content-Type': 'application/pdf' }}
+                        className="pdf-img"
+                        onError={(error) => console.error('PDF Viewer Error:', error)}
+                      />
+                    </Worker>
                   </div>
                   <div className="doc-details">
 
@@ -107,13 +71,13 @@ function Dashboard() {
                 </div>
               </div>
             </Card>
-   </>
-        ))} */}
-        <PDFViewer
+          </>
+        ))}
+        {/* <PDFViewer
           document={{
             url: 'https://arxiv.org/pdf/quant-ph/0410100.pdf',
           }}
-        />
+        /> */}
 
       </DashboardLayout>
     </>
