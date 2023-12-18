@@ -50,6 +50,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const [openCollapse, setOpenCollapse] = useState(null);
   const [categoryDetails, setCategoryDetails] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
+  const [activeMainMenu, setActiveMainMenu] = useState(null);
 
 
 
@@ -101,17 +102,19 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   }
 
   const handleToggleCollapse = async (key) => {
+    setOpenCollapse((prevOpenCollapse) => (prevOpenCollapse === key ? null : key));
+    setActiveMainMenu(activeMainMenu === key ? null : key);
+    setActiveCategory(null);
     try {
       const userId = UserData?.id;
       const { data } = await findUser(userId);
-
+      console.log('dataFind User', data)
       if (data?.response?.categoryDetails) {
         const extractedData = data.response.categoryDetails.map((categoryDetails) => ({
           categoryId: categoryDetails.categoryId,
           categoryName: categoryDetails.categoryName,
           fileCount: categoryDetails.fileCount
         }));
-        setOpenCollapse((prevOpenCollapse) => (prevOpenCollapse === key ? null : key));
         setCategoryDetails(extractedData);
       }
     } catch (err) {
@@ -125,8 +128,11 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const handleSubmenuClick = (category) => {
     navigate(`/documents`)
     setcategory(category);
+    setActiveMainMenu(null);
+    setActiveCategory(category.categoryId);
     console.log('categoryName:::::', category);
   }
+  console.log('activeCategory : ', activeCategory)
   // Render all the routes from the routes.js (All the visible items on the Sidenav)
   const renderRoutes = (routes || []).map(({ type, name, icon, fileCount, count, title, noCollapse, key, href, route, subRoute }) => {
     let returnValue;
@@ -134,54 +140,25 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
     if (name === "Documents") {
       returnValue = (
         <div key={key}>
-          <ListItemButton onClick={() => handleToggleCollapse(key)}>
-            <SidenavCollapse name={name} icon={icon} key={key} route={route} active={key === collapseName} />
+          <SidenavCollapse name={name} icon={icon} key={key} route={route} active={key === activeMainMenu} onClick={() => handleToggleCollapse(key)}>
             {openCollapse === key ? <ExpandLess /> : <ExpandMore />}
-          </ListItemButton>
-          <Collapse in={openCollapse} timeout="auto" unmountOnExit>
+          </SidenavCollapse>
+          <Collapse in={openCollapse === key} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              <ListItemButton sx={{ pl: 4 }} style={{ display: 'flow' }}>
-                {categoryDetails.map((item, index) => (
-                  <div
-                    key={item.categoryId}
-                    onClick={() => handleSubmenuClick(item)}
-                  >
-
-                    <SidenavCollapse
-                      name={item.categoryName}
-                      icon={icon}
-                      active={
-                        openCollapse === item.categoryId ||
-                        (item === item.categoryName) ||
-                        location.pathname === `/documents`
-                      }
-                    />
-                  </div>
-                ))}
-              </ListItemButton>
-            </List>
-          </Collapse>
-          {/* {openCollapse === key && (
-            <List style={{ paddingLeft: '22px' }}>
               {categoryDetails.map((item, index) => (
-                <div
-                  key={item.categoryId}
-                  onClick={() => handleSubmenuClick(item)}
-                >
+                <ListItemButton key={item.categoryId}
+                  onClick={() => handleSubmenuClick(item)} sx={{ pl: 4 }} style={{ display: 'flow' }}>
 
                   <SidenavCollapse
                     name={item.categoryName}
                     icon={icon}
-                    active={
-                      openCollapse === item.categoryId ||
-                      (item === item.categoryName) ||
-                      location.pathname === `/documents`
-                    }
+                    active={item.categoryId === activeCategory}
                   />
-                </div>
+                </ListItemButton>
               ))}
+
             </List>
-          )} */}
+          </Collapse>
         </div>
       );
     } else if (type === "collapse") {

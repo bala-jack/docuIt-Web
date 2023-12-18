@@ -42,6 +42,7 @@ function Family() {
      const [invitedBy, setInviteBy] = useState('');
      const [isFamilyMembersPage, setIsFamilyMembersPage] = useState(false);
      const [phoneNumbersError, setphoneNumbersError] = useState('');
+    
 
      const { familyName } = useParams();
      const navigate = useNavigate();
@@ -51,27 +52,26 @@ function Family() {
 
 
      useEffect(() => {
-          const fetchData = async () => {
-               try {
-                    const { data } = await listFamily(UserData.id);
-                    if (data?.response?.familyList) {
-                         const extractedData = data.response.familyList.map((familyItem) => ({
-                              name: familyItem.name,
-                              id: familyItem.id,
-                              createdBy: familyItem.createdBy
-                         }));
-                         setFamilyData(extractedData);
-                         // localStorage.setItem('docuItFamilyData', JSON.stringify(extractedData));
-                    }
-               } catch (err) {
-                    console.error("API call failed:", err);
-               }
-          };
-
           fetchData();
      }, [UserData, setFamilyData, setFamilyMemberData, sFamilyMember]);
 
-     const handleFamilyNameClick = async (familyItem) => {
+     const fetchData = async () => {
+          try {
+               const { data } = await listFamily(UserData.id);
+               if (data?.response?.familyList) {
+                    const extractedData = data.response.familyList.map((familyItem) => ({
+                         name: familyItem.name,
+                         id: familyItem.id,
+                         createdBy: familyItem.createdBy
+                    }));
+                    setFamilyData(extractedData);
+                    // localStorage.setItem('docuItFamilyData', JSON.stringify(extractedData));
+               }
+          } catch (err) {
+               console.error("API call failed:", err);
+          }
+     };
+    const handleFamilyNameClick = async (familyItem) => {
           try {
                const familId = familyItem.id;
                const { data } = await listFamilyMembers(familId);
@@ -105,11 +105,12 @@ function Family() {
           setIsEditing(value);
      };
 
-     const handleInviteUser = async (index) => {
+     const handleInviteUser = async (i) => {
           console.log('cliked-inviteUser')
      }
 
-     const handleSave = async (index) => {
+     const handleSave = async () => {
+          console.log("handlesave callback", familyData.id, isEditing);
           try {
                const isNameExistsoverall = familyData.find(item => item.name === isEditing);
 
@@ -121,36 +122,38 @@ function Family() {
                     }, 1000);
                     return;
                }
-               const updatedData = familyData.map(item => {
-                    if (item.id === index.id) {
-                         return {
-                              ...item,
-                              name: isEditing
-                         };
-                    }
-                    return item;
-               });
+
+               // const updatedData = familyData.map(item => {
+               //      if (item.id === index.id) {
+               //           return {
+               //                ...item,
+               //                name: isEditing
+               //           };
+               //      }
+               //      return item;
+               // });
 
                const constructObject = {
                     name: isEditing,
-                    familyId: isNameExistsoverall.id,
-                    adminId: isNameExistsoverall.createdBy
+                    familyId: popupindex,
+                    adminId: UserData.id
                };
 
                const { data } = await editFamily(constructObject);
-               console.log('dat', data?.name);
+
                if (data?.status === 'SUCCESS') {
-                    setFamilyData(updatedData);
-                    setFlashMessage('Family saved successfully!');
+                    setFlashMessage(data.message);
                     setShowPopup(false);
                     setTimeout(() => {
                          setFlashMessage('');
 
                     }, 1000);
+                    fetchData();
                }
 
           } catch (err) {
                console.error('Error saving family:', err);
+               setErrorFlashMessage(err.response.error.message);
           }
 
      };
@@ -161,6 +164,7 @@ function Family() {
           setShowPopup(true);
           setIsEditing(name);
      };
+     console.log(">>>>>>???????", popupindex);
 
      const togglePopup = () => {
           setShowPopup(!showPopup);
@@ -225,10 +229,15 @@ function Family() {
      const handleAddsave = async () => {
           try {
                const adminIdAdd = Add;
+
                const isNameExistsoverall = familyData.find(item => item.name === Add);
+
                if (isNameExistsoverall?.name === Add) {
                     setAddPop(false);
                     setErrorFlashMessage('Family name is already registered');
+                    setTimeout(() => {
+                         setErrorFlashMessage('');
+                    }, 1000);
                     return;
                }
                const val = { name: adminIdAdd, adminId: UserData.id }
@@ -264,11 +273,7 @@ function Family() {
           setphoneNumbers(value);
      }
 
-     console.log('familyMemberData????????????????', FamilyMemberData);
-     console.log('UserData>>>>>>>>>>>', UserData);
-     console.log('familyData--------------', familyData);
-
-
+ 
      return (
           <DashboardLayout className='mainContent'>
                <DashboardNavbar />
@@ -333,10 +338,11 @@ function Family() {
                                                                            className='pop-up-input' />
                                                                  </div>
                                                             </div>
+                                                            {/* for Add new family member */}
                                                             <div className='btn-pop'>
                                                                  <MDButton variant="contained" color="error" onClick={togglePopup} className='btn-pop'>Close</MDButton>
                                                                  {isButtonDisabled ? (
-                                                                      <MDButton variant="contained" disabled={!isButtonDisabled} color="success" onClick={() => handleAddsave()}>Save</MDButton>
+                                                                      <MDButton variant="contained" color="success" onClick={() => handleAddsave()}>Save</MDButton>
 
                                                                  ) : (
                                                                       <MDButton variant="contained" color="success" onClick={() => handleAddsave()}>Save</MDButton>
@@ -358,6 +364,7 @@ function Family() {
                                                   <th>Action</th>
                                              </tr>
                                              {familyData.map((item, index) => (
+
                                                   <>
                                                        <tr key={index}>
                                                             <td>
@@ -378,13 +385,15 @@ function Family() {
                                                                                                     />
                                                                                                </div>
                                                                                           </div>
+                                                                                          {/* for Edit family member */}
                                                                                           <div className='btn-pop'>
                                                                                                <MDButton variant="contained" color="error" onClick={togglePopup}>Close</MDButton>
                                                                                                {isButtonDisabled ? (
-                                                                                                    <MDButton variant="contained" disabled={isButtonDisabled} color="success" onClick={() => handleSave(item)}>Save</MDButton>
+                                                                                                    <MDButton variant="contained" disabled={isButtonDisabled} color="success" onClick={() => { console.log(item); handleSave(item); }} >Save</MDButton>
+
 
                                                                                                ) : (
-                                                                                                    <MDButton variant="contained" color="success" onClick={() => handleSave(item)}>Save</MDButton>
+                                                                                                    <MDButton variant="contained" color="success" onClick={() => { console.log(item); handleSave(item); }} > Save </MDButton>
                                                                                                )}
                                                                                           </div>
                                                                                           <Card>
@@ -528,4 +537,4 @@ function Family() {
 
 }
 
-export default Family;
+export default Family;

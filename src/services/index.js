@@ -226,6 +226,14 @@ export const saveDocuments = async (params) => {
     return await axiosInstance.post(`document/saveDocument`, params);
 }
 
+export const deleteDocument = async (params) => {
+    const token = localStorage.getItem('docuItToken')
+    if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
+        axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return await axiosInstance.delete(`document/deleteDocument?documentId=` + params);
+}
+
 // Integration
 
 export const userdashboard = async (params) => {

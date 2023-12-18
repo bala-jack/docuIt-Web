@@ -1,11 +1,12 @@
 import { useAuth } from "context/AuthContext";
 import { useEffect } from "react";
 import { UsercategoryList } from "services";
-import { Button, Card, Icon } from "@mui/material";
+import { Box, Button, Card, Fade, FormControl, FormControlLabel, FormLabel, Icon, Modal, Paper, Popper, RadioGroup, Tooltip, Typography } from "@mui/material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import { useState } from "react";
 import { Grid } from "react-loader-spinner";
+import Radio from '@mui/material/Radio';
 import Moment from "react-moment";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import styled from "@emotion/styled";
@@ -15,6 +16,11 @@ import { pdfjs } from 'react-pdf';
 import { Viewer, Worker } from '@react-pdf-viewer/core';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import Popover from '@mui/material/Popover';
+import PopupState, { bindTrigger, bindPopover } from 'material-ui-popup-state';
+import { deleteDocument } from "services";
+import { Link } from "react-router-dom";
+import { findUser } from "services";
 
 const VisuallyHiddenInput = styled('input')({
      clip: 'rect(0 0 0 0)',
@@ -37,8 +43,26 @@ function Documents() {
      const [LifeData, setLifeData] = useState([]);
      const [uploadClicked, setUploadClicked] = useState(false);
      const [selectFile, setSelectedFile] = useState(null);
+     const [tooltipOpen, setTooltipOpen] = useState(false);
+     const [openMove, setopenMove] = useState(false);
+     const [catListdata, setcatListdata] = useState([]);
+
+
+     // const [uploadedFiles, setUploadedFiles] = useState([]);
      const userId = UserData?.id;
      pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
+
+     const style = {
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'background.paper',
+          border: '2px solid #000',
+          boxShadow: 24,
+          p: 4,
+     };
 
      useEffect(() => {
           const fetchData = async () => {
@@ -46,8 +70,9 @@ function Documents() {
                     const categoryId = category.categoryId;
                     console.log("categoryIds >>>>", category);
                     const values = { userId, categoryId };
+
                     const { data } = await UsercategoryList(values);
-                    console.log("data : ", data)
+                    console.log("data Usercat : ", data)
                     if (data.status === 'SUCCESS') {
                          setLifeData(data?.response?.documentDetailsList);
                     }
@@ -59,46 +84,56 @@ function Documents() {
           fetchData();
      }, [userId, category])
 
-     useEffect(() => {
-          if (selectFile && uploadClicked) {
-               handleUpload(); // Call handleUpload when both conditions are met
-               setUploadClicked(false); // Reset the state after handling the upload
-          }
-     }, [selectFile, uploadClicked])
+     // useEffect(() => {
+     //      if (selectFile && uploadClicked) {
+     //           setUploadClicked(false); 
+     //      }
+     // }, [selectFile, uploadClicked])
 
-     const handleUploadButtonClick = () => {
-          setUploadClicked(true); // Set the state to indicate the upload button is clicked
-     }
+     // const handleUploadButtonClick = () => {
+     //      handleUpload();
+     //      // setUploadClicked(true); // Set the state to indicate the upload button is clicked
+     // }
 
      const handleFileChange = (event) => {
-          if (event.target.files[0]) {
-               if (ALLOWED_FILE_TYPES.includes(event.target.files[0].type)) {
-                    setSelectedFile(event.target.files[0]);
-                    console.log('event.target.files[0]>>>>>>', event.target.files[0])
+          console.log("event.target::::::::::", event.target.file)
+          const files = event.target.files[0];
+          if (files) {
+               console.log("event.target12::::::::::", files)
+               if (ALLOWED_FILE_TYPES.includes(files.type)) {
+                    console.log("event.target12235::::::::::", files)
+                    console.log('event.target.files[0]>>>>>>', files)
+
                } else {
                     console.error("Invalid selectFile type. Please select a PDF or PNG selectFile.");
                }
+               // setSelectedFile(files);
+               handleUploadButtonClick(files);
           }
      }
+     console.log("selectFile::::::::::", selectFile)
 
-     const handleUpload = async () => {
-          if (!selectFile) {
-               console.error('Please select a selectFile.');
-               return;
-          }
+     const handleUploadButtonClick = async (files) => {
+          console.log("selectFile???????", selectFile);
+          // if (!selectFile) {
+          //      console.error('Please select a selectFile.');
+          //      console.log("If Called???????");
+          //      return;
+          // }
+          // else {
+          console.log("Else Called???????");
           try {
                const file = new FormData();
-               file.append('file', selectFile);
+               file.append('file', files);
+               console.log('file>>>>>>>>', file);
                const { data } = await uploadDocuments(userId, file);
                console.log('uploadResponse>>>>>>>>', data);
 
-               if (data.documentUrl === '') {
-                    console.log("Doc is Empty");
-                    return;
-               }
-               else {
+               if (data) {
+                    setSelectedFile(null);
+                    setIsLoading(true);
+
                     try {
-                         setIsLoading(true);
                          const parmValues = {
                               documentDetails: [
                                    {
@@ -113,10 +148,12 @@ function Documents() {
                          }
 
                          const saveResponse = await saveDocuments(parmValues);
-                         console.log('Save response:', saveResponse.status);
+                         console.log('Save response:', saveResponse);
                          if (saveResponse.status === 200) {
                               setIsLoading(false);
                               setFlashMessage('Document saved successfully');
+                              // const newDocument = saveResponse.data.response[0];
+                              // setUploadedFiles([...uploadedFiles, newDocument]);
                               setTimeout(() => {
                                    setFlashMessage('');
                               }, 1000);
@@ -126,14 +163,83 @@ function Documents() {
                     }
                }
                console.log("uploadResponse>>>>>>", data);
+          } catch (err) {
+               console.error('Error Upload Docs:', err);
+          }
+          // }
 
+     }
 
+     const handleClose = () => setopenMove(false);
 
+     const handleMove = async () => {
+          setTooltipOpen(false);
+          setopenMove(true);
+          try {
+               const userId = UserData?.id;
+               const { data } = await findUser(userId);
+               if (data) {
+                    const extractedData = data.response.categoryDetails.map((categoryDetails) => ({
+                         categoryId: categoryDetails.categoryId,
+                         categoryName: categoryDetails.categoryName,
+                         fileCount: categoryDetails.fileCount
+                    }));
+                    setcatListdata(extractedData);
+               }
           } catch (err) {
                console.error('Error Upload Docs:', err);
           }
      }
      console.log("LifeData::", LifeData);
+
+     const handleDelete = async (documentId) => {
+          try {
+               console.log("Item>>>", documentId);
+               const { data } = await deleteDocument(documentId.documentId);
+               if (data) {
+                    setTooltipOpen(false);
+                    const indexToRemove = LifeData.findIndex(card => card.id === documentId);
+                    if (indexToRemove === -1) {
+                         const updatedCards = [...LifeData];
+                         updatedCards.splice(indexToRemove, 1);
+                         setLifeData(updatedCards);
+                    }
+               }
+          } catch (err) {
+               console.error('Error Upload Docs:', err);
+          }
+     }
+
+     const handleViewPdf = (docDetails) => {
+          const pdfUrl = docDetails.documentUrl;
+          window.open(pdfUrl, '_blank');
+     }
+
+     const handleDownloadPDF = (docDetails) => {
+          const PDFurl = docDetails.documentUrl;
+          const documentName = docDetails.documentName;
+          fetch('https://cors-anywhere.herokuapp.com/' + PDFurl, {
+               method: 'GET',
+               headers: {
+                    'Content-Type': 'application/pdf',
+               },
+          })
+               .then(response => response.blob())
+               .then(blob => {
+                    const url = window.URL.createObjectURL(new Blob([blob]));
+
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = documentName;
+
+                    document.body.appendChild(link);
+
+                    link.click();
+
+                    link.parentNode.removeChild(link);
+               });
+     };
+
      return (
           <DashboardLayout className='mainContent'>
                <DashboardNavbar />
@@ -158,9 +264,9 @@ function Documents() {
 
                     <h2>{category.categoryName}</h2>
                     <div>
-                         <Button className="btnfamilylist" onClick={handleUploadButtonClick} component="label" variant="contained" startIcon={<CloudUploadIcon />}>
+                         <Button className="btnfamilylist" component="label" variant="contained" startIcon={<CloudUploadIcon />}>
                               Upload File
-                              <VisuallyHiddenInput type="file" onChange={handleFileChange} />
+                              <VisuallyHiddenInput type="file" onClick={handleFileChange} />
                          </Button>
                     </div>
                </div>
@@ -171,39 +277,111 @@ function Documents() {
                          {isLoading && (
                               <Grid></Grid>
                          )}
-                         {LifeData.map((item, index) => (
-                              <Card style={{ marginTop: '40px', marginBottom: '40px' }} key={index}>
-                                   <div style={{display:'flex', justifyContent:'end', padding:'10px', cursor:'pointer'}}>
-                                     <Icon fontSize="small">more_vert</Icon>
-                                     </div>
-                                   <div className="thumbnail-container">
-                                        <div className="recent-view">
-                                             <div style={{ height: '96%' }}>
-                                                  <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}>
-                                                       <Viewer
-                                                            // fileUrl={`https://cors-anywhere.herokuapp.com/${item.url}`}
-                                                            fileUrl={'http://s3.ap-south-1.amazonaws.com/docuit-dev/dockit/f1ecde14-cd12-4aea-9d56-407b450d0e97/reactjs_session1.pdf'}
-                                                            httpHeaders={{ Authorization: `Bearer ${isAuthenticated}`, 'Content-Type': 'application/pdf' }}
-                                                            className="pdf-img"
-                                                            onError={(error) => console.error('PDF Viewer Error:', error)}
-                                                       />
-                                                  </Worker>
-                                             </div>
-                                             <div className="doc-details">
-                                                  <h5>{item.documentName}</h5>
-                                                  <h5><Moment format="MMM D YYYY, hh:mm:ss a" >{item.createdAt}</Moment></h5>
-                                                  <h5>Size: {(item.documentSize / (1024 * 1024)).toFixed(2)}MB</h5>
-                                             </div>
-                                        </div>
-                                   </div>
-                              </Card>
-                         ))}
+
+                         <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                              {LifeData.map((item, index) => (
+                                   <>
+                                        <Modal
+                                             open={openMove}
+                                             onClose={handleClose}
+                                             aria-labelledby="modal-modal-title"
+                                             aria-describedby="modal-modal-description"
+                                        >
+                                             <Box sx={style}>
+                                                  {catListdata.map((catItem, index) => (
+                                                       <FormControl>
+                                                             <FormLabel id="demo-radio-buttons-group-label">{item.documentName}</FormLabel>
+                                                            <RadioGroup
+                                                                 aria-labelledby="demo-radio-buttons-group-label"
+                                                                 defaultValue="female"
+                                                                 name="radio-buttons-group"
+                                                            ></RadioGroup>
+                                                            <FormControlLabel value={catItem.categoryName} control={<Radio />} label={catItem.categoryName} />
+                                                            <Button>Move</Button>
+                                                       </FormControl>
+                                                  ))}
+                                             </Box>
+                                        </Modal>
+
+                                        <Box sx={{ flexBasis: '33%', boxSizing: 'border-box', padding: '10px' }} key={index}>
+                                             <Card style={{ marginTop: '40px', marginBottom: '40px' }}>
+                                                  <Box sx={{ display: 'flex', justifyContent: 'end', padding: '10px' }}>
+                                                       <PopupState variant="popover" popupId="demo-popup-popover">
+                                                            {(popupState) => (
+                                                                 <div>
+                                                                      <Icon fontSize="small" sx={{ cursor: 'pointer' }} {...bindTrigger(popupState, item)}>more_vert</Icon>
+                                                                      <Popover
+                                                                           {...bindPopover(popupState)}
+                                                                           anchorOrigin={{
+                                                                                vertical: 'bottom',
+                                                                                horizontal: 'center',
+                                                                           }}
+                                                                           transformOrigin={{
+                                                                                vertical: 'top',
+                                                                                horizontal: 'center',
+                                                                           }}
+                                                                      >
+                                                                           <Box sx={{ display: 'flex', flexDirection: 'column', }}>
+                                                                                <Tooltip title="Move Document" sx={{ m: 1 }} placement="right">
+                                                                                     <Icon onClick={() => handleMove(item)}>drive_file_move</Icon>
+                                                                                </Tooltip>
+                                                                                <Tooltip title="Share Document" sx={{ m: 1 }} placement="right">
+                                                                                     <Icon>share</Icon>
+                                                                                </Tooltip>
+                                                                                <Tooltip title="View Document" sx={{ m: 1 }} placement="right">
+                                                                                     <Icon onClick={() => { handleViewPdf(item); setTooltipOpen(true); }}>visibility</Icon>
+                                                                                </Tooltip>
+                                                                                <Tooltip title="Download Document" sx={{ m: 1 }} placement="right">
+                                                                                     <Link href={item.documentUrl}
+                                                                                          download={item.documentName}
+                                                                                          target="_blank"
+                                                                                          style={{ color: '#212121', display: 'flex', justifyContent: 'center', textDecoration: 'none' }}
+                                                                                          rel="noreferrer"> <Icon onClick={(e) => { e.preventDefault(); handleDownloadPDF(item); setTooltipOpen(true); }}>download_for_offline</Icon>
+                                                                                     </Link>
+                                                                                </Tooltip>
+                                                                                <Tooltip title="Delete Document" sx={{ m: 1 }} placement="right">
+                                                                                     <Icon onClick={() => { handleDelete(item); setTooltipOpen(true); }}>delete</Icon>
+                                                                                </Tooltip>
+                                                                           </Box>
+                                                                      </Popover>
+                                                                 </div>
+                                                            )}
+                                                       </PopupState>
+
+                                                  </Box>
+                                                  <Box>
+                                                       <Box sx={{ height: '166px' }}>
+                                                            <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}>
+                                                                 <Viewer
+                                                                      // fileUrl={`https://cors-anywhere.herokuapp.com/${item.url}`}
+                                                                      fileUrl={'http://s3.ap-south-1.amazonaws.com/docuit-dev/dockit/f1ecde14-cd12-4aea-9d56-407b450d0e97/reactjs_session1.pdf'}
+                                                                      httpHeaders={{ Authorization: `Bearer ${isAuthenticated}`, 'Content-Type': 'application/pdf' }}
+                                                                      className="pdf-img"
+                                                                      onError={(error) => console.error('PDF Viewer Error:', error)}
+                                                                 />
+                                                            </Worker>
+                                                       </Box>
+                                                       <div className="doc-details">
+                                                            <h5>{item.documentName}</h5>
+                                                            {/* <h5><Moment format="MMM D YYYY, hh:mm:ss a" >{item.createdAt}</Moment></h5> */}
+                                                            <h5>Size: {(item.documentSize / (1024 * 1024)).toFixed(2)}MB</h5>
+                                                       </div>
+                                                  </Box>
+
+
+                                             </Card>
+                                        </Box>
+
+                                   </>
+                              ))}
+                         </Box>
                     </>
-               )}
+               )
+               }
 
 
 
-          </DashboardLayout>
+          </DashboardLayout >
      )
 }
 export default Documents;

@@ -127,7 +127,7 @@ function Basic() {
                   },
                 }}
                 name="phoneNumber"
-                label="phoneNumber"
+                label="Phone Number"
                 fullWidth
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
