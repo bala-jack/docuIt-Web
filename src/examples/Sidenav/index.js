@@ -34,10 +34,10 @@ import {
 } from "context";
 import { logout } from "services";
 import { useAuth } from "context/AuthContext";
-import { Avatar, Collapse, ListItemButton, ListItemText } from "@mui/material";
+import { Avatar, Collapse, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import { findUser } from "services";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
-
+import ListIcon from '@mui/icons-material/List';
 
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const [controller, dispatch] = useMaterialUIController();
@@ -92,6 +92,11 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       logout();
       logoutSuccess();
       navigate("/signIn");
+    } else {
+      setOpenCollapse(null);
+      setActiveMainMenu(null);
+      setActiveCategory(null);
+      navigate(route);
     }
     // if (name === 'Logout') {
     //   logout()
@@ -103,8 +108,12 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
 
   const handleToggleCollapse = async (key) => {
     setOpenCollapse((prevOpenCollapse) => (prevOpenCollapse === key ? null : key));
-    setActiveMainMenu(activeMainMenu === key ? null : key);
-    setActiveCategory(null);
+    if (key === "Documents") {
+      setActiveMainMenu("Documents");
+    } else {
+      setActiveMainMenu(null);
+      setActiveCategory(null); // Close submenu when opening a new main menu
+    }
     try {
       const userId = UserData?.id;
       const { data } = await findUser(userId);
@@ -147,19 +156,17 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             <List component="div" disablePadding>
               {categoryDetails.map((item, index) => (
                 <ListItemButton key={item.categoryId}
-                  onClick={() => handleSubmenuClick(item)} sx={{ pl: 4 }} style={{ display: 'flow' }}>
-
+                  onClick={() => handleSubmenuClick(item)} sx={{ pl: 4 }} style={{ display: 'flow', padding:'0px 22px' }}>
                   <SidenavCollapse
-                    name={item.categoryName}
-                    icon={icon}
+                    name={item.categoryName + '  ' + '(' + item.fileCount + ')'}
+                    icon={<ListIcon />}
                     active={item.categoryId === activeCategory}
                   />
                 </ListItemButton>
               ))}
-
             </List>
           </Collapse>
-        </div>
+        </div >
       );
     } else if (type === "collapse") {
       returnValue = href ? (
