@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('docuItToken');
     const [isAuthenticated, setIsAuthenticated] = useState(!!token);
     const [UserData, setuserdata] = useState(null);
+    const [ListFamily, setListFamily] = useState(null);
     const [FamilyMemberData, setFamilyMemberData] = useState(null);
     const [category, setcategory] = useState(null);
 
@@ -24,6 +25,8 @@ export const AuthProvider = ({ children }) => {
 
     const value = {
         UserData,
+        ListFamily, 
+        setListFamily,
         category,
         setcategory,
         isAuthenticated,

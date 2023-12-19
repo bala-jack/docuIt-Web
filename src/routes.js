@@ -64,7 +64,6 @@ const routes = [
     role: 'User',
   },
 
-
   // {
   //   type: "collapse",
   //   name: "Categories",

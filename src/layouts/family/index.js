@@ -24,7 +24,7 @@ import 'react-phone-input-2/lib/style.css'
 
 function Family() {
 
-     const { UserData, setFamilyMemberData, FamilyMemberData } = useAuth();
+     const { UserData, setFamilyMemberData, FamilyMemberData, setListFamily } = useAuth();
      const [familyData, setFamilyData] = useState([]);
      const [familyMemberData, setfamilyMemberData] = useState([]);
      const [showPopup, setShowPopup] = useState(false);
@@ -65,6 +65,7 @@ function Family() {
                          createdBy: familyItem.createdBy
                     }));
                     setFamilyData(extractedData);
+                    // setListFamily(extractedData);
                     // localStorage.setItem('docuItFamilyData', JSON.stringify(extractedData));
                }
           } catch (err) {

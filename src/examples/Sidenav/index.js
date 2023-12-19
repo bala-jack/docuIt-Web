@@ -39,7 +39,7 @@ import { findUser } from "services";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import ListIcon from '@mui/icons-material/List';
 
-function Sidenav({ color, brand, brandName, routes, ...rest }) {
+function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode } = controller;
   const navigate = useNavigate();
@@ -156,7 +156,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             <List component="div" disablePadding>
               {categoryDetails.map((item, index) => (
                 <ListItemButton key={item.categoryId}
-                  onClick={() => handleSubmenuClick(item)} sx={{ pl: 4 }} style={{ display: 'flow', padding:'0px 22px' }}>
+                  onClick={() => handleSubmenuClick(item)} sx={{ pl: 4 }} style={{ display: 'flow', padding: '0px 14px' }}>
                   <SidenavCollapse
                     name={item.categoryName + '  ' + '(' + item.fileCount + ')'}
                     icon={<ListIcon />}
@@ -184,7 +184,6 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             noCollapse={noCollapse}
           />
         </Link>
-
       ) : (
         <NavLink key={key} to={route} onClick={() => handleSidenave(name)}>
           <SidenavCollapse name={name} icon={icon} active={key === collapseName} />

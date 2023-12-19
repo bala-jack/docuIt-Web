@@ -21,6 +21,7 @@ import PopupState, { bindTrigger, bindPopover } from 'material-ui-popup-state';
 import { deleteDocument } from "services";
 import { Link } from "react-router-dom";
 import { findUser } from "services";
+import { updateDocument } from "services";
 
 const VisuallyHiddenInput = styled('input')({
      clip: 'rect(0 0 0 0)',
@@ -37,16 +38,18 @@ const VisuallyHiddenInput = styled('input')({
 const ALLOWED_FILE_TYPES = ["application/pdf", "image/png"];
 
 function Documents() {
-     const { category, UserData, isAuthenticated } = useAuth();
+     const { category, UserData, isAuthenticated, ListFamily } = useAuth();
      const [flashMessage, setFlashMessage] = useState('');
      const [isLoading, setIsLoading] = useState(false);
      const [LifeData, setLifeData] = useState([]);
-     const [uploadClicked, setUploadClicked] = useState(false);
+     const [categoryList, setCategoryList] = useState([]);
      const [selectFile, setSelectedFile] = useState(null);
+     const [targetCategory, setTargetCategory] = useState("");
      const [tooltipOpen, setTooltipOpen] = useState(false);
      const [openMove, setopenMove] = useState(false);
+     const [openShare, setopenShare] = useState(false);
      const [catListdata, setcatListdata] = useState([]);
-
+     const [isExpanded, setIsExpanded] = useState(false);
 
      // const [uploadedFiles, setUploadedFiles] = useState([]);
      const userId = UserData?.id;
@@ -83,17 +86,6 @@ function Documents() {
           };
           fetchData();
      }, [userId, category])
-
-     // useEffect(() => {
-     //      if (selectFile && uploadClicked) {
-     //           setUploadClicked(false); 
-     //      }
-     // }, [selectFile, uploadClicked])
-
-     // const handleUploadButtonClick = () => {
-     //      handleUpload();
-     //      // setUploadClicked(true); // Set the state to indicate the upload button is clicked
-     // }
 
      const handleFileChange = (event) => {
           console.log("event.target::::::::::", event.target.file)
@@ -170,15 +162,59 @@ function Documents() {
 
      }
 
-     const handleClose = () => setopenMove(false);
+     const handleClose = () => {
+          setopenMove(false);
+          setopenShare(false);
+     }
 
-     const handleMove = async () => {
-          setTooltipOpen(false);
+     const handleMove = async (item) => {
+          if (!item || !targetCategory) {
+               console.error("Please select a document and a target category.");
+               return;
+          }
+          else {
+               try {
+                    const userId = UserData?.id;
+                    const params = {
+                         familyId: [
+                              // item.familyId
+                         ],
+                         documentId: item.documentId,
+                         categoryId: targetCategory,
+                         revokeAccess: [
+
+                         ],
+                         provideAccess: [
+
+                         ],
+                         documentName: item.documentName,
+                         updatedBy: userId
+                    }
+
+                    const { data } = await updateDocument(params);
+                    console.log('updateDocument"""""":', data);
+                    if (data.status === 'SUCCESS') {
+                         setTooltipOpen(false);
+                         setopenMove(false);
+                         // window.location.reload();
+                    }
+               } catch (err) {
+                    console.error('Error Upload Docs:', err);
+               }
+          }
+     }
+
+     const handleMovePop = async (document) => {
+          // setSelectedFile(document);
+          // setTargetCategory("");
           setopenMove(true);
+          setTooltipOpen(false);
           try {
                const userId = UserData?.id;
                const { data } = await findUser(userId);
-               if (data) {
+               console.log('dataFind User', data)
+               if (data?.response?.categoryDetails) {
+                    console.log('findUserdata', data)
                     const extractedData = data.response.categoryDetails.map((categoryDetails) => ({
                          categoryId: categoryDetails.categoryId,
                          categoryName: categoryDetails.categoryName,
@@ -187,7 +223,7 @@ function Documents() {
                     setcatListdata(extractedData);
                }
           } catch (err) {
-               console.error('Error Upload Docs:', err);
+               console.error("API call failed:", err);
           }
      }
      console.log("LifeData::", LifeData);
@@ -240,6 +276,26 @@ function Documents() {
                });
      };
 
+     const toggleExpansion = (categoryId) => {
+          console.log('catIDExapmnd', categoryId.documentId)
+          setIsExpanded(!isExpanded);
+     };
+
+     const truncateText = (text, maxLength) => {
+          if (text.length <= maxLength) {
+               return text;
+          }
+          // If the text is longer than maxLength, truncate and add ellipsis
+          return `${text.slice(0, maxLength)}...`;
+     };
+     console.log('ListFamily???', ListFamily);
+     const handleShare = () => {
+
+          setopenShare(true);
+          setTooltipOpen(false);
+
+     }
+
      return (
           <DashboardLayout className='mainContent'>
                <DashboardNavbar />
@@ -288,20 +344,48 @@ function Documents() {
                                              aria-describedby="modal-modal-description"
                                         >
                                              <Box sx={style}>
-                                                  {catListdata.map((catItem, index) => (
-                                                       <FormControl>
-                                                             <FormLabel id="demo-radio-buttons-group-label">{item.documentName}</FormLabel>
-                                                            <RadioGroup
-                                                                 aria-labelledby="demo-radio-buttons-group-label"
-                                                                 defaultValue="female"
-                                                                 name="radio-buttons-group"
-                                                            ></RadioGroup>
-                                                            <FormControlLabel value={catItem.categoryName} control={<Radio />} label={catItem.categoryName} />
-                                                            <Button>Move</Button>
-                                                       </FormControl>
+                                                  <div>{item.documentName}</div>
+                                                  {catListdata.map((category) => (
+                                                       <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                            <Radio
+                                                                 type="radio"
+                                                                 value={category.categoryId}
+                                                                 checked={targetCategory === category.categoryId}
+                                                                 onChange={() => setTargetCategory(category.categoryId)}
+                                                            />
+                                                            <p>{category.categoryName}</p>
+                                                       </div>
                                                   ))}
+                                                  {console.log('target?????', targetCategory)}
+                                                  <Button variant="contained" onClick={() => handleMove(item)}>Move</Button>
+
                                              </Box>
                                         </Modal>
+
+                                        {/* <Modal
+                                             open={openShare}
+                                             onClose={handleClose}
+                                             aria-labelledby="modal-modal-title"
+                                             aria-describedby="modal-modal-description"
+                                        >
+                                             <Box sx={style}>
+                                                  <FormControl>
+                                                       <FormLabel id="demo-radio-buttons-group-label">Share Document</FormLabel>
+
+                                                       <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                                <Radio
+                                                                      type="radio"
+                                                                      value={category.categoryId}
+                                                                      checked={targetCategory === category.categoryId}
+                                                                      onChange={() => setTargetCategory(category.categoryId)}
+                                                                 />
+                                                                 <p></p>
+                                                            </div>
+
+                                                       <Button variant="contained" color='inherit'>Share</Button>
+                                                  </FormControl>
+                                             </Box>
+                                        </Modal> */}
 
                                         <Box sx={{ flexBasis: '33%', boxSizing: 'border-box', padding: '10px' }} key={index}>
                                              <Card style={{ marginTop: '40px', marginBottom: '40px' }}>
@@ -323,10 +407,10 @@ function Documents() {
                                                                       >
                                                                            <Box sx={{ display: 'flex', flexDirection: 'column', }}>
                                                                                 <Tooltip title="Move Document" sx={{ m: 1 }} placement="right">
-                                                                                     <Icon onClick={() => handleMove(item)}>drive_file_move</Icon>
+                                                                                     <Icon onClick={() => { handleMovePop(); setTooltipOpen(true); }}>drive_file_move</Icon>
                                                                                 </Tooltip>
                                                                                 <Tooltip title="Share Document" sx={{ m: 1 }} placement="right">
-                                                                                     <Icon>share</Icon>
+                                                                                     <Icon onClick={handleShare}>share</Icon>
                                                                                 </Tooltip>
                                                                                 <Tooltip title="View Document" sx={{ m: 1 }} placement="right">
                                                                                      <Icon onClick={() => { handleViewPdf(item); setTooltipOpen(true); }}>visibility</Icon>
@@ -362,13 +446,11 @@ function Documents() {
                                                             </Worker>
                                                        </Box>
                                                        <div className="doc-details">
-                                                            <h5>{item.documentName}</h5>
+                                                            <h5 style={{ cursor: 'pointer' }} onClick={() => toggleExpansion(item)}>{isExpanded ? item.documentName : truncateText(item.documentName, 35)} <span> {isExpanded}</span></h5>
                                                             {/* <h5><Moment format="MMM D YYYY, hh:mm:ss a" >{item.createdAt}</Moment></h5> */}
                                                             <h5>Size: {(item.documentSize / (1024 * 1024)).toFixed(2)}MB</h5>
                                                        </div>
                                                   </Box>
-
-
                                              </Card>
                                         </Box>
 
