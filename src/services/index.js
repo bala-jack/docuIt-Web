@@ -242,6 +242,14 @@ export const updateDocument = async (params) => {
     return await axiosInstance.put(`document/updateDocument` , params);
 }
 
+export const getFamilyWithMembers = async (params) => {
+    const token = localStorage.getItem('docuItToken')
+    if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
+        axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return await axiosInstance.get(`family/getFamilyWithMembers?adminId=` +  params);
+}
+
 // Integration
 
 export const userdashboard = async (params) => {

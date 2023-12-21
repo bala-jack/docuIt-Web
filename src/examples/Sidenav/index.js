@@ -45,12 +45,13 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
   const navigate = useNavigate();
   const location = useLocation();
   const collapseName = location.pathname.replace("/", "");
-  const { logoutSuccess, UserData, category, setcategory } = useAuth()
+  const { logoutSuccess, UserData } = useAuth()
   //Praveen Change
   const [openCollapse, setOpenCollapse] = useState(null);
   const [categoryDetails, setCategoryDetails] = useState([]);
-  const [activeCategory, setActiveCategory] = useState(null);
+  const [activeCategory, setActiveCategory] = useState([]);
   const [activeMainMenu, setActiveMainMenu] = useState(null);
+  const [categoryy, setcategory] = useState(null);
 
 
 
@@ -96,6 +97,7 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
       setOpenCollapse(null);
       setActiveMainMenu(null);
       setActiveCategory(null);
+      console.log('testtttttttttttttttttttttttt>0')
       navigate(route);
     }
     // if (name === 'Logout') {
@@ -113,6 +115,7 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
     } else {
       setActiveMainMenu(null);
       setActiveCategory(null); // Close submenu when opening a new main menu
+      console.log('2reeeeeeeeeeeeeeeeeeeeeeeeevit')
     }
     try {
       const userId = UserData?.id;
@@ -135,10 +138,9 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
   //   setActiveCategory(categoryName);
   // } 
   const handleSubmenuClick = (category) => {
-    navigate(`/documents`)
-    setcategory(category);
     setActiveMainMenu(null);
     setActiveCategory(category.categoryId);
+    navigate(`/documents`, { state: { category } })
     console.log('categoryName:::::', category);
   }
   console.log('activeCategory : ', activeCategory)
@@ -157,6 +159,7 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
               {categoryDetails.map((item, index) => (
                 <ListItemButton key={item.categoryId}
                   onClick={() => handleSubmenuClick(item)} sx={{ pl: 4 }} style={{ display: 'flow', padding: '0px 14px' }}>
+                  {console.log('saaaaaaaaa', item.categoryId, activeCategory)}
                   <SidenavCollapse
                     name={item.categoryName + '  ' + '(' + item.fileCount + ')'}
                     icon={<ListIcon />}
@@ -221,29 +224,6 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
     return returnValue;
   });
 
-  //Avatar Color
-  const stringAvatar = (name) => {
-    return {
-      sx: {
-        bgcolor: stringToColor(name),
-      },
-      children: `${name ? name.charAt(0).toUpperCase() : ''}`,
-    };
-  };
-
-  const stringToColor = (string) => {
-    if (!string) {
-      return '#000000';
-    }
-    let hash = 0;
-    for (let i = 0; i < string.length; i++) {
-      hash = string.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const color = Math.abs(hash).toString(16).substring(0, 6);
-    return `#${'0'.repeat(6 - color.length)}${color}`;
-  };
-  //Avatar color ends
-
   return (
     <SidenavRoot
       {...rest}
@@ -265,16 +245,9 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
           </MDTypography>
         </MDBox>
 
-        <MDBox component={NavLink} to="/dashboard" display="flex" alignItems='flex-start'>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {brand && <MDBox component="img" src={brand} alt="Brand" width="2rem" />}
-            <div style={{ display: 'flex', paddingLeft: '48px', alignItems: 'center' }}>
-              <span style={{ paddingRight: '5px' }}><Avatar {...stringAvatar(UserData?.name)} /></span>
-              <span>
-                <h4 style={{ color: 'white' }}>{UserData?.name}</h4>
-              </span>
-            </div>
-          </div>
+        <MDBox component={NavLink} to="/dashboard" display="flex" justifyContent="center">
+          {brand && <MDBox component="img" src={brand} alt="Brand" width="3rem" />}
+          {/* <h2 style={{color:'rgb(3,159,226)', paddingLeft:'20px'}}>DocuIt</h2> */}
           <MDBox
             width={!brandName && "100%"}
             sx={(theme) => sidenavLogoLabel(theme, { miniSidenav })}

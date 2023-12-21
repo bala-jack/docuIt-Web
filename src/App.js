@@ -27,6 +27,7 @@ import SignUp from './layouts/authentication/sign-up'
 import ForgetPin from './layouts/authentication/sign-up/forgetPin.js'
 import Verify from './layouts/authentication/sign-up/verify.js'
 import Setpin from './layouts/authentication/sign-up/setpin.js'
+import Topnav from "examples/TopNav";
 
 
 export default function App() {
@@ -104,7 +105,9 @@ export default function App() {
             onMouseEnter={handleOnMouseEnter}
             onMouseLeave={handleOnMouseLeave}
           />
+            <Topnav />
         </>
+     
       )}
 
       <Routes>
