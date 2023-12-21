@@ -53,8 +53,6 @@ import TableRow from '@mui/material/TableRow';
 //      width: 1,
 // });
 
-const ALLOWED_FILE_TYPES = ["application/pdf", "image/png"];
-
 const Accordion = styled((props) => (
      <MuiAccordion disableGutters elevation={0} square {...props} />
 ))(({ theme }) => ({
@@ -118,6 +116,7 @@ function Documents() {
      const currentCategory = category.categoryId;
      console.log('props', location);
      // const [uploadedFiles, setUploadedFiles] = useState([]);
+     const ALLOWED_FILE_TYPES = ["application/pdf", "image/png"];
      const userId = UserData?.id;
      pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
 
@@ -156,6 +155,8 @@ function Documents() {
           }
      };
      const handleFileChange = (event) => {
+          event.preventDefault(event);
+          console.log('handleFileChange Called')
           console.log("event.target::::::::::", event.target.file)
           const files = event.target.files[0];
           if (files) {
@@ -169,6 +170,7 @@ function Documents() {
                }
                // setSelectedFile(files);
                handleUploadButtonClick(files);
+               console.log("handleupload", files)
           }
      }
      console.log("selectFile::::::::::", selectFile)
@@ -186,13 +188,12 @@ function Documents() {
                const file = new FormData();
                file.append('file', files);
                console.log('file>>>>>>>>', file);
+               setSelectedFile(null);
+               setIsLoading(true);
                const { data } = await uploadDocuments(userId, file);
                console.log('uploadResponse>>>>>>>>', data);
 
                if (data) {
-                    setSelectedFile(null);
-                    setIsLoading(true);
-
                     try {
                          const parmValues = {
                               documentDetails: [
@@ -209,7 +210,15 @@ function Documents() {
 
                          const saveResponse = await saveDocuments(parmValues);
                          console.log('Save response:', saveResponse);
-                         if (saveResponse.status === 200) {
+                         if (saveResponse.status === 200 && saveResponse?.data?.response) {
+                              const responseData = saveResponse?.data?.response
+                              const {
+                                   documentName,
+                                   documentSize,
+                                   documentType,
+                                   url
+                              } = responseData[0]
+
                               setIsLoading(false);
                               setFlashMessage('Document saved successfully');
                               // const newDocument = saveResponse.data.response[0];
@@ -217,6 +226,16 @@ function Documents() {
                               setTimeout(() => {
                                    setFlashMessage('');
                               }, 1000);
+                              const documentDetails = {
+                                   documentName,
+                                   documentSize,
+                                   documentType,
+                                   url
+                              }
+                              setLifeData(prevLifeData => [...prevLifeData, documentDetails]);
+                              console.log("uploadData", [...LifeData, documentDetails]);
+                              setSelectedFile(null);
+
                               fetchData();
                          }
                     } catch (err) {
@@ -226,9 +245,9 @@ function Documents() {
                console.log("uploadResponse>>>>>>", data);
           } catch (err) {
                console.error('Error Upload Docs:', err);
+               setIsLoading(false);
+               setSelectedFile(null);
           }
-          // }
-
      }
 
      const handleClose = () => {
@@ -444,9 +463,9 @@ function Documents() {
 
                     <h2>{category.categoryName}</h2>
                     <div>
-                         <Button className="btnfamilylist" component="label" variant="contained" startIcon={<CloudUploadIcon />}>
+                         <Button className="btnfamilylist" component="label" variant="contained" startIcon={<CloudUploadIcon />} onChange={handleFileChange}>
                               Upload File
-                              <Input style={{ display: 'none' }} type="file" onClick={handleFileChange} />
+                              <Input style={{ display: 'none' }} type="file" />
                          </Button>
                     </div>
                </div>
@@ -588,11 +607,9 @@ function Documents() {
                                                                  <p>Yes</p>
                                                             </React.Fragment>
                                                        )}</TableCell>
-                                                  {/* <TableCell align="center" style={{display : item.sharedBy === true ? 'none' : 'flex', padding:'0px'}}>Yes</TableCell> */}
                                                   <TableCell align="center"> <Icon sx={{ cursor: 'pointer' }} onClick={() => { handleViewPdf(item); setTooltipOpen(true); }}>visibility</Icon></TableCell>
                                                   <TableCell align="center">
-
-                                                       <Box sx={{ display: 'flex', justifyContent: 'end', padding: '10px' }}>
+                                                       <Box sx={{ display: 'flex', justifyContent: 'center', padding: '10px' }}>
                                                             <PopupState variant="popover" popupId="demo-popup-popover">
                                                                  {(popupState) => (
                                                                       <div>
@@ -609,12 +626,16 @@ function Documents() {
                                                                                 }}
                                                                            >
                                                                                 <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                                                                                     <Tooltip title="Move Document" sx={{ m: 1 }} placement="top">
-                                                                                          <Icon onClick={() => { handleMovePop(item); setTooltipOpen(true); }}>drive_file_move</Icon>
-                                                                                     </Tooltip>
-                                                                                     <Tooltip title="Share Document" sx={{ m: 1 }} placement="top">
-                                                                                          <Icon onClick={handleShare}>share</Icon>
-                                                                                     </Tooltip>
+                                                                                     {userId === item.uploadedBy && (
+                                                                                          <Tooltip title="Move Document" sx={{ m: 1 }} placement="top">
+                                                                                               <Icon onClick={() => { handleMovePop(item); setTooltipOpen(true); }}>drive_file_move</Icon>
+                                                                                          </Tooltip>
+                                                                                     )}
+                                                                                     {userId === item.uploadedBy && (
+                                                                                          <Tooltip title="Share Document" sx={{ m: 1 }} placement="top">
+                                                                                               <Icon onClick={handleShare}>share</Icon>
+                                                                                          </Tooltip>
+                                                                                     )}
                                                                                      <Tooltip title="View Document" sx={{ m: 1 }} placement="top">
                                                                                           <Icon onClick={() => { handleViewPdf(item); setTooltipOpen(true); }}>visibility</Icon>
                                                                                      </Tooltip>
@@ -626,10 +647,11 @@ function Documents() {
                                                                                                rel="noreferrer"> <Icon onClick={(e) => { e.preventDefault(); handleDownloadPDF(item); setTooltipOpen(true); }}>download_for_offline</Icon>
                                                                                           </Link>
                                                                                      </Tooltip>
-                                                                                     <Tooltip title="Delete Document" sx={{ m: 1 }} placement="right">
-                                                                                          <Icon onClick={() => openDeleteDialog(item)}>delete</Icon>
-                                                                                     </Tooltip>
-
+                                                                                     {userId === item.uploadedBy && (
+                                                                                          <Tooltip title="Delete Document" sx={{ m: 1 }} placement="top">
+                                                                                               <Icon onClick={() => openDeleteDialog(item)}>delete</Icon>
+                                                                                          </Tooltip>
+                                                                                     )}
                                                                                      <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
                                                                                           <DialogTitle>Confirm Delete</DialogTitle>
                                                                                           <DialogContent>
@@ -640,15 +662,12 @@ function Documents() {
                                                                                                <Button onClick={() => { handleDelete(deleteDocumentId); setTooltipOpen(true); }}>Delete</Button>
                                                                                           </DialogActions>
                                                                                      </Dialog>
-
                                                                                 </Box>
                                                                            </Popover>
                                                                       </div>
                                                                  )}
                                                             </PopupState>
-
                                                        </Box>
-
                                                   </TableCell>
                                              </TableRow>
                                         ))}
@@ -656,11 +675,7 @@ function Documents() {
                               </Table>
                          </TableContainer>
                     </>
-               )
-               }
-
-
-
+               )}
           </DashboardLayout >
      )
 }

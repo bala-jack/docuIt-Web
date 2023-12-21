@@ -105,9 +105,9 @@ export default function App() {
             onMouseEnter={handleOnMouseEnter}
             onMouseLeave={handleOnMouseLeave}
           />
-            <Topnav />
+          <Topnav />
         </>
-     
+
       )}
 
       <Routes>

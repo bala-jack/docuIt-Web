@@ -97,7 +97,6 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
       setOpenCollapse(null);
       setActiveMainMenu(null);
       setActiveCategory(null);
-      console.log('testtttttttttttttttttttttttt>0')
       navigate(route);
     }
     // if (name === 'Logout') {
@@ -115,7 +114,6 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
     } else {
       setActiveMainMenu(null);
       setActiveCategory(null); // Close submenu when opening a new main menu
-      console.log('2reeeeeeeeeeeeeeeeeeeeeeeeevit')
     }
     try {
       const userId = UserData?.id;
@@ -133,10 +131,6 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
       console.error("API call failed:", err);
     }
   };
-  // const handleToggleNavigate = (categoryId, categoryName) => {
-  //   navigate(`/documents/${categoryName}`);
-  //   setActiveCategory(categoryName);
-  // } 
   const handleSubmenuClick = (category) => {
     setActiveMainMenu(null);
     setActiveCategory(category.categoryId);
@@ -245,7 +239,7 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
           </MDTypography>
         </MDBox>
 
-        <MDBox component={NavLink} to="/dashboard" display="flex" justifyContent="center">
+        <MDBox component={NavLink} to="/dashboard" display="flex" justifyContent="center" >
           {brand && <MDBox component="img" src={brand} alt="Brand" width="3rem" />}
           {/* <h2 style={{color:'rgb(3,159,226)', paddingLeft:'20px'}}>DocuIt</h2> */}
           <MDBox

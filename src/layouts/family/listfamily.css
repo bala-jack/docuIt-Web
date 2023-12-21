@@ -102,13 +102,17 @@ td {
 
 .hover-click {
      cursor: pointer;
+     padding: 5px;
+     border: 1px solid transparent;
      /* width: 20%; */
 }
 
 .hover-click:hover {
-     background-color: green;
-     color: white;
+     color: black;
      opacity: 0.5;
+     padding: 5px;
+     border: 1px solid rgb(3, 159, 226);
+     border-radius: 10px;
 }
 
 .famMem {

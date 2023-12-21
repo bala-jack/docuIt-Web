@@ -20,6 +20,9 @@ import MDButton from 'components/MDButton';
 import * as yup from 'yup'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+import FormHelperText from '@mui/material/FormHelperText';
 
 
 function Family() {
@@ -41,14 +44,15 @@ function Family() {
      const [familyId, setFamilyid] = useState('');
      const [invitedBy, setInviteBy] = useState('');
      const [isFamilyMembersPage, setIsFamilyMembersPage] = useState(false);
-     const [phoneNumbersError, setphoneNumbersError] = useState('');
-    
-
+     const [familyItems, setFamilyItems] = useState([]);
      const { familyName } = useParams();
      const navigate = useNavigate();
-     // const history = useHistory();
      const enabled = phoneNumbers.length < 9;
-     const isButtonDisabled = isEditing.trim() === '';
+     const nameregex = /^[A-Za-z ]+$/;
+     const popuperrormsg = !nameregex.test(isEditing.trim());
+     const isButtonDisabled = isEditing.trim() === "";
+     const AddpopDisablebutton = Add.trim() === "";
+     const Addpoperrormsg = !nameregex.test(Add.trim());
 
 
      useEffect(() => {
@@ -72,20 +76,24 @@ function Family() {
                console.error("API call failed:", err);
           }
      };
-    const handleFamilyNameClick = async (familyItem) => {
+     const handleFamilyNameClick = async (familyItem) => {
           try {
                const familId = familyItem.id;
                const { data } = await listFamilyMembers(familId);
                console.log('>>>>>>>>>>>>>', data);
                if (data?.status === 'SUCCESS') {
-                    navigate(`/family/${familyItem.name}`);
+                    // navigate(`/family/${familyItem.name}`);
                     setsFamilyMember(true);
                     setHideListFamily(false);
                     setIsFamilyMembersPage(true);
                }
                if (data && data.response && Array.isArray(data.response.MemberList)) {
-                    setfamilyMemberData(data.response.MemberList.map(member => member.user));
+                    let memberList = data.response.MemberList.filter(filterItem => filterItem.user.id !== UserData.id)
+                    console.log('memberList<<<<<<<<<<<<<', memberList, UserData.id, familyItem.createdBy)
+                    let combinedData = UserData.id === familyItem.createdBy ? memberList : memberList.filter(filterItem => filterItem.inviteStatus === "Accepted");
+                    setfamilyMemberData(combinedData);
                     setFamilyMemberData(data.response.MemberList.map(member => member.user));
+                    setFamilyItems(familyItem);
                     // localStorage.setItem('docuItMemberDetails', JSON.stringify(data?.response?.MemberList?.user));
                } else {
                     console.error('Invalid data structure:', data);
@@ -111,52 +119,52 @@ function Family() {
      }
 
      const handleSave = async () => {
-          console.log("handlesave callback", familyData.id, isEditing);
           try {
-               const isNameExistsoverall = familyData.find(item => item.name === isEditing);
+               const isNameExistsoverall = familyData.find(
+                    (item) =>
+                         item.name.toLocaleLowerCase() === isEditing.toLocaleLowerCase()
+               )
 
-               if (isNameExistsoverall?.name === isEditing) {
+               if (
+                    isNameExistsoverall?.name.trim().toLocaleLowerCase() ===
+                    isEditing.trim().toLocaleLowerCase()
+               ) {
                     setShowPopup(false);
-                    setErrorFlashMessage('Family name is already registered');
+                    setErrorFlashMessage("Family name is already registered");
                     setTimeout(() => {
-                         setErrorFlashMessage('');
+                         setErrorFlashMessage("");
                     }, 1000);
                     return;
                }
 
-               // const updatedData = familyData.map(item => {
-               //      if (item.id === index.id) {
-               //           return {
-               //                ...item,
-               //                name: isEditing
-               //           };
-               //      }
-               //      return item;
-               // });
-
                const constructObject = {
                     name: isEditing,
                     familyId: popupindex,
-                    adminId: UserData.id
+                    adminId: UserData.id,
                };
 
                const { data } = await editFamily(constructObject);
 
-               if (data?.status === 'SUCCESS') {
+               if (data?.status === "SUCCESS") {
                     setFlashMessage(data.message);
                     setShowPopup(false);
                     setTimeout(() => {
-                         setFlashMessage('');
-
+                         setFlashMessage("");
                     }, 1000);
                     fetchData();
                }
-
+               else {
+                    setShowPopup(false);
+                    setErrorFlashMessage("Error. Please try again!");
+                    setTimeout(() => {
+                         setErrorFlashMessage("");
+                    }, 1000);
+                    return;
+               }
           } catch (err) {
-               console.error('Error saving family:', err);
+               console.error("Error saving family:", err);
                setErrorFlashMessage(err.response.error.message);
           }
-
      };
 
 
@@ -165,7 +173,6 @@ function Family() {
           setShowPopup(true);
           setIsEditing(name);
      };
-     console.log(">>>>>>???????", popupindex);
 
      const togglePopup = () => {
           setShowPopup(!showPopup);
@@ -231,35 +238,45 @@ function Family() {
           try {
                const adminIdAdd = Add;
 
-               const isNameExistsoverall = familyData.find(item => item.name === Add);
+               const isNameExistsoverall = familyData.find((item) => item.name.trim().toLocaleLowerCase() === Add.trim().toLocaleLowerCase());
 
-               if (isNameExistsoverall?.name === Add) {
+               if (isNameExistsoverall?.name === Add.trim().toLocaleLowerCase()) {
                     setAddPop(false);
-                    setErrorFlashMessage('Family name is already registered');
+                    setErrorFlashMessage("Family name is already registered");
+                    setAdd("");
                     setTimeout(() => {
-                         setErrorFlashMessage('');
+                         setErrorFlashMessage("");
                     }, 1000);
                     return;
                }
-               const val = { name: adminIdAdd, adminId: UserData.id }
+
+               const val = { name: adminIdAdd, adminId: UserData.id };
                const { data } = await addFamily(val);
-               if (data?.status === 'SUCCESS') {
+
+               if (data?.status === "SUCCESS") {
                     const newFamily = data?.response?.familyDetails;
                     setAddPop(false);
-                    setFamilyData(prevData => [...prevData, newFamily]);
-                    setFlashMessage('Family Added successfully!');
-                    setAdd('');
+                    setFamilyData((prevData) => [...prevData, newFamily]);
+                    setFlashMessage(data?.message);
+                    setAdd("");
                     setTimeout(() => {
-                         setFlashMessage('');
+                         setFlashMessage("");
                     }, 1000);
 
                }
 
+               else {
+                    setAddPop(false);
+                    setErrorFlashMessage("Error. Please try again!!");
+                    setAdd("");
+                    setTimeout(() => {
+                         setErrorFlashMessage("");
+                    }, 1000);
+               }
           } catch (error) {
-               console.error('Error Save family:', error);
+               console.error("Error Save family:", error);
           }
-
-     }
+     };
 
      const closePopup = () => {
           setAddPop(false);
@@ -274,7 +291,7 @@ function Family() {
           setphoneNumbers(value);
      }
 
- 
+
      return (
           <DashboardLayout className='mainContent'>
                <DashboardNavbar />
@@ -332,21 +349,56 @@ function Family() {
                                                                  <h3 style={{ padding: '28px' }}>Enter Family Name</h3>
                                                                  <div className='edit-Input'>
                                                                       <Icon fontSize="small">diversity_3</Icon>
-                                                                      <Input type="text"
-                                                                           placeholder="Enter...."
-                                                                           value={Add}
-                                                                           onChange={(e) => handleAddInput(e)}
-                                                                           className='pop-up-input' />
+                                                                      <Box
+                                                                           component="form"
+                                                                           sx={{
+                                                                                "& .MuiTextField-root": {
+                                                                                     m: 1,
+                                                                                     width: "25ch",
+                                                                                },
+                                                                           }}
+                                                                           noValidate
+                                                                           autoComplete="off"
+                                                                      >
+                                                                           <div>
+                                                                                <TextField
+                                                                                     className="pop-up-input"
+                                                                                     label="Enter family name"
+                                                                                     type="text"
+                                                                                     onChange={(e) => handleAddInput(e)}
+                                                                                     variant="standard"
+                                                                                />
+
+                                                                                {Add.trim() !== "" && (
+                                                                                     <FormHelperText
+                                                                                          className="erroraddpopmsg"
+                                                                                          sx={{ width: "280px" }}
+                                                                                          style={{ color: 'red' }}
+                                                                                     >
+                                                                                          {Addpoperrormsg
+                                                                                               ? "*Family name cannot have numbers or special characters."
+                                                                                               : ""}
+                                                                                     </FormHelperText>
+                                                                                )}
+                                                                           </div>
+                                                                      </Box>
                                                                  </div>
                                                             </div>
                                                             {/* for Add new family member */}
                                                             <div className='btn-pop'>
                                                                  <MDButton variant="contained" color="error" onClick={togglePopup} className='btn-pop'>Close</MDButton>
-                                                                 {isButtonDisabled ? (
-                                                                      <MDButton variant="contained" color="success" onClick={() => handleAddsave()}>Save</MDButton>
-
+                                                                 {AddpopDisablebutton ? (
+                                                                      <MDButton
+                                                                           variant="contained"
+                                                                           disabled={AddpopDisablebutton}
+                                                                           color="success"
+                                                                      > Save </MDButton>
                                                                  ) : (
-                                                                      <MDButton variant="contained" color="success" onClick={() => handleAddsave()}>Save</MDButton>
+                                                                      <MDButton
+                                                                           variant="contained"
+                                                                           color="success"
+                                                                           onClick={() => handleAddsave()}
+                                                                      >Save</MDButton>
                                                                  )}
                                                             </div>
                                                        </div>
@@ -378,24 +430,62 @@ function Family() {
                                                                                                <h3 style={{ padding: '28px' }}>Change Family Name</h3>
                                                                                                <div className='edit-Input'>
                                                                                                     <Icon fontSize="small">diversity_3</Icon>
-                                                                                                    <Input
-                                                                                                         type="text"
-                                                                                                         value={isEditing}
-                                                                                                         onChange={(e) => handleEditInput(index, e.target.value)}
-                                                                                                         className='pop-up-input'
-                                                                                                    />
+                                                                                                    <Box
+                                                                                                         component="form"
+                                                                                                         sx={{
+                                                                                                              "& .MuiTextField-root": {
+                                                                                                                   m: 1,
+                                                                                                                   width: "25ch",
+                                                                                                              },
+                                                                                                         }}
+                                                                                                         noValidate
+                                                                                                         autoComplete="off"
+                                                                                                    >
+                                                                                                         <div>
+                                                                                                              <TextField
+                                                                                                                   className="pop-up-input"
+                                                                                                                   label="Family name"
+                                                                                                                   type="text"
+                                                                                                                   defaultValue={isEditing}
+                                                                                                                   onChange={(e) => handleEditInput(index, e.target.value)}
+                                                                                                                   variant="standard" />
+
+                                                                                                              {isEditing.trim() !== "" && (
+                                                                                                                   <FormHelperText
+                                                                                                                        className="errorpopupmsg"
+                                                                                                                        sx={{ width: "280px" }}
+                                                                                                                        style={{ color: popuperrormsg ? 'red' : 'success' }}
+                                                                                                                   >
+                                                                                                                        {popuperrormsg
+                                                                                                                             ? "*Family name cannot have numbers or special characters."
+                                                                                                                             : ""}
+                                                                                                                   </FormHelperText>
+                                                                                                              )}
+                                                                                                         </div>
+                                                                                                    </Box>
                                                                                                </div>
                                                                                           </div>
                                                                                           {/* for Edit family member */}
-                                                                                          <div className='btn-pop'>
-                                                                                               <MDButton variant="contained" color="error" onClick={togglePopup}>Close</MDButton>
+                                                                                          <div className="btn-pop">
+                                                                                               <MDButton
+                                                                                                    variant="contained"
+                                                                                                    color="error"
+                                                                                                    onClick={togglePopup}
+                                                                                               >Close</MDButton>
                                                                                                {isButtonDisabled ? (
-                                                                                                    <MDButton variant="contained" disabled={isButtonDisabled} color="success" onClick={() => { console.log(item); handleSave(item); }} >Save</MDButton>
-
-
+                                                                                                    <MDButton
+                                                                                                         variant="contained"
+                                                                                                         disabled={isButtonDisabled}
+                                                                                                         color="success"
+                                                                                                    > Save </MDButton>
                                                                                                ) : (
-                                                                                                    <MDButton variant="contained" color="success" onClick={() => { console.log(item); handleSave(item); }} > Save </MDButton>
-                                                                                               )}
+                                                                                                    <MDButton
+                                                                                                         variant="contained"
+                                                                                                         color="success"
+                                                                                                         onClick={() => {
+                                                                                                              handleSave(item);
+                                                                                                         }}
+                                                                                                    > Save </MDButton>)}
                                                                                           </div>
                                                                                           <Card>
                                                                                                {ErrorflashMessage && (
@@ -420,7 +510,11 @@ function Family() {
                                                                  <div onClick={() => handleFamilyNameClick(item)} className='hover-click'>{item.name}</div>
                                                             </td>
 
-                                                            <td>
+                                                            <td style={{ display: item.createdBy === UserData.id ? 'none' : 'flex', justifyContent: 'center' }}>
+                                                                 <Icon onClick={() => handleFamilyNameClick(item)} style={{ cursor: 'pointer', color: 'rgb(26,115,232)', margin: '6px 0px' }}>visibility</Icon>
+                                                            </td>
+
+                                                            <td style={{ display: item.createdBy === UserData.id ? 'flex' : 'none' }}>
                                                                  <Button onClick={() => toggleEdit(item.id, item.name)}><Icon>edit</Icon></Button>
                                                                  <Button className="btn-delete" onClick={() => handleDelete(item.id)}><Icon>delete</Icon></Button>
                                                             </td>
@@ -458,19 +552,28 @@ function Family() {
                                                                  </tr>
                                                             </thead>
                                                             <tbody>
-
-                                                                 {Array.isArray(familyMemberData) && familyMemberData.map((item, index) => (
+                                                                 {console.log('familyMemberData??????????', familyMemberData)}
+                                                                 {familyMemberData.map((item, index) => (
                                                                       <tr key={index}>
-                                                                           <td style={{ display: item.name === UserData.name ? 'none' : 'block' }}>
-                                                                                <div>{item.name}</div>
-                                                                           </td>
-
                                                                            <td>
-                                                                                <div style={{ display: item.name === UserData.name ? 'none' : 'block' }}>
-                                                                                     <div style={{ display: UserData.id === familyData[0].createdBy ? 'block' : 'none' }}>
+                                                                                <div>{item.user.name}</div>
+                                                                           </td>
+                                                                           {console.log('item:::::::>>>>', item)}
+                                                                           <td>
+                                                                                {item.inviteStatus === 'Invited' ? (
+                                                                                     <div>
+                                                                                          <Button className="btn-delete"><Icon>add_reaction</Icon></Button>
+                                                                                     </div>
+                                                                                ) : (
+                                                                                     null
+                                                                                )}
+                                                                                {UserData.id === familyItems.createdBy && item.inviteStatus === 'Accepted' ? (
+                                                                                     <div>
                                                                                           <Button className="btn-delete"><Icon>delete</Icon></Button>
                                                                                      </div>
-                                                                                </div>
+                                                                                ) : (
+                                                                                     null
+                                                                                )}
                                                                            </td>
                                                                            {invitePop && (
                                                                                 <div className="overlay" onClick={closePopup}>
@@ -538,4 +641,4 @@ function Family() {
 
 }
 
-export default Family;
+export default Family;
