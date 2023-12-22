@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 
 
-function Topnav() {
+function Topnav({ avatar }) {
      const { UserData } = useAuth()
      const [inviteCount, setInviteCount] = useState(0);
      const [openProfile, setOpenprofile] = useState(false);
@@ -57,7 +57,7 @@ function Topnav() {
      }
 
      const handleProfile = () => {
-          console.log('cliked profile');
+          navigate('/profile', { avatar: Avatar });
      }
 
      const [anchorEl, setAnchorEl] = useState(null);
@@ -74,11 +74,11 @@ function Topnav() {
                <div style={{ display: 'flex', paddingRight: '18px', alignItems: 'center', backgroundColor: 'rgb(65,65,72)', justifyContent: 'end', position: 'fixed', zIndex: '1200', width: '84%', right: '-5px' }}>
                     <Tooltip title="Notification">
 
-                              <Icon size="large" onClick={handleNotofication} style={{color:'rgb(3,159,226)', marginRight:'20px'}}>
-                                   <h3 style={{ cursor: 'pointer' }}>notifications</h3>
-                              </Icon>
-                              {/* {inviteCount > 0 && <div className="notification-badge">{inviteCount}</div>} */}
-                        
+                         <Icon size="large" onClick={handleNotofication} style={{ color: 'rgb(3,159,226)', marginRight: '20px' }}>
+                              <h3 style={{ cursor: 'pointer' }}>notifications</h3>
+                         </Icon>
+                         {/* {inviteCount > 0 && <div className="notification-badge">{inviteCount}</div>} */}
+
                     </Tooltip>
                     <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
                          <Tooltip title="Account settings">
@@ -90,7 +90,7 @@ function Topnav() {
                                    aria-haspopup="true"
                                    aria-expanded={open ? 'true' : undefined}
                               >
-                                   <Avatar {...stringAvatar(UserData?.name)} style={{ cursor: 'pointer' }} onClick={handleProfile} />
+                                   <Avatar {...stringAvatar(UserData?.name)} style={{ cursor: 'pointer' }} />
                               </IconButton>
                          </Tooltip>
                     </Box>
@@ -129,12 +129,12 @@ function Topnav() {
                          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                     >
-                         <MenuItem onClick={handleClose}>
-                              <Avatar {...stringAvatar(UserData?.name)} /> Profile
+                         <MenuItem onClick={handleProfile}>
+                              <Avatar {...stringAvatar(UserData?.name)} /> My account
                          </MenuItem>
-                         <MenuItem onClick={handleClose}>
-                              <Avatar /> My account
-                         </MenuItem>
+                         {/* <MenuItem onClick={handleClose}>
+                              <Avatar /> 
+                         </MenuItem> */}
                          <Divider />
                          <MenuItem onClick={handleClose}>
                               <ListItemIcon>

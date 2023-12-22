@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Icon, Input, Switch, Table } from "@mui/material";
+import { Alert, Button, Card, Icon, Input, Slide, Snackbar, Switch, Table } from "@mui/material";
 import MDBox from "components/MDBox";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -33,8 +33,9 @@ function Family() {
      const [showPopup, setShowPopup] = useState(false);
      const [popupindex, setpopupindex] = useState('');
      const [isEditing, setIsEditing] = useState('');
-     const [flashMessage, setFlashMessage] = useState('');
-     const [ErrorflashMessage, setErrorFlashMessage] = useState('');
+     const [snackbarOpen, setSnackbarOpen] = useState(false);
+     const [snackbarMessage, setSnackbarMessage] = useState('');
+     const [snackbarType, setSnackbarType] = useState('success');
      const [Addpop, setAddPop] = useState(false);
      const [Add, setAdd] = useState('');
      const [sFamilyMember, setsFamilyMember] = useState(false)
@@ -125,15 +126,9 @@ function Family() {
                          item.name.toLocaleLowerCase() === isEditing.toLocaleLowerCase()
                )
 
-               if (
-                    isNameExistsoverall?.name.trim().toLocaleLowerCase() ===
-                    isEditing.trim().toLocaleLowerCase()
-               ) {
+               if (isNameExistsoverall?.name.trim().toLocaleLowerCase() === isEditing.trim().toLocaleLowerCase()) {
                     setShowPopup(false);
-                    setErrorFlashMessage("Family name is already registered");
-                    setTimeout(() => {
-                         setErrorFlashMessage("");
-                    }, 1000);
+                    handleSnackbarOpen("Family name is already registered", 'error');
                     return;
                }
 
@@ -146,24 +141,17 @@ function Family() {
                const { data } = await editFamily(constructObject);
 
                if (data?.status === "SUCCESS") {
-                    setFlashMessage(data.message);
                     setShowPopup(false);
-                    setTimeout(() => {
-                         setFlashMessage("");
-                    }, 1000);
+                    handleSnackbarOpen("Family name changed successfully", 'success');
                     fetchData();
                }
                else {
                     setShowPopup(false);
-                    setErrorFlashMessage("Error. Please try again!");
-                    setTimeout(() => {
-                         setErrorFlashMessage("");
-                    }, 1000);
+                    handleSnackbarOpen("Error. Please try again!", 'error');
                     return;
                }
           } catch (err) {
                console.error("Error saving family:", err);
-               setErrorFlashMessage(err.response.error.message);
           }
      };
 
@@ -189,10 +177,7 @@ function Family() {
                const { data } = await deleteFamily(values);
                if (data?.status === 'SUCCESS') {
                     setFamilyData(prevData => prevData.filter(item => item.id !== familyId));
-                    setFlashMessage('Family Deleted successfully!');
-                    setTimeout(() => {
-                         setFlashMessage('');
-                    }, 1000);
+                    handleSnackbarOpen("Family Deleted successfully!", 'success');
                } else {
                     // console.error('Failed to delete family.');
                }
@@ -218,10 +203,7 @@ function Family() {
                if (data?.status === 'SUCCESS') {
                     setInvitePop(false);
                     setphoneNumbers('');
-                    setFlashMessage('User invited successfully');
-                    setTimeout(() => {
-                         setFlashMessage('');
-                    }, 1000);
+                    handleSnackbarOpen("User invited successfully!", 'success');
                } else {
                     console.error('Failed to invite user.', data.error);
                }
@@ -242,11 +224,8 @@ function Family() {
 
                if (isNameExistsoverall?.name === Add.trim().toLocaleLowerCase()) {
                     setAddPop(false);
-                    setErrorFlashMessage("Family name is already registered");
+                    handleSnackbarOpen("Family name is already registered", 'error');
                     setAdd("");
-                    setTimeout(() => {
-                         setErrorFlashMessage("");
-                    }, 1000);
                     return;
                }
 
@@ -257,21 +236,15 @@ function Family() {
                     const newFamily = data?.response?.familyDetails;
                     setAddPop(false);
                     setFamilyData((prevData) => [...prevData, newFamily]);
-                    setFlashMessage(data?.message);
+                    handleSnackbarOpen("Family name registered successfully!", 'success');
                     setAdd("");
-                    setTimeout(() => {
-                         setFlashMessage("");
-                    }, 1000);
-
+                    fetchData();
                }
 
                else {
                     setAddPop(false);
-                    setErrorFlashMessage("Error. Please try again!!");
+                    handleSnackbarOpen("Error. Please try again!!", 'error');
                     setAdd("");
-                    setTimeout(() => {
-                         setErrorFlashMessage("");
-                    }, 1000);
                }
           } catch (error) {
                console.error("Error Save family:", error);
@@ -291,28 +264,31 @@ function Family() {
           setphoneNumbers(value);
      }
 
+     const handleSnackbarOpen = (message, type) => {
+          setSnackbarMessage(message);
+          setSnackbarType(type);
+          setSnackbarOpen(true);
+     };
 
      return (
           <DashboardLayout className='mainContent'>
                <DashboardNavbar />
-               <Card>
-                    {flashMessage && (
-                         <div>
-                              <div className="overlay">
-                                   <div className="popup">
-                                        <div className="popup-content">
-                                             <div className='flash-message'>
-                                                  {flashMessage}
-                                             </div>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
-                    )}
-               </Card>
+               <Snackbar
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    open={snackbarOpen}
+                    autoHideDuration={1500}
+                    onClose={() => setSnackbarOpen(false)}
+                    TransitionComponent={(props) => <Slide {...props} direction="left" />}
+               >
+                    <Alert
+                         severity={snackbarType === 'success' ? 'success' : 'error'}
+                         sx={{ width: '100%', color: '#ffffff', backgroundColor: snackbarType === 'success' ? '#236925' : '#b92525' }}
+                    >
+                         {snackbarMessage}
+                    </Alert>
+               </Snackbar>
+
                {hlistFamily && (
-
-
                     <MDBox className="mdbboxfamily">
                          <div className="addbtn">
 
@@ -323,22 +299,6 @@ function Family() {
                          </div>
 
                          <Card style={{ width: '37%' }}>
-
-                              <Card>
-                                   {ErrorflashMessage && (
-                                        <div>
-                                             <div className="overlay" onClick={closePopup}>
-                                                  <div className="popup">
-                                                       <div className="popup-content">
-                                                            <div className='Errorflash-message'>
-                                                                 {ErrorflashMessage}
-                                                            </div>
-                                                       </div>
-                                                  </div>
-                                             </div>
-                                        </div>
-                                   )}
-                              </Card>
                               <Card>
                                    {Addpop && (
                                         <div>
@@ -487,21 +447,6 @@ function Family() {
                                                                                                          }}
                                                                                                     > Save </MDButton>)}
                                                                                           </div>
-                                                                                          <Card>
-                                                                                               {ErrorflashMessage && (
-                                                                                                    <div>
-                                                                                                         <div className="overlay" onClick={closePopup}>
-                                                                                                              <div className="popup">
-                                                                                                                   <div className="popup-content">
-                                                                                                                        <div className='Errorflash-message'>
-                                                                                                                             {ErrorflashMessage}
-                                                                                                                        </div>
-                                                                                                                   </div>
-                                                                                                              </div>
-                                                                                                         </div>
-                                                                                                    </div>
-                                                                                               )}
-                                                                                          </Card>
                                                                                      </div>
                                                                                 </div>
                                                                            </div>

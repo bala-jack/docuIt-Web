@@ -116,7 +116,7 @@ function Documents() {
      const currentCategory = category.categoryId;
      console.log('props', location);
      // const [uploadedFiles, setUploadedFiles] = useState([]);
-     const ALLOWED_FILE_TYPES = ["application/pdf", "image/png"];
+     const ALLOWED_FILE_TYPES = ["application/pdf"];
      const userId = UserData?.id;
      pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
 
@@ -164,12 +164,13 @@ function Documents() {
                if (ALLOWED_FILE_TYPES.includes(files.type)) {
                     console.log("event.target12235::::::::::", files)
                     console.log('event.target.files[0]>>>>>>', files)
+                    handleUploadButtonClick(files);
 
                } else {
                     console.error("Invalid selectFile type. Please select a PDF or PNG selectFile.");
                }
                // setSelectedFile(files);
-               handleUploadButtonClick(files);
+         
                console.log("handleupload", files)
           }
      }
@@ -213,6 +214,7 @@ function Documents() {
                          if (saveResponse.status === 200 && saveResponse?.data?.response) {
                               const responseData = saveResponse?.data?.response
                               const {
+                                   id,
                                    documentName,
                                    documentSize,
                                    documentType,
@@ -227,6 +229,7 @@ function Documents() {
                                    setFlashMessage('');
                               }, 1000);
                               const documentDetails = {
+                                   documentId : id,
                                    documentName,
                                    documentSize,
                                    documentType,
@@ -347,6 +350,7 @@ function Documents() {
 
      const handleDownloadPDF = (docDetails) => {
           const PDFurl = docDetails.documentUrl;
+          console.log('PDFURL', PDFurl);
           const documentName = docDetails.documentName;
           fetch('https://cors-anywhere.herokuapp.com/' + PDFurl, {
                method: 'GET',
@@ -588,15 +592,9 @@ function Documents() {
                                    <TableBody style={{ color: 'black' }}>
 
                                         {LifeData.map((item, index) => (
-                                             <TableRow
-                                                  key={index}
-                                             // sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                             >
-                                                  {/* <TableCell component="th" scope="row">
-                                                  
-                                                  </TableCell> */}
+                                             <TableRow key={index}>
                                                   <TableCell align="centerr">{item.documentName}</TableCell>
-                                                  <TableCell align="center">{(item.documentSize / (1024 * 1024)).toFixed(1)}MB</TableCell>
+                                                  <TableCell align="center">{item.documentSize >= 1024 * 1024 ? `${(item.documentSize / (1024 * 1024)).toFixed(1)}MB` : item.documentSize >= 1024 ? `${(item.documentSize / 1024).toFixed(1)}KB` : `${item.documentSize} bytes`}</TableCell>
                                                   <TableCell align="center">{item.updatedDate}</TableCell>
                                                   <TableCell align="center">{item.uploadedByName}</TableCell>
                                                   <TableCell align="center">

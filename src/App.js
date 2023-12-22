@@ -28,6 +28,7 @@ import ForgetPin from './layouts/authentication/sign-up/forgetPin.js'
 import Verify from './layouts/authentication/sign-up/verify.js'
 import Setpin from './layouts/authentication/sign-up/setpin.js'
 import Topnav from "examples/TopNav";
+import Profile from "layouts/Profile";
 
 
 export default function App() {

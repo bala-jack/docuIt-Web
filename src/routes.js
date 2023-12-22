@@ -9,6 +9,7 @@ import Icon from "@mui/material/Icon";
 import Family from "layouts/family";
 import PendingInvites from "layouts/pendingInvites";
 import Documents from "layouts/Documents";
+import Profile from "layouts/Profile";
 
 
 const routes = [
@@ -43,7 +44,15 @@ const routes = [
     component: <Family />,
     role: 'User',
   },
-
+  {
+    type: "collapse",
+    name: "Profile",
+    key: "profile",
+    icon: <Icon fontSize="small">diversity_3</Icon>,
+    route: "/profile",
+    component: <Profile  />,
+    role: 'User',
+  },
   {
     // type: "collapse",
     // name: "FamilyMember",
