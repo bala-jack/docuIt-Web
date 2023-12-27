@@ -35,7 +35,9 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-
+import { getDocumentDetails } from "services";
+// import { format, isToday, isYesterday } from 'date-fns';
+// import { utcToZonedTime } from 'date-fns-tz';
 
 // import { useLocation, NavLink, useNavigate } from "react-router-dom";
 
@@ -111,6 +113,11 @@ function Documents() {
      const [checked, setChecked] = React.useState([true, false]);
      const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
      const [deleteDocumentId, setDeleteDocumentId] = useState([])
+     const [selectedFamilies, setSelectedFamilies] = useState([]);
+     const [selectedMembers, setSelectedMembers] = useState({});
+     const [selectedData, setSelectedData] = useState([]);
+     const [expandedFamilies, setExpandedFamilies] = useState([]);
+
      const location = useLocation();
      const category = location.state?.category;
      const currentCategory = category.categoryId;
@@ -159,18 +166,17 @@ function Documents() {
           console.log('handleFileChange Called')
           console.log("event.target::::::::::", event.target.file)
           const files = event.target.files[0];
-          if (files) {
+          if (files && files.type === 'application/pdf') {
                console.log("event.target12::::::::::", files)
-               if (ALLOWED_FILE_TYPES.includes(files.type)) {
-                    console.log("event.target12235::::::::::", files)
-                    console.log('event.target.files[0]>>>>>>', files)
-                    handleUploadButtonClick(files);
-
-               } else {
-                    console.error("Invalid selectFile type. Please select a PDF or PNG selectFile.");
-               }
+               // if (ALLOWED_FILE_TYPES.includes(files.type)) {
+               //      console.log("event.target12235::::::::::", files)
+               //      console.log('event.target.files[0]>>>>>>', files)
+               // } else {
+               //      console.error("Invalid selectFile type. Please select a PDF or PNG selectFile.");
+               // }
+               handleUploadButtonClick(files);
                // setSelectedFile(files);
-         
+
                console.log("handleupload", files)
           }
      }
@@ -178,12 +184,6 @@ function Documents() {
 
      const handleUploadButtonClick = async (files) => {
           console.log("selectFile???????", selectFile);
-          // if (!selectFile) {
-          //      console.error('Please select a selectFile.');
-          //      console.log("If Called???????");
-          //      return;
-          // }
-          // else {
           console.log("Else Called???????");
           try {
                const file = new FormData();
@@ -223,13 +223,11 @@ function Documents() {
 
                               setIsLoading(false);
                               setFlashMessage('Document saved successfully');
-                              // const newDocument = saveResponse.data.response[0];
-                              // setUploadedFiles([...uploadedFiles, newDocument]);
                               setTimeout(() => {
                                    setFlashMessage('');
                               }, 1000);
                               const documentDetails = {
-                                   documentId : id,
+                                   documentId: id,
                                    documentName,
                                    documentSize,
                                    documentType,
@@ -388,7 +386,8 @@ function Documents() {
      };
      console.log('ListFamily???', ListFamily);
 
-     const handleShare = async () => {
+     const handleShare = async (docDetails) => {
+          console.log('docDetails::::::::::::', docDetails)
           setopenShare(true);
           setTooltipOpen(false);
           try {
@@ -420,6 +419,16 @@ function Documents() {
                          phone: member.user.phone
                     }));
                     setFamilyMembers(familyMembers);
+                    try {
+                         const documentId = docDetails.documentId;
+                         const { data } = await getDocumentDetails(documentId);
+                         if (data.status === 'SUCCESS') {
+                              console.log('getDocumentDetailsAPIIIIIIIIIIIII', data);
+                         }
+                    } catch (error) {
+                         console.error('Error while getDocumentDetails', error);
+                    }
+
                }
           } catch (error) {
                console.error('Error while ListFamilyMembers', error);
@@ -440,8 +449,100 @@ function Documents() {
           setDeleteDocumentId(null);
      };
 
+     const formatDate = (dateString) => {
+          const documentDate = new Date(dateString);
+
+          const day = documentDate.getDate();
+          const month = documentDate.toLocaleString('en-US', { month: 'long' });
+          const year = documentDate.getFullYear();
+
+          return `${day}-${month}-${year}`;
+     };
+
+     const handleFamilyChange = (familyIndex) => () => {
+          // Toggle the selected family
+          const isSelected = selectedFamilies.includes(familyIndex);
+          setSelectedFamilies((prevSelected) =>
+               isSelected
+                    ? prevSelected.filter((index) => index !== familyIndex)
+                    : [...prevSelected, familyIndex]
+          );
+          // Assuming you have some state to track expanded families
+          const newExpandedFamilies = [...expandedFamilies];
+
+          if (isExpanded) {
+               // If the Accordion is expanded, add the familyIndex to the list
+               newExpandedFamilies.push(familyIndex);
+          } else {
+               // If the Accordion is collapsed, remove the familyIndex from the list
+               const indexToRemove = newExpandedFamilies.indexOf(familyIndex);
+               if (indexToRemove !== -1) {
+                    newExpandedFamilies.splice(indexToRemove, 1);
+               }
+          }
+
+          // Update the state to reflect the changes
+          setExpandedFamilies(newExpandedFamilies);
+     };
+
+     const handleMemberChange = (familyIndex, memberId) => (event) => {
+          // Ensure that the event object is available
+          if (!event || !event.target) {
+               return;
+          }
+
+          // Toggle the selected member for the family
+          const isChecked = event.target.checked;
+
+          // Assuming you have a state to track selected members
+          const newSelectedData = [...selectedData];
+
+          // Find the corresponding member in the data structure
+          const family = FamilyListwithMembers[familyIndex];
+          const member = family.membersList.find((member) => member.user.id === memberId);
+
+          // Check if the member is already in the selectedData
+          const isMemberSelected = newSelectedData.some((selectedMember) => selectedMember.user.id === memberId);
+
+          if (isChecked && !isMemberSelected) {
+               // If the checkbox is checked and the member is not in selectedData, add the member
+               newSelectedData.push(member);
+          } else if (!isChecked && isMemberSelected) {
+               // If the checkbox is unchecked and the member is in selectedData, remove the member
+               const filteredSelectedData = newSelectedData.filter((selectedMember) => selectedMember.user.id !== memberId);
+               setSelectedData(filteredSelectedData);
+          }
+
+          // Update the state to reflect the changes
+          setSelectedData(newSelectedData);
+     };
+
+     const isFamilySelected = (familyIndex) => {
+          return selectedFamilies.includes(familyIndex);
+     };
+
+     const isMemberSelected = (familyIndex, memberId) => {
+          return (selectedMembers[familyIndex] || []).includes(memberId);
+     };
+
+     const handleCheckboxChange = (item) => {
+          const newSelectedData = [...selectedData];
+
+          // Check if any member is not selected, then add all members to selectedData
+          if (!item.membersList.every((member) => newSelectedData.includes(member))) {
+               newSelectedData.push(...item.membersList);
+          } else {
+               // If all members are already selected, remove all members from selectedData
+               newSelectedData = newSelectedData.filter((member) => !item.membersList.includes(member));
+          }
+
+          setSelectedData(newSelectedData);
+     };
+
+
      console.log('FamilyListwithMembers>>>', FamilyListwithMembers)
      console.log('FamilyMembers>>>', FamilyMembers)
+
 
      return (
           <DashboardLayout className='mainContent'>
@@ -467,9 +568,9 @@ function Documents() {
 
                     <h2>{category.categoryName}</h2>
                     <div>
-                         <Button className="btnfamilylist" component="label" variant="contained" startIcon={<CloudUploadIcon />} onChange={handleFileChange}>
+                         <Button className="btnfamilylist" component="label" variant="contained" startIcon={<CloudUploadIcon />} >
                               Upload File
-                              <Input style={{ display: 'none' }} type="file" />
+                              <Input style={{ display: 'none' }} type="file" onChange={handleFileChange} accept=".pdf" />
                          </Button>
                     </div>
                </div>
@@ -483,48 +584,62 @@ function Documents() {
                               onClose={handleClose}
                               aria-labelledby="modal-modal-title"
                               aria-describedby="modal-modal-description"
+                              style={{ overflowY: 'scroll', maxHeight: '100%' }}
                          >
                               <Box sx={style}>
-                                   <FormControl>
-                                        <FormLabel id="demo-radio-buttons-group-label">Share Document</FormLabel>
-                                        <div style={{ alignItems: 'center' }}>
+                                   <FormControl sx={{ width: '100%' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '20px' }}>
+                                             <h3>Share Document</h3>
+                                             <Button variant="contained" style={{ color: 'white' }}>Share</Button>
+                                        </div>
+                                        <div>
                                              {FamilyListwithMembers.map((item, familyIndex) => (
-                                                  <div key={familyIndex}>
-                                                       <Accordion expanded={expanded === familyIndex} onChange={handleChange(familyIndex)}>
-                                                            <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
-                                                                 <Typography>
-                                                                      {item.name}
-                                                                 </Typography>
-                                                                 <Checkbox
-                                                                      type="checkbox"
-                                                                 // value={category.categoryId}
-                                                                 // checked={targetCategory === category.categoryId}
-                                                                 // onChange={() => setTargetCategory(category.categoryId)}
-                                                                 // style={{ display: currentCategory === category.categoryId ? 'none' : 'flex' }}
-                                                                 />
-                                                            </AccordionSummary>
-                                                            <AccordionDetails>
-                                                                 {FamilyMembers.map((member, memberIndex) => {
-                                                                      if (member.id === item.id) {
-                                                                           return (
-                                                                                <Typography key={memberIndex} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                                  <>
+                                                       <div key={familyIndex}>
+                                                            {console.log('FamilyListwithMembers<<<<<<<<<<<', FamilyListwithMembers)}
+                                                            <Accordion expanded={isFamilySelected(familyIndex)} onChange={handleFamilyChange(familyIndex)}>
+                                                                 <AccordionSummary style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                      <Typography>
+                                                                           {item.name}
+                                                                      </Typography>
+                                                                      <Typography>
+                                                                           {item.membersList && item.membersList.length > 0 && item.membersList.some(member => member.user.id !== userId) && (
+                                                                                <Checkbox
+                                                                                     key={item.id}
+                                                                                     type="checkbox"
+                                                                                     value={item.name}
+                                                                                     checked={
+                                                                                          item.membersList &&
+                                                                                          Array.isArray(item.membersList) &&
+                                                                                          item.membersList.length > 0 &&
+                                                                                          item.membersList.every((member) => selectedData.some((selectedMember) => selectedMember.user.id === member.user.id))
+                                                                                     }
+                                                                                     onChange={() => handleCheckboxChange(item)}
+                                                                                />
+                                                                           )}
+                                                                      </Typography>
+                                                                 </AccordionSummary>
+                                                                 <AccordionDetails>
+                                                                      <div>
+                                                                           {item.membersList.filter((filterItem) => filterItem.user.id !== UserData.id).map((member, memberIndex) => (
+                                                                                <div key={memberIndex} style={{ display: 'flex' }}>
+                                                                                     {console.log('member:::::::;;;;;', item)}
                                                                                      <Checkbox
                                                                                           type="checkbox"
-                                                                                          style={{ display: member.name === UserData.name ? 'none' : 'flex' }}
+                                                                                          checked={selectedData.some((selectedMember) => selectedMember.user.id === member.user.id)}
+                                                                                          onChange={handleMemberChange(familyIndex, member.user.id)}
                                                                                      />
-                                                                                     <div style={{ display: member.name === UserData.name ? 'none' : 'flex' }}>{member.name}</div>
-                                                                                </Typography>
-                                                                           );
-                                                                      }
-                                                                      return null; // Render nothing if the member is not part of the current family
-                                                                 })}
-                                                            </AccordionDetails>
-                                                       </Accordion>
-                                                  </div>
+                                                                                     <p>{member.user.name}</p>
+                                                                                </div>
+                                                                           ))}
+                                                                      </div>
+                                                                 </AccordionDetails>
+                                                            </Accordion>
+                                                            {console.log('item.membersList??????', item.membersList)}
+                                                       </div>
+                                                  </>
                                              ))}
                                         </div>
-
-                                        <Button variant="contained" color='inherit'>Share</Button>
                                    </FormControl>
                               </Box>
                          </Modal>
@@ -580,92 +695,69 @@ function Documents() {
                               <Table sx={{ minWidth: 650 }} aria-label="simple table">
                                    <TableHead style={{ display: 'contents' }}>
                                         <TableRow>
-                                             <TableCell align="center">Name</TableCell>
+                                             <TableCell align="justify">Name</TableCell>
                                              <TableCell align="center">Size</TableCell>
-                                             <TableCell align="center">Created at</TableCell>
                                              <TableCell align="center">Owner</TableCell>
+                                             <TableCell align="center">Created At</TableCell>
                                              <TableCell align="center">Share</TableCell>
-                                             <TableCell align="center">View Document</TableCell>
                                              <TableCell align="center">Actions</TableCell>
                                         </TableRow>
                                    </TableHead>
-                                   <TableBody style={{ color: 'black' }}>
+                                   <TableBody>
 
                                         {LifeData.map((item, index) => (
                                              <TableRow key={index}>
-                                                  <TableCell align="centerr">{item.documentName}</TableCell>
-                                                  <TableCell align="center">{item.documentSize >= 1024 * 1024 ? `${(item.documentSize / (1024 * 1024)).toFixed(1)}MB` : item.documentSize >= 1024 ? `${(item.documentSize / 1024).toFixed(1)}KB` : `${item.documentSize} bytes`}</TableCell>
-                                                  <TableCell align="center">{item.updatedDate}</TableCell>
+                                                  {console.log("Tableeeeeeeee", item)}
+                                                  <TableCell align="justify">{item.documentName}</TableCell>
+                                                  <TableCell align="center">{item.documentSize >= 1024 * 1024 ? `${(item.documentSize / (1024 * 1024)).toFixed(1)}MB` : item.documentSize >= 1024 ? `${(item.documentSize / 1024).toFixed(1)}KB` : `${item.documentSize} Bytes`}</TableCell>
                                                   <TableCell align="center">{item.uploadedByName}</TableCell>
+                                                  <TableCell align="center">{formatDate(item.createdDate)}</TableCell>
                                                   <TableCell align="center">
                                                        {item.sharedBy === null ? (
                                                             <p>No</p>
                                                        ) : (
-                                                            <React.Fragment>
+                                                            <>
                                                                  <p>Yes</p>
-                                                            </React.Fragment>
+                                                            </>
                                                        )}</TableCell>
-                                                  <TableCell align="center"> <Icon sx={{ cursor: 'pointer' }} onClick={() => { handleViewPdf(item); setTooltipOpen(true); }}>visibility</Icon></TableCell>
-                                                  <TableCell align="center">
-                                                       <Box sx={{ display: 'flex', justifyContent: 'center', padding: '10px' }}>
-                                                            <PopupState variant="popover" popupId="demo-popup-popover">
-                                                                 {(popupState) => (
-                                                                      <div>
-                                                                           <Icon fontSize="small" sx={{ cursor: 'pointer' }} {...bindTrigger(popupState)} item={item}>menu_open</Icon>
-                                                                           <Popover
-                                                                                {...bindPopover(popupState)}
-                                                                                anchorOrigin={{
-                                                                                     vertical: 'bottom',
-                                                                                     horizontal: 'center',
-                                                                                }}
-                                                                                transformOrigin={{
-                                                                                     vertical: 'top',
-                                                                                     horizontal: 'center',
-                                                                                }}
-                                                                           >
-                                                                                <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                                                                                     {userId === item.uploadedBy && (
-                                                                                          <Tooltip title="Move Document" sx={{ m: 1 }} placement="top">
-                                                                                               <Icon onClick={() => { handleMovePop(item); setTooltipOpen(true); }}>drive_file_move</Icon>
-                                                                                          </Tooltip>
-                                                                                     )}
-                                                                                     {userId === item.uploadedBy && (
-                                                                                          <Tooltip title="Share Document" sx={{ m: 1 }} placement="top">
-                                                                                               <Icon onClick={handleShare}>share</Icon>
-                                                                                          </Tooltip>
-                                                                                     )}
-                                                                                     <Tooltip title="View Document" sx={{ m: 1 }} placement="top">
-                                                                                          <Icon onClick={() => { handleViewPdf(item); setTooltipOpen(true); }}>visibility</Icon>
-                                                                                     </Tooltip>
-                                                                                     <Tooltip title="Download Document" sx={{ m: 1 }} placement="top">
-                                                                                          <Link href={item.documentUrl}
-                                                                                               download={item.documentName}
-                                                                                               target="_blank"
-                                                                                               style={{ color: '#212121', display: 'flex', justifyContent: 'center', textDecoration: 'none' }}
-                                                                                               rel="noreferrer"> <Icon onClick={(e) => { e.preventDefault(); handleDownloadPDF(item); setTooltipOpen(true); }}>download_for_offline</Icon>
-                                                                                          </Link>
-                                                                                     </Tooltip>
-                                                                                     {userId === item.uploadedBy && (
-                                                                                          <Tooltip title="Delete Document" sx={{ m: 1 }} placement="top">
-                                                                                               <Icon onClick={() => openDeleteDialog(item)}>delete</Icon>
-                                                                                          </Tooltip>
-                                                                                     )}
-                                                                                     <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
-                                                                                          <DialogTitle>Confirm Delete</DialogTitle>
-                                                                                          <DialogContent>
-                                                                                               Are you sure you want to delete this document?
-                                                                                          </DialogContent>
-                                                                                          <DialogActions>
-                                                                                               <Button onClick={closeDeleteDialog}>Cancel</Button>
-                                                                                               <Button onClick={() => { handleDelete(deleteDocumentId); setTooltipOpen(true); }}>Delete</Button>
-                                                                                          </DialogActions>
-                                                                                     </Dialog>
-                                                                                </Box>
-                                                                           </Popover>
-                                                                      </div>
-                                                                 )}
-                                                            </PopupState>
-                                                       </Box>
+                                                  <TableCell style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                       {userId === item.uploadedBy && (
+                                                            <Tooltip title="Move Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
+                                                                 <Icon onClick={() => handleMovePop(item)}>drive_file_move</Icon>
+                                                            </Tooltip>
+                                                       )}
+                                                       {userId === item.uploadedBy && (
+                                                            <Tooltip title="Share Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
+                                                                 <Icon onClick={() => handleShare(item)}>share</Icon>
+                                                            </Tooltip>
+                                                       )}
+                                                       <Tooltip title="Download Document" placement="top">
+                                                            <Link href={item.documentUrl}
+                                                                 download={item.documentName}
+                                                                 target="_blank"
+                                                                 style={{ color: '#212121', display: 'flex', justifyContent: 'center', textDecoration: 'none', margin: '10px' }}
+                                                                 rel="noreferrer"> <Icon onClick={(e) => { e.preventDefault(); handleDownloadPDF(item); }}>download_for_offline</Icon>
+                                                            </Link>
+                                                       </Tooltip>
+
+                                                       <Tooltip title="View Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
+                                                            <Icon onClick={() => handleViewPdf(item)}>visibility</Icon>
+                                                       </Tooltip>
+                                                       {userId === item.uploadedBy && (
+                                                            <Tooltip title="Delete Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
+                                                                 <Icon onClick={() => openDeleteDialog(item)} >delete</Icon>
+                                                            </Tooltip>
+                                                       )}
+                                                       <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
+                                                            <DialogTitle>Confirm Delete</DialogTitle>
+                                                            <DialogContent>
+                                                                 Are you sure you want to delete this document?
+                                                            </DialogContent>
+                                                            <DialogActions>
+                                                                 <Button onClick={closeDeleteDialog}>Cancel</Button>
+                                                                 <Button onClick={() => handleDelete(deleteDocumentId)}>Delete</Button>
+                                                            </DialogActions>
+                                                       </Dialog>
                                                   </TableCell>
                                              </TableRow>
                                         ))}
@@ -673,7 +765,8 @@ function Documents() {
                               </Table>
                          </TableContainer>
                     </>
-               )}
+               )
+               }
           </DashboardLayout >
      )
 }

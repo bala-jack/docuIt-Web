@@ -55,7 +55,7 @@ function Dashboard() {
                   <div style={{ height: '96%' }}>
                     <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}>
                       <Viewer
-                        fileUrl={'http://s3.ap-south-1.amazonaws.com/docuit-dev/dockit/f1ecde14-cd12-4aea-9d56-407b450d0e97/reactjs_session1.pdf'}
+                        fileUrl={item.url}
                         httpHeaders={{ Authorization: `Bearer ${isAuthenticated}`, 'Content-Type': 'application/pdf' }}
                         className="pdf-img"
                         onError={(error) => console.error('PDF Viewer Error:', error)}

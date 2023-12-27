@@ -239,7 +239,7 @@ export const updateDocument = async (params) => {
     if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
         axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
     }
-    return await axiosInstance.put(`document/updateDocument` , params);
+    return await axiosInstance.put(`document/updateDocument`, params);
 }
 
 export const getFamilyWithMembers = async (params) => {
@@ -247,11 +247,28 @@ export const getFamilyWithMembers = async (params) => {
     if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
         axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
     }
-    return await axiosInstance.get(`family/getFamilyWithMembers?adminId=` +  params);
+    return await axiosInstance.get(`family/getFamilyWithMembers?adminId=` + params);
 }
 
-// Integration
+export const getDocumentDetails = async (params) => {
+    const token = localStorage.getItem('docuItToken')
+    if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
+        axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return await axiosInstance.get(`/document/getDocumentDetails?documentId=` + params);
+}
 
+// aravindh
+export const updateProfile = async (params) => {
+    const token = localStorage.getItem('docuItToken')
+    if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
+        axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return await axiosInstance.put(`auth/updateProfile`, params);
+}
+
+
+// Integration
 export const userdashboard = async (params) => {
     const token = localStorage.getItem('docuItToken')
     if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {

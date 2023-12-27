@@ -45,10 +45,10 @@ const routes = [
     role: 'User',
   },
   {
-    type: "collapse",
-    name: "Profile",
+    // type: "collapse",
+    // name: "Profile",
     key: "profile",
-    icon: <Icon fontSize="small">diversity_3</Icon>,
+    // icon: <Icon fontSize="small">diversity_3</Icon>,
     route: "/profile",
     component: <Profile  />,
     role: 'User',

@@ -1,5 +1,5 @@
 export const DOCUIT_SIGNIN_SCREEN = {
-    signin_forget : 'Forget Password',
+    signin_forget : 'Forgot Password',
     signup_detail : "Don't have an account?",
     signup_string : 'SIGN UP'  
 }

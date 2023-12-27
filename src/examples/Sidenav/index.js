@@ -153,7 +153,6 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
               {categoryDetails.map((item, index) => (
                 <ListItemButton key={item.categoryId}
                   onClick={() => handleSubmenuClick(item)} sx={{ pl: 4 }} style={{ display: 'flow', padding: '0px 14px' }}>
-                  {console.log('saaaaaaaaa', item.categoryId, activeCategory)}
                   <SidenavCollapse
                     name={item.categoryName + '  ' + '(' + item.fileCount + ')'}
                     icon={<ListIcon />}
