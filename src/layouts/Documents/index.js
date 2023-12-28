@@ -116,7 +116,11 @@ function Documents() {
      const [selectedFamilies, setSelectedFamilies] = useState([]);
      const [selectedMembers, setSelectedMembers] = useState({});
      const [selectedData, setSelectedData] = useState([]);
-     const [expandedFamilies, setExpandedFamilies] = useState([]);
+     let [expandedFamilies, setExpandedFamilies] = useState([]);
+     let [selectedFamilyIds, setSelectedFamilyIds] = useState([]);
+     let [addMembers,setAddMembers] = useState([]);
+     let [revokeMembers, setRevokeMembers] = useState([]);
+     const [memberData, setMembersData] = useState([]);
 
      const location = useLocation();
      const category = location.state?.category;
@@ -386,11 +390,31 @@ function Documents() {
      };
      console.log('ListFamily???', ListFamily);
 
+     const getDocumentDetailsById = async (document) => {
+          // console.log('getDocumentDetails==========>>.><<<<>>><///',document.documentId)
+          try {
+              let response = await getDocumentDetails(document.documentId)
+              // console.log('response==>getDocumentDetails_____))____)_)_)_)))_',(response.data))
+              if (response.data.code === 200) {
+                  let memberIdArray = response.data.response.memberIds
+                  setAddMembers(memberIdArray)
+                  setMembersData(memberIdArray)
+               //    setFamilyData([...new Set(response.data.response.sharedDetails.map(item => item.member.family.id))])
+                  setSelectedFamilyIds([...new Set(response.data.response.sharedDetails.filter((filterItem) => filterItem.user.id !== userId).map(item => item.member.family.id))])
+                  setIsLoading(false)
+              }
+          } catch (error) {
+              console.error('Error in listFamilyMembers:', error);  
+              setIsLoading(false)
+          }
+     }
+
      const handleShare = async (docDetails) => {
           console.log('docDetails::::::::::::', docDetails)
           setopenShare(true);
           setTooltipOpen(false);
           try {
+               getDocumentDetailsById(docDetails)
                const { data } = await getFamilyWithMembers(userId);
                console.log('data??', data)
                if (data.status === 'SUCCESS') {
@@ -459,7 +483,7 @@ function Documents() {
           return `${day}-${month}-${year}`;
      };
 
-     const handleFamilyChange = (familyIndex) => () => {
+     const handleFamilyChange = (familyIndex, familyDetail) => () => {
           // Toggle the selected family
           const isSelected = selectedFamilies.includes(familyIndex);
           setSelectedFamilies((prevSelected) =>
@@ -485,36 +509,64 @@ function Documents() {
           setExpandedFamilies(newExpandedFamilies);
      };
 
-     const handleMemberChange = (familyIndex, memberId) => (event) => {
+     const handleMemberChange = (familyIndex, memberId, familyDetail) => (event) => {
           // Ensure that the event object is available
-          if (!event || !event.target) {
-               return;
+          // if (!event || !event.target) {
+          //      return;
+          // }
+
+          // // Toggle the selected member for the family
+          // const isChecked = event.target.checked;
+
+          // // Assuming you have a state to track selected members
+          // const newSelectedData = [...selectedData];
+
+          // // Find the corresponding member in the data structure
+          // const family = FamilyListwithMembers[familyIndex];
+          // const member = family.membersList.find((member) => member.user.id === memberId);
+
+          // // Check if the member is already in the selectedData
+          // const isMemberSelected = newSelectedData.some((selectedMember) => selectedMember.user.id === memberId);
+
+          // if (isChecked && !isMemberSelected) {
+          //      // If the checkbox is checked and the member is not in selectedData, add the member
+          //      newSelectedData.push(member);
+          // } else if (!isChecked && isMemberSelected) {
+          //      // If the checkbox is unchecked and the member is in selectedData, remove the member
+          //      const filteredSelectedData = newSelectedData.filter((selectedMember) => selectedMember.user.id !== memberId);
+          //      setSelectedData(filteredSelectedData);
+          // }
+
+          // // Update the state to reflect the changes
+          // setSelectedData(newSelectedData);
+
+
+          let membersList = familyDetail.membersList.filter(filterItem => filterItem.user.id !== userId )
+          // console.log('membersList',membersList,addMembers,item.name)
+        if (addMembers.includes(`${memberId}`)) {
+          setAddMembers(prev => prev.filter(filterItem => filterItem != memberId))
+          let value = memberData.filter((itm) => itm.id != `${memberId}`);
+          if (value.includes(`${memberId}`)) {
+              setRevokeMembers((prevRevokeMembers) => [...prevRevokeMembers, `${memberId}`]);
           }
+          if (value.length === 0 && selectedFamilyIds.includes(familyDetail.id)) {
+              setSelectedFamilyIds(prev => prev.filter(selectedFamilyId => selectedFamilyId !== familyDetail.id));
+              // setRevokeMembers(prev => prev.filter(filterItem => filterItem != memberId))
 
-          // Toggle the selected member for the family
-          const isChecked = event.target.checked;
-
-          // Assuming you have a state to track selected members
-          const newSelectedData = [...selectedData];
-
-          // Find the corresponding member in the data structure
-          const family = FamilyListwithMembers[familyIndex];
-          const member = family.membersList.find((member) => member.user.id === memberId);
-
-          // Check if the member is already in the selectedData
-          const isMemberSelected = newSelectedData.some((selectedMember) => selectedMember.user.id === memberId);
-
-          if (isChecked && !isMemberSelected) {
-               // If the checkbox is checked and the member is not in selectedData, add the member
-               newSelectedData.push(member);
-          } else if (!isChecked && isMemberSelected) {
-               // If the checkbox is unchecked and the member is in selectedData, remove the member
-               const filteredSelectedData = newSelectedData.filter((selectedMember) => selectedMember.user.id !== memberId);
-               setSelectedData(filteredSelectedData);
           }
-
-          // Update the state to reflect the changes
-          setSelectedData(newSelectedData);
+          let isCheckWholeFamily =membersList.length && membersList.every(memberItem => addMembers.includes(memberItem.id))
+          isCheckWholeFamily &&  setSelectedFamilyIds(prev => [...prev, familyDetail.id]);
+      } else {
+          addMembers = [...addMembers, `${memberId}`]
+          setAddMembers(addMembers)
+          setRevokeMembers(prev => prev.filter(filterItem => filterItem != memberId))
+          let isCheckWholeFamily =membersList.length && membersList.every(memberItem => addMembers.includes(memberItem.id))
+          isCheckWholeFamily &&  setSelectedFamilyIds(prev => [...prev, familyDetail.id]);
+          if (!selectedFamilyIds.includes(familyDetail.id)) {
+              setSelectedFamilyIds(prev => [...prev, familyDetail.id]);
+              setRevokeMembers(prev => prev.filter(filterItem => filterItem != memberId))
+          }
+      }
      };
 
      const isFamilySelected = (familyIndex) => {
@@ -525,23 +577,32 @@ function Documents() {
           return (selectedMembers[familyIndex] || []).includes(memberId);
      };
 
-     const handleCheckboxChange = (item) => {
-          const newSelectedData = [...selectedData];
+     const handleCheckboxChange = (familyDetail) => {
+          let membersList = familyDetail.membersList.filter(filterItem => filterItem.user.id !== userId )
+          // console.log('membersList',membersList,addMembers,item.name)
+          let isCheckWholeFamily =membersList.length && membersList.every(memberItem => addMembers.includes(memberItem.id))
+          let memberIds = familyDetail.membersList.map(item => item.id)
+    
+           if(selectedFamilyIds.includes(familyDetail.id)){
+               let updatedFamilyIds = selectedFamilyIds.filter(familyItem => familyItem != familyDetail.id )
+               let updatedMemberIds = addMembers.filter(memberItem => !memberIds.includes(memberItem) )
+               setAddMembers(updatedMemberIds)
+               setSelectedFamilyIds(updatedMemberIds)
+               setRevokeMembers((prevRevokeMembers) => [...prevRevokeMembers, ...memberIds])
+               setSelectedFamilyIds(updatedFamilyIds)
 
-          // Check if any member is not selected, then add all members to selectedData
-          if (!item.membersList.every((member) => newSelectedData.includes(member))) {
-               newSelectedData.push(...item.membersList);
-          } else {
-               // If all members are already selected, remove all members from selectedData
-               newSelectedData = newSelectedData.filter((member) => !item.membersList.includes(member));
-          }
-
-          setSelectedData(newSelectedData);
+           }else{
+            let updatedFamilyIds = [...selectedFamilyIds,familyDetail.id]
+            let updatedMemberIds = [...addMembers,...memberIds]
+            setSelectedFamilyIds(updatedFamilyIds)
+            setAddMembers(prev => prev = [...prev, ...memberIds])
+            setRevokeMembers((prevRevokeMembers) => prevRevokeMembers.filter(memberItem => !memberIds.includes(memberItem)))
+           }
      };
 
 
-     console.log('FamilyListwithMembers>>>', FamilyListwithMembers)
-     console.log('FamilyMembers>>>', FamilyMembers)
+     // console.log('FamilyListwithMembers>>>', FamilyListwithMembers)
+     // console.log('FamilyMembers>>>', FamilyMembers)
 
 
      return (
@@ -596,14 +657,15 @@ function Documents() {
                                              {FamilyListwithMembers.map((item, familyIndex) => (
                                                   <>
                                                        <div key={familyIndex}>
-                                                            {console.log('FamilyListwithMembers<<<<<<<<<<<', FamilyListwithMembers)}
+                                                            {/* {console.log('FamilyListwithMembers<<<<<<<<<<<', FamilyListwithMembers, selectedFamilyIds)} */}
                                                             <Accordion expanded={isFamilySelected(familyIndex)} onChange={handleFamilyChange(familyIndex)}>
-                                                                 <AccordionSummary style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                 <AccordionSummary  style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                                                       <Typography>
                                                                            {item.name}
                                                                       </Typography>
                                                                       <Typography>
-                                                                           {item.membersList && item.membersList.length > 0 && item.membersList.some(member => member.user.id !== userId) && (
+                                                                           {/* {item.membersList && item.membersList.length > 0 && item.membersList.some(member => member.user.id !== userId) && ( */}
                                                                                 <Checkbox
                                                                                      key={item.id}
                                                                                      type="checkbox"
@@ -612,30 +674,31 @@ function Documents() {
                                                                                           item.membersList &&
                                                                                           Array.isArray(item.membersList) &&
                                                                                           item.membersList.length > 0 &&
-                                                                                          item.membersList.every((member) => selectedData.some((selectedMember) => selectedMember.user.id === member.user.id))
+                                                                                          item.membersList.filter((filterItem) => filterItem.user.id !== UserData.id).every((member) => addMembers.includes(member.id))
                                                                                      }
                                                                                      onChange={() => handleCheckboxChange(item)}
                                                                                 />
-                                                                           )}
+                                                                           {/* )} */}
                                                                       </Typography>
+                                                                      </Box>
                                                                  </AccordionSummary>
                                                                  <AccordionDetails>
                                                                       <div>
                                                                            {item.membersList.filter((filterItem) => filterItem.user.id !== UserData.id).map((member, memberIndex) => (
-                                                                                <div key={memberIndex} style={{ display: 'flex' }}>
-                                                                                     {console.log('member:::::::;;;;;', item)}
+                                                                                <div key={memberIndex} style={{ display: 'flex', justifyContent: 'space-between', flexDirection: 'row-reverse' }}>
+                                                                                     {/* {console.log('member:::::::;;;;;', item)} */}
                                                                                      <Checkbox
                                                                                           type="checkbox"
-                                                                                          checked={selectedData.some((selectedMember) => selectedMember.user.id === member.user.id)}
-                                                                                          onChange={handleMemberChange(familyIndex, member.user.id)}
+                                                                                          checked={addMembers.includes(member.id)}
+                                                                                          onChange={handleMemberChange(familyIndex, member.id, item)}
                                                                                      />
-                                                                                     <p>{member.user.name}</p>
+                                                                                     <p style={{ marginLeft: 25 }}>{member.user.name}</p>
                                                                                 </div>
                                                                            ))}
                                                                       </div>
                                                                  </AccordionDetails>
                                                             </Accordion>
-                                                            {console.log('item.membersList??????', item.membersList)}
+                                                            {/* {console.log('item.membersList??????', item.membersList)} */}
                                                        </div>
                                                   </>
                                              ))}
