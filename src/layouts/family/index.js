@@ -10,7 +10,6 @@ import '../family/family.scss';
 import { Form, Link, Navigate, Route, unstable_HistoryRouter, useParams } from 'react-router-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { useNavigate, useHistory } from 'react-router-dom';
-import FamilyMembers from 'layouts/familyMembers';
 import { listFamilyMembers } from 'services';
 import { inviteUser } from 'services';
 import { Label } from '@mui/icons-material';
