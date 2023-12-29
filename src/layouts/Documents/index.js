@@ -36,24 +36,6 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { getDocumentDetails } from "services";
-// import { format, isToday, isYesterday } from 'date-fns';
-// import { utcToZonedTime } from 'date-fns-tz';
-
-// import { useLocation, NavLink, useNavigate } from "react-router-dom";
-
-// const isButtonDisabled = isEditing.trim() === '';
-
-// const VisuallyHiddenInput = styled('input')({
-//      clip: 'rect(0 0 0 0)',
-//      clipPath: 'inset(50%)',
-//      height: 1,
-//      overflow: 'hidden',
-//      position: 'absolute',
-//      bottom: 0,
-//      left: 0,
-//      whiteSpace: 'nowrap',
-//      width: 1,
-// });
 
 const Accordion = styled((props) => (
      <MuiAccordion disableGutters elevation={0} square {...props} />
