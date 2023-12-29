@@ -91,9 +91,11 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
      borderTop: '1px solid rgba(0, 0, 0, .125)',
 }));
 
+function arrayEquals(arr1, arr2) {
+     return JSON.stringify(arr1) === JSON.stringify(arr2);
+}
 
 function Documents() {
-
      const { UserData, isAuthenticated, ListFamily } = useAuth();
      const [flashMessage, setFlashMessage] = useState('');
      const [isLoading, setIsLoading] = useState(false);
@@ -118,9 +120,11 @@ function Documents() {
      const [selectedData, setSelectedData] = useState([]);
      let [expandedFamilies, setExpandedFamilies] = useState([]);
      let [selectedFamilyIds, setSelectedFamilyIds] = useState([]);
-     let [addMembers,setAddMembers] = useState([]);
+     let [addMembers, setAddMembers] = useState([]);
      let [revokeMembers, setRevokeMembers] = useState([]);
      const [memberData, setMembersData] = useState([]);
+     const [docDetails, setDocDetails] = useState([]);
+
 
      const location = useLocation();
      const category = location.state?.category;
@@ -165,25 +169,37 @@ function Documents() {
                console.error("API call failed:", err);
           }
      };
-     const handleFileChange = (event) => {
-          event.preventDefault(event);
-          console.log('handleFileChange Called')
-          console.log("event.target::::::::::", event.target.file)
-          const files = event.target.files[0];
-          if (files && files.type === 'application/pdf') {
-               console.log("event.target12::::::::::", files)
-               // if (ALLOWED_FILE_TYPES.includes(files.type)) {
-               //      console.log("event.target12235::::::::::", files)
-               //      console.log('event.target.files[0]>>>>>>', files)
-               // } else {
-               //      console.error("Invalid selectFile type. Please select a PDF or PNG selectFile.");
-               // }
-               handleUploadButtonClick(files);
-               // setSelectedFile(files);
 
-               console.log("handleupload", files)
+     const handleFileChange = (event) => {
+          event.preventDefault();
+          console.log('handleFileChange Called');
+          const files = event.target.files;
+        
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+        
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+              console.log(`File ${file.name} is not a PDF, skipping.`);
+            } else {
+              handleUploadButtonClick(file);
+              console.log('handleupload', file);
+            }
           }
-     }
+        };
+          
+     // const handleFileChange = (event) => {
+     //      event.preventDefault(event);
+     //      console.log('handleFileChange Called')
+     //      console.log("event.target::::::::::", event.target.file)
+     //      const files = event.target.files[0];
+     //      if (!files.endsWith('.pdf')) {
+     //           console.log("event.target12::::::::::", files)
+     //           return;
+     //      } else {
+     //           handleUploadButtonClick(files);
+     //           console.log("handleupload", files)
+     //      }
+     // }
      console.log("selectFile::::::::::", selectFile)
 
      const handleUploadButtonClick = async (files) => {
@@ -393,19 +409,19 @@ function Documents() {
      const getDocumentDetailsById = async (document) => {
           // console.log('getDocumentDetails==========>>.><<<<>>><///',document.documentId)
           try {
-              let response = await getDocumentDetails(document.documentId)
-              // console.log('response==>getDocumentDetails_____))____)_)_)_)))_',(response.data))
-              if (response.data.code === 200) {
-                  let memberIdArray = response.data.response.memberIds
-                  setAddMembers(memberIdArray)
-                  setMembersData(memberIdArray)
-               //    setFamilyData([...new Set(response.data.response.sharedDetails.map(item => item.member.family.id))])
-                  setSelectedFamilyIds([...new Set(response.data.response.sharedDetails.filter((filterItem) => filterItem.user.id !== userId).map(item => item.member.family.id))])
-                  setIsLoading(false)
-              }
+               let response = await getDocumentDetails(document.documentId)
+               // console.log('response==>getDocumentDetails_____))____)_)_)_)))_',(response.data))
+               if (response.data.code === 200) {
+                    let memberIdArray = response.data.response.memberIds
+                    setAddMembers(memberIdArray)
+                    setMembersData(memberIdArray)
+                    //    setFamilyData([...new Set(response.data.response.sharedDetails.map(item => item.member.family.id))])
+                    setSelectedFamilyIds([...new Set(response.data.response.sharedDetails.filter((filterItem) => filterItem.user.id !== userId).map(item => item.member.family.id))])
+                    setIsLoading(false)
+               }
           } catch (error) {
-              console.error('Error in listFamilyMembers:', error);  
-              setIsLoading(false)
+               console.error('Error in listFamilyMembers:', error);
+               setIsLoading(false)
           }
      }
 
@@ -413,6 +429,7 @@ function Documents() {
           console.log('docDetails::::::::::::', docDetails)
           setopenShare(true);
           setTooltipOpen(false);
+          setDocDetails(docDetails);
           try {
                getDocumentDetailsById(docDetails)
                const { data } = await getFamilyWithMembers(userId);
@@ -541,32 +558,32 @@ function Documents() {
           // setSelectedData(newSelectedData);
 
 
-          let membersList = familyDetail.membersList.filter(filterItem => filterItem.user.id !== userId )
+          let membersList = familyDetail.membersList.filter(filterItem => filterItem.user.id !== userId)
           // console.log('membersList',membersList,addMembers,item.name)
-        if (addMembers.includes(`${memberId}`)) {
-          setAddMembers(prev => prev.filter(filterItem => filterItem != memberId))
-          let value = memberData.filter((itm) => itm.id != `${memberId}`);
-          if (value.includes(`${memberId}`)) {
-              setRevokeMembers((prevRevokeMembers) => [...prevRevokeMembers, `${memberId}`]);
-          }
-          if (value.length === 0 && selectedFamilyIds.includes(familyDetail.id)) {
-              setSelectedFamilyIds(prev => prev.filter(selectedFamilyId => selectedFamilyId !== familyDetail.id));
-              // setRevokeMembers(prev => prev.filter(filterItem => filterItem != memberId))
+          if (addMembers.includes(`${memberId}`)) {
+               setAddMembers(prev => prev.filter(filterItem => filterItem != memberId))
+               let value = memberData.filter((itm) => itm.id != `${memberId}`);
+               if (value.includes(`${memberId}`)) {
+                    setRevokeMembers((prevRevokeMembers) => [...prevRevokeMembers, `${memberId}`]);
+               }
+               if (value.length === 0 && selectedFamilyIds.includes(familyDetail.id)) {
+                    setSelectedFamilyIds(prev => prev.filter(selectedFamilyId => selectedFamilyId !== familyDetail.id));
+                    // setRevokeMembers(prev => prev.filter(filterItem => filterItem != memberId))
 
+               }
+               let isCheckWholeFamily = membersList.length && membersList.every(memberItem => addMembers.includes(memberItem.id))
+               isCheckWholeFamily && setSelectedFamilyIds(prev => [...prev, familyDetail.id]);
+          } else {
+               addMembers = [...addMembers, `${memberId}`]
+               setAddMembers(addMembers)
+               setRevokeMembers(prev => prev.filter(filterItem => filterItem != memberId))
+               let isCheckWholeFamily = membersList.length && membersList.every(memberItem => addMembers.includes(memberItem.id))
+               isCheckWholeFamily && setSelectedFamilyIds(prev => [...prev, familyDetail.id]);
+               if (!selectedFamilyIds.includes(familyDetail.id)) {
+                    setSelectedFamilyIds(prev => [...prev, familyDetail.id]);
+                    setRevokeMembers(prev => prev.filter(filterItem => filterItem != memberId))
+               }
           }
-          let isCheckWholeFamily =membersList.length && membersList.every(memberItem => addMembers.includes(memberItem.id))
-          isCheckWholeFamily &&  setSelectedFamilyIds(prev => [...prev, familyDetail.id]);
-      } else {
-          addMembers = [...addMembers, `${memberId}`]
-          setAddMembers(addMembers)
-          setRevokeMembers(prev => prev.filter(filterItem => filterItem != memberId))
-          let isCheckWholeFamily =membersList.length && membersList.every(memberItem => addMembers.includes(memberItem.id))
-          isCheckWholeFamily &&  setSelectedFamilyIds(prev => [...prev, familyDetail.id]);
-          if (!selectedFamilyIds.includes(familyDetail.id)) {
-              setSelectedFamilyIds(prev => [...prev, familyDetail.id]);
-              setRevokeMembers(prev => prev.filter(filterItem => filterItem != memberId))
-          }
-      }
      };
 
      const isFamilySelected = (familyIndex) => {
@@ -578,33 +595,57 @@ function Documents() {
      };
 
      const handleCheckboxChange = (familyDetail) => {
-          let membersList = familyDetail.membersList.filter(filterItem => filterItem.user.id !== userId )
+          let membersList = familyDetail.membersList.filter(filterItem => filterItem.user.id !== userId)
           // console.log('membersList',membersList,addMembers,item.name)
-          let isCheckWholeFamily =membersList.length && membersList.every(memberItem => addMembers.includes(memberItem.id))
+          let isCheckWholeFamily = membersList.length && membersList.every(memberItem => addMembers.includes(memberItem.id))
           let memberIds = familyDetail.membersList.map(item => item.id)
-    
-           if(selectedFamilyIds.includes(familyDetail.id)){
-               let updatedFamilyIds = selectedFamilyIds.filter(familyItem => familyItem != familyDetail.id )
-               let updatedMemberIds = addMembers.filter(memberItem => !memberIds.includes(memberItem) )
+
+          if (selectedFamilyIds.includes(familyDetail.id)) {
+               let updatedFamilyIds = selectedFamilyIds.filter(familyItem => familyItem != familyDetail.id)
+               let updatedMemberIds = addMembers.filter(memberItem => !memberIds.includes(memberItem))
                setAddMembers(updatedMemberIds)
                setSelectedFamilyIds(updatedMemberIds)
                setRevokeMembers((prevRevokeMembers) => [...prevRevokeMembers, ...memberIds])
                setSelectedFamilyIds(updatedFamilyIds)
 
-           }else{
-            let updatedFamilyIds = [...selectedFamilyIds,familyDetail.id]
-            let updatedMemberIds = [...addMembers,...memberIds]
-            setSelectedFamilyIds(updatedFamilyIds)
-            setAddMembers(prev => prev = [...prev, ...memberIds])
-            setRevokeMembers((prevRevokeMembers) => prevRevokeMembers.filter(memberItem => !memberIds.includes(memberItem)))
-           }
+          } else {
+               let updatedFamilyIds = [...selectedFamilyIds, familyDetail.id]
+               let updatedMemberIds = [...addMembers, ...memberIds]
+               setSelectedFamilyIds(updatedFamilyIds)
+               setAddMembers(prev => prev = [...prev, ...memberIds])
+               setRevokeMembers((prevRevokeMembers) => prevRevokeMembers.filter(memberItem => !memberIds.includes(memberItem)))
+          }
      };
 
+     const handleShareDoc = async () => {
 
-     // console.log('FamilyListwithMembers>>>', FamilyListwithMembers)
-     // console.log('FamilyMembers>>>', FamilyMembers)
+          try {
+               const userId = UserData?.id;
+               const uniqueFamilyIds = [...new Set(selectedFamilyIds)];
+               const uniqueAddMembers = [...new Set(addMembers)];
+               const uniqueRevokembers = [...new Set(revokeMembers)];
+               const params = {
+                    familyId: uniqueFamilyIds,
+                    documentId: docDetails.documentId,
+                    categoryId: targetCategory,
+                    revokeAccess: uniqueRevokembers,
+                    provideAccess: uniqueAddMembers,
+                    documentName: docDetails.documentName,
+                    updatedBy: userId
+               }
+               console.log('params', params)
+               const { data } = await updateDocument(params);
+               console.log('updateDocument"""""":', data);
+               if (data.status === 'SUCCESS') {
 
-
+                    setopenShare(false)
+                    console.log('data-----updateDocument', data)
+               }
+          } catch (err) {
+               console.error('Error Upload Docs:', err);
+               setIsLoading(false);
+          }
+     }
      return (
           <DashboardLayout className='mainContent'>
                <DashboardNavbar />
@@ -651,7 +692,11 @@ function Documents() {
                                    <FormControl sx={{ width: '100%' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '20px' }}>
                                              <h3>Share Document</h3>
-                                             <Button variant="contained" style={{ color: 'white' }}>Share</Button>
+                                             {!arrayEquals(addMembers, memberData) && (
+                                                  <Button variant="contained" style={{ color: 'white' }} onClick={handleShareDoc}>
+                                                       Share
+                                                  </Button>
+                                             )}
                                         </div>
                                         <div>
                                              {FamilyListwithMembers.map((item, familyIndex) => (
@@ -659,34 +704,44 @@ function Documents() {
                                                        <div key={familyIndex}>
                                                             {/* {console.log('FamilyListwithMembers<<<<<<<<<<<', FamilyListwithMembers, selectedFamilyIds)} */}
                                                             <Accordion expanded={isFamilySelected(familyIndex)} onChange={handleFamilyChange(familyIndex)}>
-                                                                 <AccordionSummary  style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                                                      <Typography>
-                                                                           {item.name}
-                                                                      </Typography>
-                                                                      <Typography>
-                                                                           {/* {item.membersList && item.membersList.length > 0 && item.membersList.some(member => member.user.id !== userId) && ( */}
-                                                                                <Checkbox
-                                                                                     key={item.id}
-                                                                                     type="checkbox"
-                                                                                     value={item.name}
-                                                                                     checked={
-                                                                                          item.membersList &&
-                                                                                          Array.isArray(item.membersList) &&
-                                                                                          item.membersList.length > 0 &&
-                                                                                          item.membersList.filter((filterItem) => filterItem.user.id !== UserData.id).every((member) => addMembers.includes(member.id))
-                                                                                     }
-                                                                                     onChange={() => handleCheckboxChange(item)}
-                                                                                />
-                                                                           {/* )} */}
-                                                                      </Typography>
+                                                                 <AccordionSummary style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                                           <Typography>
+                                                                                {item.name}
+                                                                           </Typography>
+                                                                           <Typography>
+                                                                                {item.membersList && item.membersList.length > 0 && item.membersList.some(member => member.user.id !== userId) && (
+                                                                                     <Checkbox
+                                                                                          key={item.id}
+                                                                                          type="checkbox"
+                                                                                          value={item.name}
+                                                                                          // checked={
+                                                                                          //      item.membersList &&
+                                                                                          //      Array.isArray(item.membersList) &&
+                                                                                          //      item.membersList.length > 0 &&
+                                                                                          //      arrayEquals(
+                                                                                          //           item.membersList
+                                                                                          //                .filter((filterItem) => filterItem.user.id !== UserData.id)
+                                                                                          //                .map((member) => member.id),
+                                                                                          //           addMembers
+                                                                                          //      )
+                                                                                          // }
+                                                                                          checked={
+                                                                                               item.membersList &&
+                                                                                               Array.isArray(item.membersList) &&
+                                                                                               item.membersList.length > 0 &&
+                                                                                               item.membersList.filter((filterItem) => filterItem.user.id !== UserData.id).every((member) => addMembers.includes(member.id))
+                                                                                          }
+                                                                                          onChange={() => handleCheckboxChange(item)}
+                                                                                     />
+                                                                                )}
+                                                                           </Typography>
                                                                       </Box>
                                                                  </AccordionSummary>
                                                                  <AccordionDetails>
                                                                       <div>
                                                                            {item.membersList.filter((filterItem) => filterItem.user.id !== UserData.id).map((member, memberIndex) => (
                                                                                 <div key={memberIndex} style={{ display: 'flex', justifyContent: 'space-between', flexDirection: 'row-reverse' }}>
-                                                                                     {/* {console.log('member:::::::;;;;;', item)} */}
                                                                                      <Checkbox
                                                                                           type="checkbox"
                                                                                           checked={addMembers.includes(member.id)}
