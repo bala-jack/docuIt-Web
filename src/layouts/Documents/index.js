@@ -172,27 +172,31 @@ function Documents() {
 
      const handleFileChange = (event) => {
           event.preventDefault();
-          console.log('handleFileChange Called');
-          const files = event.target.files;
-        
-          for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-        
-            if (!file.name.toLowerCase().endsWith('.pdf')) {
-              console.log(`File ${file.name} is not a PDF, skipping.`);
-            } else {
-              handleUploadButtonClick(file);
-              console.log('handleupload', file);
-            }
+          const newFiles = Array.from(event.target.files);
+
+          // Filter out non-PDF files
+          const pdfFiles = newFiles.filter((file) => file.type === 'application/pdf');
+          if (!pdfFiles) {
+               return
+          } else {
+               // Limit the selection to 5 files
+               const limitedSelection = pdfFiles.slice(0, 5);
+
+               // Check file size (limit to 5MB)
+               const validFiles = limitedSelection.filter((file) => file.size <= 5 * 1024 * 1024);
+
+               handleUploadButtonClick(validFiles);
+
           }
-        };
-          
+
+     };
+
      // const handleFileChange = (event) => {
      //      event.preventDefault(event);
      //      console.log('handleFileChange Called')
      //      console.log("event.target::::::::::", event.target.file)
      //      const files = event.target.files[0];
-     //      if (!files.endsWith('.pdf')) {
+     //      if (files.type !== 'application/pdf') {
      //           console.log("event.target12::::::::::", files)
      //           return;
      //      } else {
@@ -671,219 +675,211 @@ function Documents() {
                     <h2>{category.categoryName}</h2>
                     <div>
                          <Button className="btnfamilylist" component="label" variant="contained" startIcon={<CloudUploadIcon />} >
+                              <Input style={{ display: 'none' }} type="file" accept="application/pdf" onChange={handleFileChange}  multiple />
                               Upload File
-                              <Input style={{ display: 'none' }} type="file" onChange={handleFileChange} accept=".pdf" />
                          </Button>
                     </div>
                </div>
 
-               {LifeData.length === 0 ? (
-                    <h2>No Data Found</h2>
-               ) : (
-                    <>
-                         <Modal
-                              open={openShare}
-                              onClose={handleClose}
-                              aria-labelledby="modal-modal-title"
-                              aria-describedby="modal-modal-description"
-                              style={{ overflowY: 'scroll', maxHeight: '100%' }}
-                         >
-                              <Box sx={style}>
-                                   <FormControl sx={{ width: '100%' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '20px' }}>
-                                             <h3>Share Document</h3>
-                                             {!arrayEquals(addMembers, memberData) && (
-                                                  <Button variant="contained" style={{ color: 'white' }} onClick={handleShareDoc}>
-                                                       Share
-                                                  </Button>
-                                             )}
-                                        </div>
-                                        <div>
-                                             {FamilyListwithMembers.map((item, familyIndex) => (
-                                                  <>
-                                                       <div key={familyIndex}>
-                                                            {/* {console.log('FamilyListwithMembers<<<<<<<<<<<', FamilyListwithMembers, selectedFamilyIds)} */}
-                                                            <Accordion expanded={isFamilySelected(familyIndex)} onChange={handleFamilyChange(familyIndex)}>
-                                                                 <AccordionSummary style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                                                           <Typography>
-                                                                                {item.name}
-                                                                           </Typography>
-                                                                           <Typography>
-                                                                                {item.membersList && item.membersList.length > 0 && item.membersList.some(member => member.user.id !== userId) && (
-                                                                                     <Checkbox
-                                                                                          key={item.id}
-                                                                                          type="checkbox"
-                                                                                          value={item.name}
-                                                                                          // checked={
-                                                                                          //      item.membersList &&
-                                                                                          //      Array.isArray(item.membersList) &&
-                                                                                          //      item.membersList.length > 0 &&
-                                                                                          //      arrayEquals(
-                                                                                          //           item.membersList
-                                                                                          //                .filter((filterItem) => filterItem.user.id !== UserData.id)
-                                                                                          //                .map((member) => member.id),
-                                                                                          //           addMembers
-                                                                                          //      )
-                                                                                          // }
-                                                                                          checked={
-                                                                                               item.membersList &&
-                                                                                               Array.isArray(item.membersList) &&
-                                                                                               item.membersList.length > 0 &&
-                                                                                               item.membersList.filter((filterItem) => filterItem.user.id !== UserData.id).every((member) => addMembers.includes(member.id))
-                                                                                          }
-                                                                                          onChange={() => handleCheckboxChange(item)}
-                                                                                     />
-                                                                                )}
-                                                                           </Typography>
-                                                                      </Box>
-                                                                 </AccordionSummary>
-                                                                 <AccordionDetails>
-                                                                      <div>
-                                                                           {item.membersList.filter((filterItem) => filterItem.user.id !== UserData.id).map((member, memberIndex) => (
-                                                                                <div key={memberIndex} style={{ display: 'flex', justifyContent: 'space-between', flexDirection: 'row-reverse' }}>
-                                                                                     <Checkbox
-                                                                                          type="checkbox"
-                                                                                          checked={addMembers.includes(member.id)}
-                                                                                          onChange={handleMemberChange(familyIndex, member.id, item)}
-                                                                                     />
-                                                                                     <p style={{ marginLeft: 25 }}>{member.user.name}</p>
-                                                                                </div>
-                                                                           ))}
-                                                                      </div>
-                                                                 </AccordionDetails>
-                                                            </Accordion>
-                                                            {/* {console.log('item.membersList??????', item.membersList)} */}
-                                                       </div>
-                                                  </>
-                                             ))}
-                                        </div>
-                                   </FormControl>
-                              </Box>
-                         </Modal>
-                         {LifeData.length > 0 && (
-                              <Box>
-                                   <Modal
-                                        open={openMove}
-                                        onClose={handleClose}
-                                        aria-labelledby="modal-modal-title"
-                                        aria-describedby="modal-modal-description"
-                                   >
-                                        <Box sx={style}>
-                                             {LifeData.map((item, index) => (
-                                                  <>
-                                                       {item.documentId === selectedFile && (
-                                                            <div key={index}>
-                                                                 <div>{item.documentName}</div>
-                                                                 {catListdata.map((category) => (
-                                                                      <div style={{ display: 'flex', alignItems: 'center' }} key={category.categoryId}>
-                                                                           <Radio
-                                                                                type="radio"
-                                                                                value={category.categoryId}
-                                                                                checked={targetCategory === category.categoryId}
-                                                                                onChange={() => setTargetCategory(category.categoryId)}
-                                                                                style={{ display: currentCategory === category.categoryId ? 'none' : 'flex' }}
-                                                                           />
-                                                                           <p style={{ display: currentCategory === category.categoryId ? 'none' : 'flex' }}>{category.categoryName}</p>
-                                                                      </div>
-                                                                 ))}
-                                                                 {console.log('target?????', targetCategory)}
-                                                                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                                                      <Button variant="contained" onClick={() => handleMove(item)}>
-                                                                           Move
-                                                                      </Button>
-                                                                 </div>
+
+               {
+                    LifeData.length === 0 ? (
+                         <h2>No Data Found</h2>
+                    ) : (
+                         <>
+                              <Modal
+                                   open={openShare}
+                                   onClose={handleClose}
+                                   aria-labelledby="modal-modal-title"
+                                   aria-describedby="modal-modal-description"
+                                   style={{ overflowY: 'scroll', maxHeight: '100%' }}
+                              >
+                                   <Box sx={style}>
+                                        <FormControl sx={{ width: '100%' }}>
+                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '20px' }}>
+                                                  <h3>Share Document</h3>
+                                                  {!arrayEquals(addMembers, memberData) && (
+                                                       <Button variant="contained" style={{ color: 'white' }} onClick={handleShareDoc}>
+                                                            Share
+                                                       </Button>
+                                                  )}
+                                             </div>
+                                             <div>
+                                                  {FamilyListwithMembers.map((item, familyIndex) => (
+                                                       <>
+                                                            <div key={familyIndex}>
+                                                                 {/* {console.log('FamilyListwithMembers<<<<<<<<<<<', FamilyListwithMembers, selectedFamilyIds)} */}
+                                                                 <Accordion expanded={isFamilySelected(familyIndex)} onChange={handleFamilyChange(familyIndex)}>
+                                                                      <AccordionSummary style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                           <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                                                <Typography>
+                                                                                     {item.name}
+                                                                                </Typography>
+                                                                                <Typography>
+                                                                                     {item.membersList && item.membersList.length > 0 && item.membersList.some(member => member.user.id !== userId) && (
+                                                                                          <Checkbox
+                                                                                               key={item.id}
+                                                                                               type="checkbox"
+                                                                                               value={item.name}
+                                                                                               checked={
+                                                                                                    item.membersList &&
+                                                                                                    Array.isArray(item.membersList) &&
+                                                                                                    item.membersList.length > 0 &&
+                                                                                                    item.membersList.filter((filterItem) => filterItem.user.id !== UserData.id).every((member) => addMembers.includes(member.id))
+                                                                                               }
+                                                                                               onChange={() => handleCheckboxChange(item)}
+                                                                                          />
+                                                                                     )}
+                                                                                </Typography>
+                                                                           </Box>
+                                                                      </AccordionSummary>
+                                                                      <AccordionDetails>
+                                                                           <div>
+                                                                                {item.membersList.filter((filterItem) => filterItem.user.id !== UserData.id).map((member, memberIndex) => (
+                                                                                     <div key={memberIndex} style={{ display: 'flex', justifyContent: 'space-between', flexDirection: 'row-reverse' }}>
+                                                                                          <Checkbox
+                                                                                               type="checkbox"
+                                                                                               checked={addMembers.includes(member.id)}
+                                                                                               onChange={handleMemberChange(familyIndex, member.id, item)}
+                                                                                          />
+                                                                                          <p style={{ marginLeft: 25 }}>{member.user.name}</p>
+                                                                                     </div>
+                                                                                ))}
+                                                                           </div>
+                                                                      </AccordionDetails>
+                                                                 </Accordion>
                                                             </div>
-                                                       )
-                                                       }
-                                                  </>
-                                             ))}
+                                                       </>
+                                                  ))}
+                                             </div>
+                                        </FormControl>
+                                   </Box>
+                              </Modal>
+                              {LifeData.length > 0 && (
+                                   <Box>
+                                        <Modal
+                                             open={openMove}
+                                             onClose={handleClose}
+                                             aria-labelledby="modal-modal-title"
+                                             aria-describedby="modal-modal-description"
+                                        >
+                                             <Box sx={style}>
+                                                  {LifeData.map((item, index) => (
+                                                       <>
+                                                            {item.documentId === selectedFile && (
+                                                                 <div key={index}>
+                                                                      <div>{item.documentName}</div>
+                                                                      {catListdata.map((category) => (
+                                                                           <div style={{ display: 'flex', alignItems: 'center' }} key={category.categoryId}>
+                                                                                <Radio
+                                                                                     type="radio"
+                                                                                     value={category.categoryId}
+                                                                                     checked={targetCategory === category.categoryId}
+                                                                                     onChange={() => setTargetCategory(category.categoryId)}
+                                                                                     style={{ display: currentCategory === category.categoryId ? 'none' : 'flex' }}
+                                                                                />
+                                                                                <p style={{ display: currentCategory === category.categoryId ? 'none' : 'flex' }}>{category.categoryName}</p>
+                                                                           </div>
+                                                                      ))}
+                                                                      {console.log('target?????', targetCategory)}
+                                                                      <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                                                           <Button variant="contained" onClick={() => handleMove(item)}>
+                                                                                Move
+                                                                           </Button>
+                                                                      </div>
+                                                                 </div>
+                                                            )
+                                                            }
+                                                       </>
+                                                  ))}
 
-                                        </Box>
-                                   </Modal>
-                              </Box>
-                         )}
+                                             </Box>
+                                        </Modal>
+                                   </Box>
+                              )}
 
-                         {
-                              isLoading && (
-                                   <Grid></Grid>
-                              )
-                         }
-                         <TableContainer component={Paper}>
-                              <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                                   <TableHead style={{ display: 'contents' }}>
-                                        <TableRow>
-                                             <TableCell align="justify">Name</TableCell>
-                                             <TableCell align="center">Size</TableCell>
-                                             <TableCell align="center">Owner</TableCell>
-                                             <TableCell align="center">Created At</TableCell>
-                                             <TableCell align="center">Share</TableCell>
-                                             <TableCell align="center">Actions</TableCell>
-                                        </TableRow>
-                                   </TableHead>
-                                   <TableBody>
-
-                                        {LifeData.map((item, index) => (
-                                             <TableRow key={index}>
-                                                  {console.log("Tableeeeeeeee", item)}
-                                                  <TableCell align="justify">{item.documentName}</TableCell>
-                                                  <TableCell align="center">{item.documentSize >= 1024 * 1024 ? `${(item.documentSize / (1024 * 1024)).toFixed(1)}MB` : item.documentSize >= 1024 ? `${(item.documentSize / 1024).toFixed(1)}KB` : `${item.documentSize} Bytes`}</TableCell>
-                                                  <TableCell align="center">{item.uploadedByName}</TableCell>
-                                                  <TableCell align="center">{formatDate(item.createdDate)}</TableCell>
-                                                  <TableCell align="center">
-                                                       {item.sharedBy === null ? (
-                                                            <p>No</p>
-                                                       ) : (
-                                                            <>
-                                                                 <p>Yes</p>
-                                                            </>
-                                                       )}</TableCell>
-                                                  <TableCell style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                                       {userId === item.uploadedBy && (
-                                                            <Tooltip title="Move Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
-                                                                 <Icon onClick={() => handleMovePop(item)}>drive_file_move</Icon>
-                                                            </Tooltip>
-                                                       )}
-                                                       {userId === item.uploadedBy && (
-                                                            <Tooltip title="Share Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
-                                                                 <Icon onClick={() => handleShare(item)}>share</Icon>
-                                                            </Tooltip>
-                                                       )}
-                                                       <Tooltip title="Download Document" placement="top">
-                                                            <Link href={item.documentUrl}
-                                                                 download={item.documentName}
-                                                                 target="_blank"
-                                                                 style={{ color: '#212121', display: 'flex', justifyContent: 'center', textDecoration: 'none', margin: '10px' }}
-                                                                 rel="noreferrer"> <Icon onClick={(e) => { e.preventDefault(); handleDownloadPDF(item); }}>download_for_offline</Icon>
-                                                            </Link>
-                                                       </Tooltip>
-
-                                                       <Tooltip title="View Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
-                                                            <Icon onClick={() => handleViewPdf(item)}>visibility</Icon>
-                                                       </Tooltip>
-                                                       {userId === item.uploadedBy && (
-                                                            <Tooltip title="Delete Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
-                                                                 <Icon onClick={() => openDeleteDialog(item)} >delete</Icon>
-                                                            </Tooltip>
-                                                       )}
-                                                       <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
-                                                            <DialogTitle>Confirm Delete</DialogTitle>
-                                                            <DialogContent>
-                                                                 Are you sure you want to delete this document?
-                                                            </DialogContent>
-                                                            <DialogActions>
-                                                                 <Button onClick={closeDeleteDialog}>Cancel</Button>
-                                                                 <Button onClick={() => handleDelete(deleteDocumentId)}>Delete</Button>
-                                                            </DialogActions>
-                                                       </Dialog>
-                                                  </TableCell>
+                              {
+                                   isLoading && (
+                                        <Grid></Grid>
+                                   )
+                              }
+                              <TableContainer component={Paper}>
+                                   <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                                        <TableHead style={{ display: 'contents' }}>
+                                             <TableRow>
+                                                  <TableCell align="justify">Name</TableCell>
+                                                  <TableCell align="center">Size</TableCell>
+                                                  <TableCell align="center">Owner</TableCell>
+                                                  <TableCell align="center">Created At</TableCell>
+                                                  <TableCell align="center">Share</TableCell>
+                                                  <TableCell align="center">Actions</TableCell>
                                              </TableRow>
-                                        ))}
-                                   </TableBody>
-                              </Table>
-                         </TableContainer>
-                    </>
-               )
+                                        </TableHead>
+                                        <TableBody>
+
+                                             {LifeData.map((item, index) => (
+                                                  <TableRow key={index}>
+                                                       {console.log("Tableeeeeeeee", item)}
+                                                       <TableCell align="justify">{item.documentName}</TableCell>
+                                                       <TableCell align="center">{item.documentSize >= 1024 * 1024 ? `${(item.documentSize / (1024 * 1024)).toFixed(1)}MB` : item.documentSize >= 1024 ? `${(item.documentSize / 1024).toFixed(1)}KB` : `${item.documentSize} Bytes`}</TableCell>
+                                                       <TableCell align="center">{item.uploadedByName}</TableCell>
+                                                       <TableCell align="center">{formatDate(item.createdDate)}</TableCell>
+                                                       <TableCell align="center">
+                                                            {item.sharedBy === null ? (
+                                                                 <p>No</p>
+                                                            ) : (
+                                                                 <>
+                                                                      <p>Yes</p>
+                                                                 </>
+                                                            )}</TableCell>
+                                                       <TableCell style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                            {userId === item.uploadedBy ? (
+                                                                 <Tooltip title="Move Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
+                                                                      <Icon onClick={() => handleMovePop(item)}>drive_file_move</Icon>
+                                                                 </Tooltip>
+                                                            ) : (
+                                                                 <span style={{ paddingLeft: '33px' }}></span>
+                                                            )}
+                                                            {userId === item.uploadedBy && (
+                                                                 <Tooltip title="Share Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
+                                                                      <Icon onClick={() => handleShare(item)}>share</Icon>
+                                                                 </Tooltip>
+                                                            )}
+                                                            <Tooltip title="Download Document" placement="top">
+                                                                 <Link href={item.documentUrl}
+                                                                      download={item.documentName}
+                                                                      target="_blank"
+                                                                      style={{ color: '#212121', display: 'flex', textDecoration: 'none', margin: '10px' }}
+                                                                      rel="noreferrer"> <Icon onClick={(e) => { e.preventDefault(); handleDownloadPDF(item); }}>download_for_offline</Icon>
+                                                                 </Link>
+                                                            </Tooltip>
+
+                                                            <Tooltip title="View Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
+                                                                 <Icon onClick={() => handleViewPdf(item)}>visibility</Icon>
+                                                            </Tooltip>
+                                                            {userId === item.uploadedBy && (
+                                                                 <Tooltip title="Delete Document" sx={{ m: 1, cursor: 'pointer' }} placement="top">
+                                                                      <Icon onClick={() => openDeleteDialog(item)} >delete</Icon>
+                                                                 </Tooltip>
+                                                            )}
+                                                            <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
+                                                                 <DialogTitle>Confirm Delete</DialogTitle>
+                                                                 <DialogContent>
+                                                                      Are you sure you want to delete this document?
+                                                                 </DialogContent>
+                                                                 <DialogActions>
+                                                                      <Button onClick={closeDeleteDialog}>Cancel</Button>
+                                                                      <Button onClick={() => handleDelete(deleteDocumentId)}>Delete</Button>
+                                                                 </DialogActions>
+                                                            </Dialog>
+                                                       </TableCell>
+                                                  </TableRow>
+                                             ))}
+                                        </TableBody>
+                                   </Table>
+                              </TableContainer>
+                         </>
+                    )
                }
           </DashboardLayout >
      )

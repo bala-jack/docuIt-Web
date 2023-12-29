@@ -912,104 +912,6 @@ function Family() {
                                                        </TableCell>
                                                        {console.log("itemi", item)}
                                                        <TableCell>{item.id}</TableCell>
-
-
-
-                                                       {/* <TableCell style={{ display: item.createdBy === UserData.id ? 'none' : 'flex', justifyContent: 'center' }}>
-                      <Icon onClick={() => handleFamilyNameClick(item)} style={{ cursor: 'pointer', color: 'rgb(26,115,232)', margin: '6px 0px' }}>visibility</Icon>
-                    </TableCell> */}
-                                                       {/* <TableCell style={{ display: 'flex', justifyContent: 'center' }}>
-                                                            {item.createdBy === UserData.id ? (
-                                                                 <span>-</span>
-                                                            ) : (
-                                                                 <Icon onClick={() => handleFamilyNameClick(item)} style={{ cursor: 'pointer', color: 'rgb(26,115,232)', margin: '6px 0px' }}>visibility</Icon>
-                                                            )}
-                                                       </TableCell> */}
-
-                                                       {/* 
-                                                       <TableCell align="center">
-                                                            {item.createdBy === UserData.id && (
-                                                                 <>
-                                                                      <IconButton onClick={(e) => handleMenuOpen(e)}>
-                                                                           <MoreVertIcon />
-                                                                      </IconButton>
-                                                                      <Menu
-                                                                           anchorEl={menuAnchorEl}
-                                                                           open={Boolean(menuAnchorEl)}
-                                                                           onClose={handleMenuClose}
-                                                                      >
-                                                                           <MenuItem onClick={() => toggleEdit(item.id, item.name)}>Edit</MenuItem>
-                                                                           <MenuItem onClick={() => handleDelete(item.id)}>Delete</MenuItem>
-                                                                      </Menu>
-                                                                 </>
-                                                            )}
-                                                       </TableCell> */}
-
-                                                       {/* <TableCell align="center">
-                                                            {item.createdBy === UserData.id ? (
-                                                                 <>
-                                                                      <IconButton onClick={(e) => handleMenuOpen(e)}>
-                                                                           <MoreVertIcon />
-                                                                      </IconButton>
-                                                                      <Menu
-                                                                           anchorEl={menuAnchorEl}
-                                                                           open={Boolean(menuAnchorEl)}
-                                                                           onClose={handleMenuClose}
-                                                                      >
-                                                                           <MenuItem onClick={() => toggleEdit(item.id, item.name)}>Edit</MenuItem>
-                                                                           <MenuItem onClick={() => handleDelete(item.id)}>Delete</MenuItem>
-                                                                      </Menu>
-                                                                 </>
-                                                            ) : (
-                                                                 // Display "None" or any other content you want when the condition is not met
-                                                                 "None"
-                                                            )}
-                                                       </TableCell> */}
-                                                       {/* <TableCell align="center">
-    {item.createdBy === UserData.id ? (
-        <>
-            <IconButton onClick={(e) => handleMenuOpen(e)}>
-                <MenuOpenIcon /> 
-            </IconButton>
-            <Menu
-                anchorEl={menuAnchorEl}
-                open={Boolean(menuAnchorEl)}
-                onClose={handleMenuClose}
-            >
-                <MenuItem onClick={() => toggleEdit(item.id, item.name)}
-               >
-                    <EditIcon />
-                    Edit
-                </MenuItem>
-                <MenuItem onClick={() => handleDelete(item.id)}
-                >
-                    <DeleteIcon /> 
-                    Delete
-                </MenuItem>
-            </Menu>
-        </>
-    ) : (
-        "None"
-    )}
-</TableCell> */}
-                                                       {/* <TableCell align="center">
-                                                           
-                                                            {item.createdBy === UserData.id ? (
-                                                                 <>
-                                                                      <IconButton onClick={() => toggleEdit(item.id, item.name)}>
-                                                                           <EditIcon style={{ color: 'green' }} />
-                                                                      </IconButton>
-                                                                      <IconButton onClick={() => handleDelete(item.id)}>
-                                                                           <DeleteIcon style={{ color: 'red' }} />
-                                                                      </IconButton>
-
-
-                                                                 </>
-                                                            ) : (
-                                                                 "None"
-                                                            )}
-                                                       </TableCell>
-                                                      */}
                                                        <TableCell align="center" style={{ display: 'flex', justifyContent: 'center' }}>
                                                             {item.createdBy === UserData.id ? (
                                                                  <>
@@ -1037,115 +939,6 @@ function Family() {
                          </Card>
                     </MDBox>
                )}
-
-               {/* Additional Family Member Section */}
-               {/* <div>
-                    {sFamilyMember && (
-                         <> */}
-               {/* ... */}
-               {/* <MDBox className="mdbboxfamily">
-                                   <div className="addbtn">
-                                        <h2>Family Users Management</h2>
-                                        <div> */}
-               {/* <Button className="btnNotofication" onClick={handleNotofication}><Icon size="large"><h3>notifications</h3></Icon> </Button> */}
-               {/* <Button variant="contained" className="btnfamilylist" onClick={handleInvite}>Invite + </Button>
-                                        </div>
-                                   </div>
-                                   <Card style={{ width: '34%' }}>
-                                        <>
-                                             <div>
-                                                  <Table className='family-Table'>
-                                                       <MDBox>
-                                                            <thead>
-                                                                 <tr>
-                                                                      <th>Family Member</th>
-                                                                      <th>Action</th>
-                                                                 </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                 {console.log('familyMemberData??????????', familyMemberData)}
-                                                                 {familyMemberData.map((item, index) => (
-                                                                      <tr key={index}>
-                                                                           <td>
-                                                                                <div>{item.user.name}</div>
-                                                                           </td>
-                                                                           {console.log('item:::::::>>>>', item)}
-                                                                           <td>
-                                                                                {item.inviteStatus === 'Invited' ? (
-                                                                                     <div>
-                                                                                          <Button className="btn-delete"><Icon>add_reaction</Icon></Button>
-                                                                                     </div>
-                                                                                ) : (
-                                                                                     null
-                                                                                )}
-                                                                                {UserData.id === familyItems.createdBy && item.inviteStatus === 'Accepted' ? (
-                                                                                     <div>
-                                                                                          <Button className="btn-delete"><Icon>delete</Icon></Button>
-                                                                                     </div>
-                                                                                ) : (
-                                                                                     null
-                                                                                )}
-                                                                           </td>
-                                                                           {invitePop && (
-                                                                                <div className="overlay" onClick={closePopup}>
-                                                                                     <div className="popup" onClick={preventClose}>
-                                                                                          <div className="popup-content">
-                                                                                               <div className='pop-input-div'>
-                                                                                                    <form>
-                                                                                                         <MDBox mb={2}>
-                                                                                                              <h3>Invite User</h3>
-                                                                                                              <Input
-                                                                                                                   placeholder="Phone Number"
-                                                                                                                   label="phoneNumbers"
-                                                                                                                   country={'in'}
-                                                                                                                   value={phoneNumbers}
-                                                                                                                   fullWidth
-                                                                                                                   onChange={(e) => handleInviteChange(e.target.value)}
-                                                                                                                   inputProps={{
-                                                                                                                        required: true,
-                                                                                                                   }}
-
-                                                                                                              />
-                                                                                                         </MDBox>
-                                                                                                    </form>
-                                                                                                    <MDBox mt={4} mb={1}>
-                                                                                                         {familyData.length > 0 && (
-                                                                                                              <MDButton
-                                                                                                                   key={familyData[0].id}
-                                                                                                                   type="submit"
-                                                                                                                   variant="gradient"
-                                                                                                                   onClick={() => handleInviteSubmit(familyData[0].id)}
-                                                                                                                   color="docuit"
-                                                                                                                   fullWidth
-                                                                                                                   disabled={!enabled}
-                                                                                                              >
-                                                                                                                   Invite
-
-                                                                                                              </MDButton>
-                                                                                                         )}
-                                                                                                    </MDBox>
-
-                                                                                               </div>
-                                                                                          </div>
-                                                                                     </div>
-                                                                                </div>
-                                                                           )}
-                                                                      </tr>
-
-                                                                 ))}
-                                                            </tbody>
-                                                       </MDBox>
-                                                  </Table>
-                                             </div>
-
-                                        </>
-
-                                   </Card >
-
-                              </MDBox >
-                         </>
-                    )}
-               </div> */}
 
                {sFamilyMember && (
                     <>
@@ -1191,49 +984,50 @@ function Family() {
                                                                            </div>
                                                                       ) : null}
                                                                  </TableCell>
-                                                                 {invitePop && (
-                                                                      <div className="overlay" onClick={closePopup}>
-                                                                           <div className="popup" onClick={preventClose}>
-                                                                                <div className="popup-content">
-                                                                                     <div className='pop-input-div'>
-                                                                                          <form>
-                                                                                               <MDBox mb={2}>
-                                                                                                    <h3>Invite User</h3>
-                                                                                                    <Input
-                                                                                                         placeholder="Phone Number"
-                                                                                                         label="phoneNumbers"
-                                                                                                         country={'in'}
-                                                                                                         value={phoneNumbers}
-                                                                                                         fullWidth
-                                                                                                         onChange={(e) => handleInviteChange(e.target.value)}
-                                                                                                         inputProps={{
-                                                                                                              required: true,
-                                                                                                         }}
-                                                                                                    />
-                                                                                               </MDBox>
-                                                                                          </form>
-                                                                                          <MDBox mt={4} mb={1}>
-                                                                                               {familyData.length > 0 && (
-                                                                                                    <MDButton
-                                                                                                         key={familyData[0].id}
-                                                                                                         type="submit"
-                                                                                                         variant="gradient"
-                                                                                                         onClick={() => handleInviteSubmit(familyData[0].id)}
-                                                                                                         color="docuit"
-                                                                                                         fullWidth
-                                                                                                         disabled={!enabled}
-                                                                                                    >
-                                                                                                         Invite
-                                                                                                    </MDButton>
-                                                                                               )}
-                                                                                          </MDBox>
-                                                                                     </div>
-                                                                                </div>
-                                                                           </div>
-                                                                      </div>
-                                                                 )}
+
                                                             </TableRow>
                                                        ))}
+                                                       {invitePop && (
+                                                            <div className="overlay" onClick={closePopup}>
+                                                                 <div className="popup" onClick={preventClose}>
+                                                                      <div className="popup-content">
+                                                                           <div className='pop-input-div'>
+                                                                                <form>
+                                                                                     <MDBox mb={2}>
+                                                                                          <h3>Invite User</h3>
+                                                                                          <Input
+                                                                                               placeholder="Phone Number"
+                                                                                               label="phoneNumbers"
+                                                                                               country={'in'}
+                                                                                               value={phoneNumbers}
+                                                                                               fullWidth
+                                                                                               onChange={(e) => handleInviteChange(e.target.value)}
+                                                                                               inputProps={{
+                                                                                                    required: true,
+                                                                                               }}
+                                                                                          />
+                                                                                     </MDBox>
+                                                                                </form>
+                                                                                <MDBox mt={4} mb={1}>
+                                                                                     {familyData.length > 0 && (
+                                                                                          <MDButton
+                                                                                               key={familyData[0].id}
+                                                                                               type="submit"
+                                                                                               variant="gradient"
+                                                                                               onClick={() => handleInviteSubmit(familyData[0].id)}
+                                                                                               color="docuit"
+                                                                                               fullWidth
+                                                                                               disabled={!enabled}
+                                                                                          >
+                                                                                               Invite
+                                                                                          </MDButton>
+                                                                                     )}
+                                                                                </MDBox>
+                                                                           </div>
+                                                                      </div>
+                                                                 </div>
+                                                            </div>
+                                                       )}
                                                   </TableBody>
                                              </Table>
                                         </TableContainer>
