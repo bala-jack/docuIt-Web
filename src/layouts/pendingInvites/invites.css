@@ -30,3 +30,10 @@
      width: 191%;
      max-width: 359px;
 }
+.noneData{
+     display: flex;
+     justify-content: center;
+     padding: 50px;
+     color: burlywood;
+     text-align: center;
+}

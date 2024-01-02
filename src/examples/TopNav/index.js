@@ -1,32 +1,38 @@
-import { Logout, PersonAdd, Settings } from "@mui/icons-material";
-import { Avatar, Box, Button, Divider, Icon, IconButton, ListItemIcon, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
+import { Logout, Settings } from "@mui/icons-material";
+import { Avatar, Box, Divider, Icon, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
 import { useAuth } from "context/AuthContext";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-
+import { logout } from "services";
 
 function Topnav({ avatar }) {
-     const { UserData } = useAuth()
+
+     const { logoutSuccess, UserData } = useAuth()
      const [inviteCount, setInviteCount] = useState(0);
-     const [openProfile, setOpenprofile] = useState(false);
+     const [userPic, setUserPic] = useState('');
+     const [userName, setUserName] = useState('')
+
      const navigate = useNavigate();
      const location = useLocation();
 
      useEffect(() => {
-          checkInviteData();
-     }, [location]);
-
-     //Avatar Color
-     const stringAvatar = (name) => {
-          return {
-               sx: {
-                    bgcolor: stringToColor(name),
-               },
-               children: `${name ? name.charAt(0).toUpperCase() : ''}`,
+          const fetchData = async () => {
+               await UserProfile();
+               checkInviteData();
           };
+
+          fetchData();
+     }, [location, UserData, userPic]);
+
+     //Avatar profile name
+     const stringAvatar = (userName) => {
+          const name = userName;
+          const words = name.split(' ');
+          const initials = words.map(word => word.charAt(0).toUpperCase());
+          return initials.join('');
      };
 
+     //Avatar Color
      const stringToColor = (string) => {
           if (!string) {
                return '#000000';
@@ -36,9 +42,18 @@ function Topnav({ avatar }) {
                hash = string.charCodeAt(i) + ((hash << 5) - hash);
           }
           const color = Math.abs(hash).toString(16).substring(0, 6);
-          return `#${'0'.repeat(6 - color.length)}${color}`;
+          return `#${ '0'.repeat(6 - color.length) }${ color }`;
      };
 
+     // Useauth for getting details 
+     const UserProfile = () => {
+          const profiledetails = UserData;
+
+          if (profiledetails) {
+               setUserName(profiledetails.name)
+               setUserPic(profiledetails.imageUrl)
+          }
+     }
 
      const checkInviteData = () => {
           // Replace this with your actual logic to check for invite data
@@ -59,6 +74,16 @@ function Topnav({ avatar }) {
      const handleProfile = () => {
           navigate('/profile', { avatar: Avatar });
      }
+
+     const handleSettings = () => {
+          navigate('/settings');
+     }
+
+     const handleLogout = () => {
+          logout();
+          logoutSuccess();
+     }
+
 
      const [anchorEl, setAnchorEl] = useState(null);
      const open = Boolean(anchorEl);
@@ -90,7 +115,18 @@ function Topnav({ avatar }) {
                                    aria-haspopup="true"
                                    aria-expanded={open ? 'true' : undefined}
                               >
-                                   <Avatar {...stringAvatar(UserData?.name)} style={{ cursor: 'pointer' }} />
+                                   <Avatar sx={{
+                                        '& > img': {
+                                             height: '100% !important',
+                                             bgcolor: stringToColor(userName),
+                                             fontSize: '2rem'
+                                        },
+                                   }} alt={userName}
+                                        src={userPic}
+                                        style={{ cursor: 'pointer', backgroundColor: stringToColor(userName), }} >
+                                        {stringAvatar(userName)}
+                                   </Avatar>
+
                               </IconButton>
                          </Tooltip>
                     </Box>
@@ -130,19 +166,32 @@ function Topnav({ avatar }) {
                          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                     >
                          <MenuItem onClick={handleProfile}>
-                              <Avatar {...stringAvatar(UserData?.name)} /> My account
+                              <Avatar sx={{
+                                   '& > img': {
+                                        height: '100% !important',
+                                        border: "3px, solid, #2f53acbb",
+                                        bgcolor: stringToColor(userName),
+                                        fontSize: '2rem'
+                                   },
+                              }} alt={userName}
+                                   src={userPic}
+                                   style={{ cursor: 'pointer', backgroundColor: stringToColor(userName), }} >
+                                   {stringAvatar(userName)}
+                              </Avatar> My Account
                          </MenuItem>
+
                          {/* <MenuItem onClick={handleClose}>
                               <Avatar /> 
                          </MenuItem> */}
+
                          <Divider />
-                         <MenuItem onClick={handleClose}>
+                         <MenuItem onClick={handleSettings}>
                               <ListItemIcon>
                                    <Settings fontSize="small" />
                               </ListItemIcon>
                               Settings
                          </MenuItem>
-                         <MenuItem onClick={handleClose}>
+                         <MenuItem onClick={handleLogout}>
                               <ListItemIcon>
                                    <Logout fontSize="small" />
                               </ListItemIcon>

@@ -27,6 +27,10 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import Snackbar from '@mui/material/Snackbar';
+import Slide from '@mui/material/Slide';
+import Alert from '@mui/material/Alert';
+
 
 
 
@@ -63,6 +67,9 @@ function Family() {
      const Addpoperrormsg = !nameregex.test(Add.trim());
      const [menuAnchorEl, setMenuAnchorEl] = useState(null)
      const [details, setDetails] = useState('')
+     const [snackbarOpen, setSnackbarOpen] = useState(false);
+     const [snackbarMessage, setSnackbarMessage] = useState('');
+     const [snackbarType, setSnackbarType] = useState('success');
 
 
      useEffect(() => {
@@ -80,6 +87,7 @@ function Family() {
                          createdAt: familyItem.createdAt
                     }));
                     setFamilyData(extractedData);
+                    console.log('extractedDta', extractedData)
                     // setListFamily(extractedData);
                     // localStorage.setItem('docuItFamilyData', JSON.stringify(extractedData));
                }
@@ -93,7 +101,7 @@ function Family() {
                const { data } = await listFamilyMembers(familId);
                console.log('>>>>>>>>>>>>>', data);
                if (data?.status === 'SUCCESS') {
-                    // navigate(`/family/${familyItem.name}`);
+                    // navigate(/family/${familyItem.name});
                     setsFamilyMember(true);
                     setHideListFamily(false);
                     setIsFamilyMembersPage(true);
@@ -141,10 +149,11 @@ function Family() {
                     isEditing.trim().toLocaleLowerCase()
                ) {
                     setShowPopup(false);
-                    setErrorFlashMessage("Family name is already registered");
-                    setTimeout(() => {
-                         setErrorFlashMessage("");
-                    }, 1000);
+                    // setErrorFlashMessage("Family name is already registered");
+                    // setTimeout(() => {
+                    //      setErrorFlashMessage("");
+                    // }, 1000);
+                    handleSnackbarOpen("Family name is already registered", 'error')
                     return;
                }
 
@@ -157,11 +166,11 @@ function Family() {
                const { data } = await editFamily(constructObject);
 
                if (data?.status === "SUCCESS") {
-                    setFlashMessage(data.message);
+                    handleSnackbarOpen(data.message);
                     setShowPopup(false);
-                    setTimeout(() => {
-                         setFlashMessage("");
-                    }, 1000);
+                    // setTimeout(() => {
+                    //      handleSnackbarOpen("");
+                    // }, 1000);
                     fetchData();
                }
                else {
@@ -178,11 +187,12 @@ function Family() {
           }
      };
 
-
      const toggleEdit = (id, name) => {
           setpopupindex(id);
           setShowPopup(true);
           setIsEditing(name);
+          console.log("name", name);
+
      };
 
      const togglePopup = () => {
@@ -200,10 +210,11 @@ function Family() {
                const { data } = await deleteFamily(values);
                if (data?.status === 'SUCCESS') {
                     setFamilyData(prevData => prevData.filter(item => item.id !== familyId));
-                    setFlashMessage('Family Deleted successfully!');
-                    setTimeout(() => {
-                         setFlashMessage('');
-                    }, 1000);
+                    // setFlashMessage('Family Deleted successfully!');
+                    // setTimeout(() => {
+                    //      setFlashMessage('');
+                    // }, 1000);
+                    handleSnackbarOpen('Family deleted successfully', 'success');
                } else {
                     // console.error('Failed to delete family.');
                }
@@ -253,11 +264,12 @@ function Family() {
 
                if (isNameExistsoverall?.name === Add.trim().toLocaleLowerCase()) {
                     setAddPop(false);
-                    setErrorFlashMessage("Family name is already registered");
+                    // setErrorFlashMessage("Family name is already registered");
+                    handleSnackbarOpen("Family name is already registered", 'error')
                     setAdd("");
-                    setTimeout(() => {
-                         setErrorFlashMessage("");
-                    }, 1000);
+                    // setTimeout(() => {
+                    //      setErrorFlashMessage("");
+                    // }, 1000);
                     return;
                }
 
@@ -275,7 +287,8 @@ function Family() {
                     // setDetails(newDetails)
 
                     console.log(" familyData", newFamily)
-                    setFlashMessage(data?.message);
+                    // setFlashMessage(data?.message);
+                    handleSnackbarOpen(`Family Added Successfully `, 'success')
                     setAdd("");
                     setTimeout(() => {
                          setFlashMessage("");
@@ -305,741 +318,396 @@ function Family() {
           e.stopPropagation();
      }
 
-     // const handleChangeUserId = (value) => {
-     //      setphoneNumbers(value);
-     // }
-     // console.log('familyData', familyData)
+     const handleSnackbarOpen = (message, type) => {
+          setSnackbarMessage(message);
+          setSnackbarType(type);
+          setSnackbarOpen(true);
+     };
 
-     // const handleMenuOpen = (e) => {
-     //      setMenuAnchorEl(e.currentTarget);
-     // };
-
-     // const handleMenuClose = () => {
-     //      setMenuAnchorEl(null);
-     // };
-
-     return (
-          //           <DashboardLayout className='mainContent'>
-          //                <DashboardNavbar />
-          //                <Card>
-          //                     {flashMessage && (
-          //                          <div>
-          //                               <div className="overlay">
-          //                                    <div className="popup">
-          //                                         <div className="popup-content">
-          //                                              <div className='flash-message'>
-          //                                                   {flashMessage}
-          //                                              </div>
-          //                                         </div>
-          //                                    </div>
-          //                               </div>
-          //                          </div>
-          //                     )}
-          //                </Card>
-          //                {hlistFamily && (
-
-
-          //                     <MDBox className="mdbboxfamily">
-          //                          <div className="addbtn">
-
-          //                               <h2>Family Management</h2>
-          //                               <div>
-          //                                    <Button variant="contained" onClick={handleAdd} className="btnfamilylist">Add + </Button>
-          //                               </div>
-          //                          </div>
-
-          //                          <Card style={{ width: '37%' }}>
-
-          //                               <Card>
-          //                                    {ErrorflashMessage && (
-          //                                         <div>
-          //                                              <div className="overlay" onClick={closePopup}>
-          //                                                   <div className="popup">
-          //                                                        <div className="popup-content">
-          //                                                             <div className='Errorflash-message'>
-          //                                                                  {ErrorflashMessage}
-          //                                                             </div>
-          //                                                        </div>
-          //                                                   </div>
-          //                                              </div>
-          //                                         </div>
-          //                                    )}
-          //                               </Card>
-          //                               <Card>
-          //                                    {Addpop && (
-          //                                         <div>                      
-          //                                              <div className="overlay" onClick={closePopup}>
-          //                                                   <div className="popup" onClick={preventClose}>
-          //                                                        <div className="popup-content">
-          //                                                             <div className='pop-input-div'>
-          //                                                                  <h3 style={{ padding: '28px' }}>Enter Family Name</h3>
-          //                                                                  <div className='edit-Input'>
-          //                                                                       <Icon fontSize="small">diversity_3</Icon>
-          //                                                                       <Box
-          //                                                                            component="form"
-          //                                                                            sx={{
-          //                                                                                 "& .MuiTextField-root": {
-          //                                                                                      m: 1,
-          //                                                                                      width: "25ch",
-          //                                                                                 },
-          //                                                                            }}
-          //                                                                            noValidate
-          //                                                                            autoComplete="off"
-          //                                                                       >
-          //                                                                            <div>
-          //                                                                                 <TextField
-          //                                                                                      className="pop-up-input"
-          //                                                                                      label="Enter family name"
-          //                                                                                      type="text"
-          //                                                                                      onChange={(e) => handleAddInput(e)}
-          //                                                                                      variant="standard"
-          //                                                                                 />
-
-          //                                                                                 {Add.trim() !== "" && (
-          //                                                                                      <FormHelperText
-          //                                                                                           className="erroraddpopmsg"
-          //                                                                                           sx={{ width: "280px" }}
-          //                                                                                           style={{ color: 'red' }}
-          //                                                                                      >
-          //                                                                                           {Addpoperrormsg
-          //                                                                                                ? "*Family name cannot have numbers or special characters."
-          //                                                                                                : ""}
-          //                                                                                      </FormHelperText>
-          //                                                                                 )}
-          //                                                                            </div>
-          //                                                                       </Box>
-          //                                                                  </div>
-          //                                                             </div>
-          //                                                             {/* for Add new family member */}
-          //                                                             <div className='btn-pop'>
-          //                                                                  <MDButton variant="contained" color="error" onClick={togglePopup} className='btn-pop'>Close</MDButton>
-          //                                                                  {AddpopDisablebutton ? (
-          //                                                                       <MDButton
-          //                                                                            variant="contained"
-          //                                                                            disabled={AddpopDisablebutton}
-          //                                                                            color="success"
-          //                                                                       > Save </MDButton>
-          //                                                                  ) : (
-          //                                                                       <MDButton
-          //                                                                            variant="contained"
-          //                                                                            color="success"
-          //                                                                            onClick={() => handleAddsave()}
-          //                                                                       >Save</MDButton>
-          //                                                                  )}
-          //                                                             </div>
-          //                                                        </div>
-          //                                                   </div>
-          //                                              </div>
-          //                                         </div>
-          //                                    )}
-
-
-          //                               </Card>
-
-          //                               <Table className='family-Table'>
-          //                                    <MDBox>
-          //                                         <tbody>
-          //                                              <tr>
-          //                                                   <th>Family Name</th>
-          //                                                   <th>Action</th>
-          //                                              </tr>
-          //                                              {familyData.map((item, index) => (
-
-          //                                                   <>
-          //                                                        <tr key={index}>
-          //                                                             <td>
-          //                                                                   {showPopup &&popupindex === item.id && (
-          //                                                                       <div>
-          //                                                                            <div className="overlay" onClick={closePopup}>
-          //                                                                                 <div className="popup" onClick={preventClose}>
-          //                                                                                      <div className="popup-content">
-          //                                                                                           <div className='pop-input-div'>
-          //                                                                                                <h3 style={{ padding: '28px' }}>Change Family Name</h3>
-          //                                                                                                <div className='edit-Input'>
-          //                                                                                                     <Icon fontSize="small">diversity_3</Icon>
-          //                                                                                                     <Box
-          //                                                                                                          component="form"
-          //                                                                                                          sx={{
-          //                                                                                                               "& .MuiTextField-root": {
-          //                                                                                                                    m: 1,
-          //                                                                                                                    width: "25ch",
-          //                                                                                                               },
-          //                                                                                                          }}
-          //                                                                                                          noValidate
-          //                                                                                                          autoComplete="off"
-          //                                                                                                     >
-          //                                                                                                          <div>
-          //                                                                                                               <TextField
-          //                                                                                                                    className="pop-up-input"
-          //                                                                                                                    label="Family name"
-          //                                                                                                                    type="text"
-          //                                                                                                                    defaultValue={isEditing}
-          //                                                                                                                    onChange={(e) => handleEditInput(index, e.target.value)}
-          //                                                                                                                    variant="standard" />
-
-          //                                                                                                               {isEditing.trim() !== "" && (
-          //                                                                                                                    <FormHelperText
-          //                                                                                                                         className="errorpopupmsg"
-          //                                                                                                                         sx={{ width: "280px" }}
-          //                                                                                                                         style={{ color: popuperrormsg ? 'red' : 'success' }}
-          //                                                                                                                    >
-          //                                                                                                                         {popuperrormsg
-          //                                                                                                                              ? "*Family name cannot have numbers or special characters."
-          //                                                                                                                              : ""}
-          //                                                                                                                    </FormHelperText>
-          //                                                                                                               )}
-          //                                                                                                          </div>
-          //                                                                                                     </Box>
-          //                                                                                                </div>
-          //                                                                                           </div>
-          //                                                                                           {/* for Edit family member */}
-          //                                                                                           <div className="btn-pop">
-          //                                                                                                <MDButton
-          //                                                                                                     variant="contained"
-          //                                                                                                     color="error"
-          //                                                                                                     onClick={togglePopup}
-          //                                                                                                >Close</MDButton>
-          //                                                                                                {isButtonDisabled ? (
-          //                                                                                                     <MDButton
-          //                                                                                                          variant="contained"
-          //                                                                                                          disabled={isButtonDisabled}
-          //                                                                                                          color="success"
-          //                                                                                                     > Save </MDButton>
-          //                                                                                                ) : (
-          //                                                                                                     <MDButton
-          //                                                                                                          variant="contained"
-          //                                                                                                          color="success"
-          //                                                                                                          onClick={() => {
-          //                                                                                                               handleSave(item);
-          //                                                                                                          }}
-          //                                                                                                     > Save </MDButton>)}
-          //                                                                                           </div>
-          //                                                                                           <Card>
-          //                                                                                                {ErrorflashMessage && (
-          //                                                                                                     <div>
-          //                                                                                                          <div className="overlay" onClick={closePopup}>
-          //                                                                                                               <div className="popup">
-          //                                                                                                                    <div className="popup-content">
-          //                                                                                                                         <div className='Errorflash-message'>
-          //                                                                                                                              {ErrorflashMessage}
-          //                                                                                                                         </div>
-          //                                                                                                                    </div>
-          //                                                                                                               </div>
-          //                                                                                                          </div>
-          //                                                                                                     </div>
-          //                                                                                                )}
-          //                                                                                           </Card>
-          //                                                                                      </div>
-          //                                                                                 </div>
-          //                                                                            </div>
-          //                                                                       </div>
-          //                                                                  )}
-          //                                                                  <div onClick={() => handleFamilyNameClick(item)} className='hover-click'>{item.name}</div>
-          //                                                             </td>
-
-          //                                                             <td style={{ display: item.createdBy === UserData.id ? 'none' : 'flex', justifyContent: 'center' }}>
-          //                                                                  <Icon onClick={() => handleFamilyNameClick(item)} style={{ cursor: 'pointer', color: 'rgb(26,115,232)', margin: '6px 0px' }}>visibility</Icon>
-          //                                                             </td>
-
-          //                                                             <td style={{ display: item.createdBy === UserData.id ? 'flex' : 'none' }}>
-          //                                                                  <Button onClick={() => toggleEdit(item.id, item.name)}><Icon>edit</Icon></Button>
-          //                                                                  <Button className="btn-delete" onClick={() => handleDelete(item.id)}><Icon>delete</Icon></Button>
-          //                                                             </td>
-          //                                                        </tr >
-          //                                                   </>
-          //                                              ))}
-          //                                         </tbody>
-
-          //                                    </MDBox>
-          //                               </Table>
-          //                          </Card>
-          //                     </MDBox>
-          //                )
-          //                }
-          //                <div>
-          //                     {sFamilyMember &&
-          //                          <>
-          //                               <MDBox className="mdbboxfamily">
-          //                                    <div className="addbtn">
-          //                                         <h2>Family Users Management</h2>
-          //                                         <div>
-          //                                              {/* <Button className="btnNotofication" onClick={handleNotofication}><Icon size="large"><h3>notifications</h3></Icon> </Button> */}
-          //                                              <Button variant="contained" className="btnfamilylist" onClick={handleInvite}>Invite + </Button>
-          //                                         </div>
-          //                                    </div>
-          //                                    <Card style={{ width: '34%' }}>
-          //                                         <>
-          //                                              <div>
-          //                                                   <Table className='family-Table'>
-          //                                                        <MDBox>
-          //                                                             <thead>
-          //                                                                  <tr>
-          //                                                                       <th>Family Member</th>
-          //                                                                       <th>Action</th>
-          //                                                                  </tr>
-          //                                                             </thead>
-          //                                                             <tbody>
-          //                                                                  {console.log('familyMemberData??????????', familyMemberData)}
-          //                                                                  {familyMemberData.map((item, index) => (
-          //                                                                       <tr key={index}>
-          //                                                                            <td>
-          //                                                                                 <div>{item.user.name}</div>
-          //                                                                            </td>
-          //                                                                            {console.log('item:::::::>>>>', item)}
-          //                                                                            <td>
-          //                                                                                 {item.inviteStatus === 'Invited' ? (
-          //                                                                                      <div>
-          //                                                                                           <Button className="btn-delete"><Icon>add_reaction</Icon></Button>
-          //                                                                                      </div>
-          //                                                                                 ) : (
-          //                                                                                      null
-          //                                                                                 )}
-          //                                                                                 {UserData.id === familyItems.createdBy && item.inviteStatus === 'Accepted' ? (
-          //                                                                                      <div>
-          //                                                                                           <Button className="btn-delete"><Icon>delete</Icon></Button>
-          //                                                                                      </div>
-          //                                                                                 ) : (
-          //                                                                                      null
-          //                                                                                 )}
-          //                                                                            </td>
-          //                                                                            {invitePop && (
-          //                                                                                 <div className="overlay" onClick={closePopup}>
-          //                                                                                      <div className="popup" onClick={preventClose}>
-          //                                                                                           <div className="popup-content">
-          //                                                                                                <div className='pop-input-div'>
-          //                                                                                                     <form>
-          //                                                                                                          <MDBox mb={2}>
-          //                                                                                                               <h3>Invite User</h3>
-          //                                                                                                               <Input
-          //                                                                                                                    placeholder="Phone Number"
-          //                                                                                                                    label="phoneNumbers"
-          //                                                                                                                    country={'in'}
-          //                                                                                                                    value={phoneNumbers}
-          //                                                                                                                    fullWidth
-          //                                                                                                                    onChange={(e) => handleInviteChange(e.target.value)}
-          //                                                                                                                    inputProps={{
-          //                                                                                                                         required: true,
-          //                                                                                                                    }}
-
-          //                                                                                                               />
-          //                                                                                                          </MDBox>
-          //                                                                                                     </form>
-          //                                                                                                     <MDBox mt={4} mb={1}>
-          //                                                                                                          {familyData.length > 0 && (
-          //                                                                                                               <MDButton
-          //                                                                                                                    key={familyData[0].id}
-          //                                                                                                                    type="submit"
-          //                                                                                                                    variant="gradient"
-          //                                                                                                                    onClick={() => handleInviteSubmit(familyData[0].id)}
-          //                                                                                                                    color="docuit"
-          //                                                                                                                    fullWidth
-          //                                                                                                                    disabled={!enabled}
-          //                                                                                                               >
-          //                                                                                                                    Invite
-
-          //                                                                                                               </MDButton>
-          //                                                                                                          )}
-          //                                                                                                     </MDBox>
-
-          //                                                                                                </div>
-          //                                                                                           </div>
-          //                                                                                      </div>
-          //                                                                                 </div>
-          //                                                                            )}
-          //                                                                       </tr>
-
-          //                                                                  ))}
-          //                                                             </tbody>
-          //                                                        </MDBox>
-          //                                                   </Table>
-          //                                              </div>
-
-          //                                         </>
-
-          //                                    </Card >
-
-          //                               </MDBox >
-
-          //                          </>
-          //                     }
-          //                </div >
-          //           </DashboardLayout >
-          //      );
-
-          // }
-
-          // export default Family;
-
-
-          <DashboardLayout className='mainContent'>
-               <DashboardNavbar />
-               <Card>
-                    {/* Flash Message */}
-                    {flashMessage && (
-                         <div>
-                              <div className="overlay">
-                                   <div className="popup">
-                                        <div className="popup-content">
-                                             <div className='flash-message'>
-                                                  {flashMessage}
-                                             </div>
+     const handleSnackbarClose = () => {
+          setSnackbarOpen(false);
+     };
+     return (<DashboardLayout className='mainContent'>
+          <DashboardNavbar />
+          <Card>
+               {/* Flash Message */}
+               {flashMessage && (
+                    <div>
+                         <div className="overlay">
+                              <div className="popup">
+                                   <div className="popup-content">
+                                        <div className='flash-message'>
+                                             {flashMessage}
                                         </div>
                                    </div>
                               </div>
                          </div>
-                    )}
-               </Card>
+                    </div>
+               )}
+          </Card>
 
-               {hlistFamily && (
-                    // Family Management Section
-                    <MDBox className="mdbboxfamily">
-                         {/* Add Family Button */}
-                         <div className="addbtn">
-                              <h2>Family Management</h2>
-                              <div>
-                                   <Button variant="contained" onClick={handleAdd} className="btnfamilylist">Add + </Button>
-                              </div>
+          {hlistFamily && (
+               // Family Management Section
+               <MDBox className="mdbboxfamily">
+                    {/* Add Family Button */}
+                    <div className="addbtn">
+                         <h2>Family Management</h2>
+                         <div>
+                              <Button variant="contained" onClick={handleAdd} className="btnfamilylist">Add + </Button>
                          </div>
+                    </div>
 
-                         <Card style={{ width: '100%' }}>
-                              {/* Error Flash Message */}
-                              <Card>
-                                   {ErrorflashMessage && (
-                                        <div>
-                                             <div className="overlay" onClick={closePopup}>
-                                                  <div className="popup">
-                                                       <div className="popup-content">
-                                                            <div className='Errorflash-message'>
-                                                                 {ErrorflashMessage}
-                                                            </div>
+                    <Card style={{ width: '100%' }}>
+                         {/* Error Flash Message */}
+                         <Card>
+                              {ErrorflashMessage && (
+                                   <div>
+                                        <div className="overlay" onClick={closePopup}>
+                                             <div className="popup">
+                                                  <div className="popup-content">
+                                                       <div className='Errorflash-message'>
+                                                            {ErrorflashMessage}
                                                        </div>
                                                   </div>
                                              </div>
                                         </div>
-                                   )}
-                              </Card>
+                                   </div>
+                              )}
+                         </Card>
 
-                              <Card>
-                                   {/* Add Family Popup */}
-                                   {Addpop && (
-                                        <div>
-                                             <div className="overlay" onClick={closePopup}>
-                                                  <div className="popup" onClick={preventClose}>
-                                                       <div className="popup-content">
-                                                            <div className='pop-input-div'>
-                                                                 {/* ... */}
-                                                                 <h3 style={{ padding: '28px' }}>Enter Family Name</h3>
-                                                                 <div className='edit-Input'>
-                                                                      <Icon fontSize="small">diversity_3</Icon>
-                                                                      <Box
-                                                                           component="form"
-                                                                           sx={{
-                                                                                "& .MuiTextField-root": {
-                                                                                     m: 1,
-                                                                                     width: "25ch",
-                                                                                },
-                                                                           }}
-                                                                           noValidate
-                                                                           autoComplete="off"
-                                                                      >
-                                                                           <div>
-                                                                                <TextField
-                                                                                     className="pop-up-input"
-                                                                                     label="Enter family name"
-                                                                                     type="text"
-                                                                                     onChange={(e) => handleAddInput(e)}
-                                                                                     variant="standard"
-                                                                                />
+                         <Card>
+                              {/* Add Family Popup */}
+                              {Addpop && (
+                                   <div>
+                                        <div className="overlay" onClick={closePopup}>
+                                             <div className="popup" onClick={preventClose}>
+                                                  <div className="popup-content">
+                                                       <div className='pop-input-div'>
+                                                            {/* ... */}
+                                                            <h3 style={{ padding: '28px' }}>Enter Family Name</h3>
+                                                            <div className='edit-Input'>
+                                                                 <Icon fontSize="small">diversity_3</Icon>
+                                                                 <Box
+                                                                      component="form"
+                                                                      sx={{
+                                                                           "& .MuiTextField-root": {
+                                                                                m: 1,
+                                                                                width: "25ch",
+                                                                           },
+                                                                      }}
+                                                                      noValidate
+                                                                      autoComplete="off"
+                                                                 >
+                                                                      <div>
+                                                                           <TextField
+                                                                                className="pop-up-input"
+                                                                                label="Enter family name"
+                                                                                type="text"
+                                                                                onChange={(e) => handleAddInput(e)}
+                                                                                variant="standard"
+                                                                           />
 
-                                                                                {Add.trim() !== "" && (
-                                                                                     <FormHelperText
-                                                                                          className="erroraddpopmsg"
-                                                                                          sx={{ width: "280px" }}
-                                                                                          style={{ color: 'red' }}
-                                                                                     >
-                                                                                          {Addpoperrormsg
-                                                                                               ? "*Family name cannot have numbers or special characters."
-                                                                                               : ""}
-                                                                                     </FormHelperText>
-                                                                                )}
-                                                                           </div>
-                                                                      </Box>
-                                                                 </div>
+                                                                           {Add.trim() !== "" && (
+                                                                                <FormHelperText
+                                                                                     className="erroraddpopmsg"
+                                                                                     sx={{ width: "280px" }}
+                                                                                     style={{ color: 'red' }}
+                                                                                >
+                                                                                     {Addpoperrormsg
+                                                                                          ? "*Family name cannot have numbers or special characters."
+                                                                                          : ""}
+                                                                                </FormHelperText>
+                                                                           )}
+                                                                      </div>
+                                                                 </Box>
                                                             </div>
-                                                            <div className='btn-pop'>
-                                                                 <MDButton variant="contained" color="error" onClick={togglePopup} className='btn-pop'>Close</MDButton>
-                                                                 {AddpopDisablebutton ? (
-                                                                      <MDButton
-                                                                           variant="contained"
-                                                                           disabled={AddpopDisablebutton}
-                                                                           color="success"
-                                                                      > Save </MDButton>
-                                                                 ) : (
-                                                                      <MDButton
-                                                                           variant="contained"
-                                                                           color="success"
-                                                                           onClick={() => handleAddsave()}
-                                                                      >Save</MDButton>
-                                                                 )}
-                                                            </div>
+                                                       </div>
+                                                       <div className='btn-pop'>
+                                                            <MDButton variant="contained" color="error" onClick={togglePopup} className='btn-pop'>Close</MDButton>
+                                                            {AddpopDisablebutton ? (
+                                                                 <MDButton
+                                                                      variant="contained"
+                                                                      disabled={AddpopDisablebutton}
+                                                                      color="success"
+                                                                 > Save </MDButton>
+                                                            ) : (
+                                                                 <MDButton
+                                                                      variant="contained"
+                                                                      color="success"
+                                                                      onClick={() => handleAddsave()}
+                                                                 >Save</MDButton>
+                                                            )}
                                                        </div>
                                                   </div>
                                              </div>
                                         </div>
-                                   )}
+                                   </div>
+                              )}
 
 
-                              </Card>
+                         </Card>
 
-                              {/* Family Table */}
-                              <TableContainer component={Paper} style={{ width: '100%' }} >
-                                   <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table"
-                                   >
-                                        <TableHead style={{ display: 'contents' }}>
-                                             {/* Table Headers */}
-                                             <TableRow>
-                                                  <TableCell align="justify">Family Name</TableCell>
-                                                  <TableCell align="center">Created At</TableCell>
-                                                  <TableCell align="center">Created By</TableCell>
-                                                  {/* <TableCell align="center">View </TableCell> */}
-                                                  <TableCell align="center">Actions</TableCell>
-                                             </TableRow>
-                                        </TableHead>
+                         {/* Family Table */}
+                         <TableContainer component={Paper} style={{ width: '100%' }} >
+                              <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table"
+                              >
+                                   <TableHead style={{ display: 'contents' }}>
+                                        {/* Table Headers */}
+                                        <TableRow>
+                                             <TableCell align="justify">Family Name</TableCell>
+                                             <TableCell align="center">Created At</TableCell>
+                                             <TableCell align="center">Created By</TableCell>
+                                             {/* <TableCell align="center">View </TableCell> */}
+                                             <TableCell align="center">Actions</TableCell>
+                                        </TableRow>
+                                   </TableHead>
 
-                                        {/* Table Body */}
-                                        <TableBody style={{ color: 'black' }}>
-                                             {/* Mapping through familyData to create rows */}
-                                             {familyData.map((item, index) => (
-                                                  <TableRow key={index}>
-                                                       {/* ... */}
+                                   {/* Table Body */}
+                                   <TableBody style={{ color: 'black' }}>
+                                        {/* Mapping through familyData to create rows */}
+                                        {familyData.map((item, index) => (
+                                             <TableRow key={index}>
+                                                  {/* ... */}
 
-                                                       <TableCell align="justify">
-                                                            {showPopup && popupindex === item.id && (
-                                                                 <div>
-                                                                      <div className="overlay" onClick={closePopup}>
-                                                                           <div className="popup" onClick={preventClose}>
-                                                                                <div className="popup-content">
-                                                                                     <div className='pop-input-div'>
-                                                                                          <h3 style={{ padding: '28px' }}>Change Family Name</h3>
-                                                                                          <div className='edit-Input'>
-                                                                                               <Icon fontSize="small">diversity_3</Icon>
-                                                                                               <Box
-                                                                                                    component="form"
-                                                                                                    sx={{
-                                                                                                         "& .MuiTextField-root": {
-                                                                                                              m: 1,
-                                                                                                              width: "25ch",
-                                                                                                         },
-                                                                                                    }}
-                                                                                                    noValidate
-                                                                                                    autoComplete="off"
-                                                                                               >
+                                                  <TableCell align="justify">
+                                                       {showPopup && popupindex === item.id && (
+                                                            <div>
+                                                                 <div className="overlay" onClick={closePopup}>
+                                                                      <div className="popup" onClick={preventClose}>
+                                                                           <div className="popup-content">
+                                                                                <div className='pop-input-div'>
+                                                                                     <h3 style={{ padding: '28px' }}>Change Family Name</h3>
+                                                                                     <div className='edit-Input'>
+                                                                                          <Icon fontSize="small">diversity_3</Icon>
+                                                                                          <Box
+                                                                                               component="form"
+                                                                                               sx={{
+                                                                                                    "& .MuiTextField-root": {
+                                                                                                         m: 1,
+                                                                                                         width: "25ch",
+                                                                                                    },
+                                                                                               }}
+                                                                                               noValidate
+                                                                                               autoComplete="off"
+                                                                                          >
 
-                                                                                                    <div>
-                                                                                                         <TextField
-                                                                                                              className="pop-up-input"
-                                                                                                              label="Family name"
-                                                                                                              type="text"
-                                                                                                              defaultValue={isEditing}
-                                                                                                              onChange={(e) => handleEditInput(index, e.target.value)}
-                                                                                                              variant="standard" />
+                                                                                               <div>
+                                                                                                    <TextField
+                                                                                                         className="pop-up-input"
+                                                                                                         label="Family name"
+                                                                                                         type="text"
+                                                                                                         defaultValue={isEditing}
+                                                                                                         onChange={(e) => handleEditInput(index, e.target.value)}
+                                                                                                         variant="standard" />
 
-                                                                                                         {isEditing.trim() !== "" && (
-                                                                                                              <FormHelperText
-                                                                                                                   className="errorpopupmsg"
-                                                                                                                   sx={{ width: "280px" }}
-                                                                                                                   style={{ color: popuperrormsg ? 'red' : 'success' }}
-                                                                                                              >
-                                                                                                                   {popuperrormsg
-                                                                                                                        ? "*Family name cannot have numbers or special characters."
-                                                                                                                        : ""}
-                                                                                                              </FormHelperText>
-                                                                                                         )}
-                                                                                                    </div>
-                                                                                               </Box>
-                                                                                          </div>
+                                                                                                    {isEditing.trim() !== "" && (
+                                                                                                         <FormHelperText
+                                                                                                              className="errorpopupmsg"
+                                                                                                              sx={{ width: "280px" }}
+                                                                                                              style={{ color: popuperrormsg ? 'red' : 'success' }}
+                                                                                                         >
+                                                                                                              {popuperrormsg
+                                                                                                                   ? "*Family name cannot have numbers or special characters."
+                                                                                                                   : ""}
+                                                                                                         </FormHelperText>
+                                                                                                    )}
+                                                                                               </div>
+                                                                                          </Box>
                                                                                      </div>
-                                                                                     {/* for Edit family member */}
-                                                                                     <div className="btn-pop">
+                                                                                </div>
+                                                                                {/* for Edit family member */}
+                                                                                <div className="btn-pop">
+                                                                                     <MDButton
+                                                                                          variant="contained"
+                                                                                          color="error"
+                                                                                          onClick={togglePopup}
+                                                                                     >Close</MDButton>
+                                                                                     {isButtonDisabled ? (
                                                                                           <MDButton
                                                                                                variant="contained"
-                                                                                               color="error"
-                                                                                               onClick={togglePopup}
-                                                                                          >Close</MDButton>
-                                                                                          {isButtonDisabled ? (
-                                                                                               <MDButton
-                                                                                                    variant="contained"
-                                                                                                    disabled={isButtonDisabled}
-                                                                                                    color="success"
-                                                                                               > Save </MDButton>
-                                                                                          ) : (
-                                                                                               <MDButton
-                                                                                                    variant="contained"
-                                                                                                    color="success"
-                                                                                                    onClick={() => {
-                                                                                                         handleSave(item);
-                                                                                                    }}
-                                                                                               > Save </MDButton>)}
-                                                                                     </div>
-                                                                                     <Card>
-                                                                                          {ErrorflashMessage && (
-                                                                                               <div>
-                                                                                                    <div className="overlay" onClick={closePopup}>
-                                                                                                         <div className="popup">
-                                                                                                              <div className="popup-content">
-                                                                                                                   <div className='Errorflash-message'>
-                                                                                                                        {ErrorflashMessage}
-                                                                                                                   </div>
+                                                                                               disabled={isButtonDisabled}
+                                                                                               color="success"
+                                                                                          > Save </MDButton>
+                                                                                     ) : (
+                                                                                          <MDButton
+                                                                                               variant="contained"
+                                                                                               color="success"
+                                                                                               onClick={() => {
+                                                                                                    handleSave(item);
+                                                                                               }}
+                                                                                          > Save </MDButton>)}
+                                                                                </div>
+                                                                                <Card>
+                                                                                     {ErrorflashMessage && (
+                                                                                          <div>
+                                                                                               <div className="overlay" onClick={closePopup}>
+                                                                                                    <div className="popup">
+                                                                                                         <div className="popup-content">
+                                                                                                              <div className='Errorflash-message'>
+                                                                                                                   {ErrorflashMessage}
                                                                                                               </div>
                                                                                                          </div>
                                                                                                     </div>
                                                                                                </div>
-                                                                                          )}
-                                                                                     </Card>
-                                                                                </div>
-                                                                           </div>
-                                                                      </div>
-                                                                 </div>
-                                                            )}
-                                                            <div onClick={() => handleFamilyNameClick(item)} className='hover-click' >{item.name}</div>
-                                                       </TableCell>
-                                                       {/* <TableCell align='center'>{item.createdAt}</TableCell> */}
-                                                       <TableCell align='center'>
-                                                            {new Date(item.createdAt).toLocaleString('en-IN', {
-                                                                 timeZone: 'Asia/Kolkata',
-                                                                 hour12: false,
-                                                            })}
-                                                       </TableCell>
-                                                       {console.log("itemi", item)}
-                                                       <TableCell>{item.id}</TableCell>
-                                                       <TableCell align="center" style={{ display: 'flex', justifyContent: 'center' }}>
-                                                            {item.createdBy === UserData.id ? (
-                                                                 <>
-                                                                      <IconButton onClick={() => toggleEdit(item.id, item.name)}>
-                                                                           <EditIcon style={{ color: 'green' }} />
-                                                                      </IconButton>
-                                                                      <IconButton onClick={() => handleDelete(item.id)}>
-                                                                           <DeleteIcon style={{ color: 'red' }} />
-                                                                      </IconButton>
-
-                                                                 </>
-                                                            ) : (
-                                                                 <Icon onClick={() => handleFamilyNameClick(item)} style={{ cursor: 'pointer', color: 'rgb(26,115,232)', margin: '6px 0px' }}>visibility</Icon>
-                                                            )}
-                                                       </TableCell>
-
-
-
-                                                  </TableRow>
-
-                                             ))}
-                                        </TableBody>
-                                   </Table>
-                              </TableContainer>
-                         </Card>
-                    </MDBox>
-               )}
-
-               {sFamilyMember && (
-                    <>
-                         <MDBox className="mdbboxfamily">
-                              <div className="addbtn">
-                                   <h2>Family Users Management</h2>
-                                   <div>
-                                        <Button variant="contained" className="btnfamilylist" onClick={handleInvite}>Invite + </Button>
-                                   </div>
-                              </div>
-                              <Card style={{ width: '100%' }}>
-                                   <div>
-                                        <TableContainer component={Paper}>
-                                             <Table aria-label="simple table">
-                                                  <TableHead style={{ display: 'contents' }}>
-                                                       <TableRow>
-                                                            <TableCell align='center'>Family Member</TableCell>
-                                                            <TableCell align='center'>created at</TableCell>
-                                                            <TableCell align='center'>Action</TableCell>
-                                                       </TableRow>
-                                                  </TableHead>
-                                                  <TableBody>
-                                                       {familyMemberData.map((item, index) => (
-                                                            <TableRow key={index}>
-                                                                 <TableCell align='center'>
-                                                                      {item.user.name}
-                                                                 </TableCell>
-                                                                 <TableCell align='center'>
-                                                                      {new Date(item.user.createdAt).toLocaleString('en-IN', {
-                                                                           timeZone: 'Asia/Kolkata',
-                                                                           hour12: false,
-                                                                      })}
-                                                                 </TableCell>
-                                                                 <TableCell align='center'>
-                                                                      {item.inviteStatus === 'Invited' ? (
-                                                                           <div>
-                                                                                <Button className="btn-delete"><Icon>add_reaction</Icon></Button>
-                                                                           </div>
-                                                                      ) : null}
-                                                                      {UserData.id === familyItems.createdBy && item.inviteStatus === 'Accepted' ? (
-                                                                           <div>
-                                                                                <Button className="btn-delete" onClick={() => handleDelete(item.id)}><Icon>delete</Icon></Button>
-                                                                           </div>
-                                                                      ) : null}
-                                                                 </TableCell>
-
-                                                            </TableRow>
-                                                       ))}
-                                                       {invitePop && (
-                                                            <div className="overlay" onClick={closePopup}>
-                                                                 <div className="popup" onClick={preventClose}>
-                                                                      <div className="popup-content">
-                                                                           <div className='pop-input-div'>
-                                                                                <form>
-                                                                                     <MDBox mb={2}>
-                                                                                          <h3>Invite User</h3>
-                                                                                          <Input
-                                                                                               placeholder="Phone Number"
-                                                                                               label="phoneNumbers"
-                                                                                               country={'in'}
-                                                                                               value={phoneNumbers}
-                                                                                               fullWidth
-                                                                                               onChange={(e) => handleInviteChange(e.target.value)}
-                                                                                               inputProps={{
-                                                                                                    required: true,
-                                                                                               }}
-                                                                                          />
-                                                                                     </MDBox>
-                                                                                </form>
-                                                                                <MDBox mt={4} mb={1}>
-                                                                                     {familyData.length > 0 && (
-                                                                                          <MDButton
-                                                                                               key={familyData[0].id}
-                                                                                               type="submit"
-                                                                                               variant="gradient"
-                                                                                               onClick={() => handleInviteSubmit(familyData[0].id)}
-                                                                                               color="docuit"
-                                                                                               fullWidth
-                                                                                               disabled={!enabled}
-                                                                                          >
-                                                                                               Invite
-                                                                                          </MDButton>
+                                                                                          </div>
                                                                                      )}
-                                                                                </MDBox>
+                                                                                </Card>
                                                                            </div>
                                                                       </div>
                                                                  </div>
                                                             </div>
                                                        )}
-                                                  </TableBody>
-                                             </Table>
-                                        </TableContainer>
+                                                       <div onClick={() => handleFamilyNameClick(item)} className='hover-click' >{item.name}</div>
+                                                  </TableCell>
+                                                  {/* <TableCell align='center'>{item.createdAt}</TableCell> */}
+                                                  <TableCell align='center'>
+                                                       {new Date(item.createdAt).toLocaleString('en-IN', {
+                                                            timeZone: 'Asia/Kolkata',
+                                                            hour12: false,
+                                                       })}
+                                                  </TableCell>
+
+                                                  <TableCell align='center'>
+                                                       {UserData.id === item.createdBy ? UserData.name : 'Others'}
+                                                  </TableCell>    <TableCell align="center" style={{ display: 'flex', justifyContent: 'center' }}>
+                                                       {item.createdBy === UserData.id ? (
+                                                            <>
+                                                                 <IconButton onClick={() => toggleEdit(item.id, item.name)}>
+                                                                      <EditIcon style={{ color: 'green' }} />
+                                                                 </IconButton>
+                                                                 <IconButton onClick={() => handleDelete(item.id)}>
+                                                                      <DeleteIcon style={{ color: 'red' }} />
+                                                                 </IconButton>
+
+
+                                                            </>
+                                                       ) : (
+                                                            <Icon onClick={() => handleFamilyNameClick(item)} style={{ cursor: 'pointer', color: 'rgb(26,115,232)', margin: '6px 0px' }}>visibility</Icon>
+                                                       )}
+                                                  </TableCell>
+                                                  <Snackbar
+                                                       anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                                       open={snackbarOpen}
+                                                       autoHideDuration={6000}
+                                                       onClose={handleSnackbarClose}
+                                                       TransitionComponent={(props) => <Slide {...props} direction="left" />}
+                                                  >
+                                                       <Alert
+                                                            severity={snackbarType}
+                                                            sx={{ width: '100%', color: '#ffffff', backgroundColor: snackbarType === 'success' ? '#236925' : '#b92525' }}
+                                                       >
+                                                            {snackbarMessage}
+                                                       </Alert>
+                                                  </Snackbar>
+
+
+                                             </TableRow>
+
+                                        ))}
+                                   </TableBody>
+                              </Table>
+                         </TableContainer>
+                    </Card>
+               </MDBox>
+          )}    {sFamilyMember && (
+               <>
+                    <MDBox className="mdbboxfamily">
+                         <div className="addbtn">
+                              <h2>Family Users Management</h2>
+                              <div>
+                                   <Button variant="contained" className="btnfamilylist" onClick={handleInvite}>Invite + </Button>
+                              </div>
+                         </div>
+                         <Card style={{ width: '100%' }}>
+                              <div>
+                                   <TableContainer component={Paper}>
+                                        <Table aria-label="simple table">
+                                             <TableHead style={{ display: 'contents' }}>
+                                                  <TableRow>
+                                                       <TableCell align='center'>Family Member</TableCell>
+                                                       <TableCell align='center'>created at</TableCell>
+                                                       <TableCell align='center'>Action</TableCell>
+                                                  </TableRow>
+                                             </TableHead>
+                                             <TableBody>
+                                                  {familyMemberData.map((item, index) => (
+                                                       <TableRow key={index}>
+                                                            <TableCell align='center'>
+                                                                 {item.user.name}
+                                                            </TableCell>
+                                                            <TableCell align='center'>
+                                                                 {new Date(item.user.createdAt).toLocaleString('en-IN', {
+                                                                      timeZone: 'Asia/Kolkata',
+                                                                      hour12: false,
+                                                                 })}
+                                                            </TableCell>
+                                                            <TableCell align='center'>
+                                                                 {item.inviteStatus === 'Invited' ? (
+                                                                      <div>
+                                                                           <Button className="btn-delete"><Icon>add_reaction</Icon></Button>
+                                                                      </div>
+                                                                 ) : <span>-</span>}
+                                                                 {UserData.id === familyItems.createdBy && item.inviteStatus === 'Accepted' ? (
+                                                                      <div>
+                                                                           <Button className="btn-delete" onClick={() => handleDelete(item.id)}><Icon>delete</Icon></Button>
+                                                                      </div>
+                                                                 ) : null}
+                                                            </TableCell>
+                                                       </TableRow>
+                                                  ))}
+                                             </TableBody>
+                                        </Table>
+                                   </TableContainer>
+                              </div>
+                         </Card>
+                    </MDBox>
+                    {invitePop && (
+                         <div className="overlay" onClick={closePopup}>
+                              <div className="popup" onClick={preventClose}>
+                                   <div className="popup-content">
+                                        <div className='pop-input-div'>
+                                             <form>
+                                                  <MDBox mb={2}>
+                                                       <h3>Invite User</h3>
+                                                       <Input
+                                                            placeholder="Phone Number"
+                                                            label="phoneNumbers"
+                                                            country={'in'}
+                                                            value={phoneNumbers}
+                                                            fullWidth
+                                                            onChange={(e) => handleInviteChange(e.target.value)}
+                                                            inputProps={{
+                                                                 required: true,
+                                                            }}
+                                                       />
+                                                  </MDBox>
+                                             </form>
+                                             <MDBox mt={4} mb={1}>
+                                                  {/* {familyData.length > 0 && ( */}
+                                                  <MDButton
+                                                       // key={familyData[0].id}
+                                                       type="submit"
+                                                       variant="gradient"
+                                                       onClick={() => handleInviteSubmit(familyData.id)}
+                                                       color="docuit"
+                                                       fullWidth
+                                                       disabled={!enabled}
+                                                  >
+                                                       Invite
+                                                  </MDButton>
+                                                  {/* // )} */}
+                                             </MDBox>
+                                        </div>
                                    </div>
-                              </Card>
-                         </MDBox>
-                    </>
-               )}
+                              </div>
+                         </div>
+                    )}
+               </>
+          )}
 
 
 
-          </DashboardLayout>
+     </DashboardLayout>
      );
 }
 

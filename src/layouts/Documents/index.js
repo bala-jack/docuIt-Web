@@ -129,6 +129,9 @@ function Documents() {
           borderRadius: 5,
           border: 'none',
           p: 4,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
      };
 
      useEffect(() => {
@@ -152,40 +155,46 @@ function Documents() {
           }
      };
 
-     const handleFileChange = (event) => {
-          event.preventDefault();
-          const newFiles = Array.from(event.target.files);
-
-          // Filter out non-PDF files
-          const pdfFiles = newFiles.filter((file) => file.type === 'application/pdf');
-          if (!pdfFiles) {
-               return
-          } else {
-               // Limit the selection to 5 files
-               const limitedSelection = pdfFiles.slice(0, 5);
-
-               // Check file size (limit to 5MB)
-               const validFiles = limitedSelection.filter((file) => file.size <= 5 * 1024 * 1024);
-
-               handleUploadButtonClick(validFiles);
-
-          }
-
-     };
-
      // const handleFileChange = (event) => {
-     //      event.preventDefault(event);
-     //      console.log('handleFileChange Called')
-     //      console.log("event.target::::::::::", event.target.file)
+     //      event.preventDefault();
      //      const files = event.target.files[0];
-     //      if (files.type !== 'application/pdf') {
-     //           console.log("event.target12::::::::::", files)
+     //      console.log('handleFileChange', files)
+     //      // Filter out non-PDF files
+     //      // const pdfFiles = files.filter((file) => file.type === 'application/pdf');
+     //      if (files.length === 0) {
+     //           // Provide feedback to the user (e.g., show a message or disable the upload button)
+     //           console.log("Please select PDF files.");
      //           return;
-     //      } else {
-     //           handleUploadButtonClick(files);
-     //           console.log("handleupload", files)
      //      }
-     // }
+
+     //      // Limit the selection to 5 files
+     //      const limitedSelection = files.slice(0, 5);
+
+     //      // Check file size (limit to 5MB)
+     //      const validFiles = limitedSelection.filter((file) => file.size <= 5 * 1024 * 1024);
+
+     //      if (validFiles.length === 0) {
+     //           // Provide feedback to the user (e.g., show a message or disable the upload button)
+     //           console.log("Selected files exceed the size limit.");
+     //           return;
+     //      }
+
+     //      handleUploadButtonClick(validFiles);
+     // };
+
+     const handleFileChange = (event) => {
+          event.preventDefault(event);
+          console.log('handleFileChange Called')
+          console.log("event.target::::::::::", event.target.file)
+          const files = event.target.files[0];
+          if (files.type !== 'application/pdf') {
+               console.log("event.target12::::::::::", files)
+               return;
+          } else {
+               handleUploadButtonClick(files);
+               console.log("handleupload", files)
+          }
+     }
      console.log("selectFile::::::::::", selectFile)
 
      const handleUploadButtonClick = async (files) => {
@@ -260,6 +269,7 @@ function Documents() {
      const handleClose = () => {
           setopenMove(false);
           setopenShare(false);
+          setopenShare('');
      }
 
      const handleMove = async (item) => {
@@ -657,15 +667,14 @@ function Documents() {
                     <h2>{category.categoryName}</h2>
                     <div>
                          <Button className="btnfamilylist" component="label" variant="contained" startIcon={<CloudUploadIcon />} >
-                              <Input style={{ display: 'none' }} type="file" accept="application/pdf" onChange={handleFileChange}  multiple />
+                              <Input style={{ display: 'none' }} type="file" accept="application/pdf" onChange={handleFileChange} multiple />
                               Upload File
                          </Button>
                     </div>
                </div>
 
 
-               {
-                    LifeData.length === 0 ? (
+               { LifeData.length === 0 ? (
                          <h2>No Data Found</h2>
                     ) : (
                          <>
@@ -674,10 +683,9 @@ function Documents() {
                                    onClose={handleClose}
                                    aria-labelledby="modal-modal-title"
                                    aria-describedby="modal-modal-description"
-                                   style={{ overflowY: 'scroll', maxHeight: '100%' }}
                               >
                                    <Box sx={style}>
-                                        <FormControl sx={{ width: '100%' }}>
+                                        <FormControl sx={{ width: '100%', overflowY: 'auto', maxHeight: '80vh', '::-webkit-scrollbar': { width: '10%' } }}>
                                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '20px' }}>
                                                   <h3>Share Document</h3>
                                                   {!arrayEquals(addMembers, memberData) && (
@@ -750,7 +758,7 @@ function Documents() {
                                                        <>
                                                             {item.documentId === selectedFile && (
                                                                  <div key={index}>
-                                                                      <div>{item.documentName}</div>
+                                                                      <div>File name:  {item.documentName}</div>
                                                                       {catListdata.map((category) => (
                                                                            <div style={{ display: 'flex', alignItems: 'center' }} key={category.categoryId}>
                                                                                 <Radio
@@ -764,8 +772,8 @@ function Documents() {
                                                                            </div>
                                                                       ))}
                                                                       {console.log('target?????', targetCategory)}
-                                                                      <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                                                           <Button variant="contained" onClick={() => handleMove(item)}>
+                                                                      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '20px' }}>
+                                                                           <Button variant="contained" style={{ color: 'white' }} onClick={() => handleMove(item)}>
                                                                                 Move
                                                                            </Button>
                                                                       </div>
@@ -844,19 +852,19 @@ function Documents() {
                                                                       <Icon onClick={() => openDeleteDialog(item)} >delete</Icon>
                                                                  </Tooltip>
                                                             )}
-                                                            <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
-                                                                 <DialogTitle>Confirm Delete</DialogTitle>
-                                                                 <DialogContent>
-                                                                      Are you sure you want to delete this document?
-                                                                 </DialogContent>
-                                                                 <DialogActions>
-                                                                      <Button onClick={closeDeleteDialog}>Cancel</Button>
-                                                                      <Button onClick={() => handleDelete(deleteDocumentId)}>Delete</Button>
-                                                                 </DialogActions>
-                                                            </Dialog>
                                                        </TableCell>
                                                   </TableRow>
                                              ))}
+                                             <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
+                                                  <DialogTitle>Confirm Delete</DialogTitle>
+                                                  <DialogContent>
+                                                       Are you sure you want to delete this document?
+                                                  </DialogContent>
+                                                  <DialogActions>
+                                                       <Button onClick={closeDeleteDialog}>Cancel</Button>
+                                                       <Button onClick={() => handleDelete(deleteDocumentId)}>Delete</Button>
+                                                  </DialogActions>
+                                             </Dialog>
                                         </TableBody>
                                    </Table>
                               </TableContainer>

@@ -1,90 +1,175 @@
-import React, { useEffect, useState } from 'react';
-import { Avatar, Alert, Box, Button, Card, FormHelperText, Grid, Select } from "@mui/material";
-import { InputLabel, MenuItem, TextField, Snackbar, FormControl, Slide } from "@mui/material";
+import React, { useEffect, useState, useRef } from 'react';
+import { styled } from '@mui/material/styles';
+import { Avatar, Alert, Box, Card, Grid, Select } from "@mui/material";
+import { IconButton, InputLabel, MenuItem, TextField, Snackbar, Slide, Badge, FormControl, FormHelperText } from "@mui/material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import { useAuth } from "context/AuthContext";
-import { updateProfile } from "services"
+import { updateProfile } from "services";
+import MDButton from 'components/MDButton';
+import EditIcon from '@mui/icons-material/Edit';
+import { uploadDocuments } from 'services';
 
 function Profile() {
+     // useauth.
      const { UserData, setuserdata } = useAuth();
-     const [ProfileDetails, setProfileDetails] = useState({});
-     const [username, setUsername] = useState("");
-     const [gender, setGender] = useState('');
+
+     // state for user data.
      const [userDetails, setUserDetails] = useState({});
-     const [useremail, setUseremail] = useState([]);
-     const [userphone, setUserphone] = useState([]);
-     const [ProfilePic, setProfilePic] = useState('');
+     const [userName, setUserName] = useState("");
+     const [Gender, setGender] = useState('');
+     const [userEmail, setUserEmail] = useState('');
+     const [userPhone, setUserPhone] = useState('');
+     const [userPic, setUserPic] = useState('');
+     const [selectedFile, setSelectedFile] = useState(null);
+     const [isSaveButtonDisabled, setSaveButtonDisabled] = useState(true);
+
+     // snackbar.
      const [snackbarOpen, setSnackbarOpen] = useState(false);
      const [snackbarMessage, setSnackbarMessage] = useState('');
      const [snackbarType, setSnackbarType] = useState('success');
 
+     // Variables for validation.
      const nameregex = /^[A-Za-z ]+$/;
-     const popuperrormsg = !nameregex.test(username.trim());
+     const popuperrormsg = !nameregex.test(userName.trim());
+     const fileInputRef = useRef(null);
 
      useEffect(() => {
           UserProfile();
      }, [UserData]);
 
+     // Useauth for getting details 
      const UserProfile = () => {
 
-          const userdetails = UserData;
+          const profiledetails = UserData;
 
-          if (userdetails) {
-               const extractedData = {
-                    username: userdetails.name,
-                    gender: userdetails.gender,
-                    email: userdetails.email,
-                    phonenumber: userdetails.phone,
-                    profilepic: userdetails.imageUrl
-               };
-               setUserDetails(userdetails)
-               setGender(userdetails.gender)
-               setUsername(userdetails.name)
-               setUseremail(userdetails.email)
-               setUserphone(userdetails.phone)
-               setProfilePic(userdetails.profilepic)
+          if (profiledetails) {
+               setUserDetails(profiledetails)
+               setUserName(profiledetails.name)
+               setGender(profiledetails.gender)
+               setUserPhone(profiledetails.phone)
+               setUserEmail(profiledetails.email)
+               setUserPic(profiledetails.imageUrl)
           }
      }
 
-     const handleSnackbarOpen = (message, type) => {
-          setSnackbarMessage(message);
-          setSnackbarType(type);
-          setSnackbarOpen(true);
-     };
-
-     const handleProfileEdit = async () => {
+     // API call for saving changes to server
+     const handleProfileEdit = async (e, imageUrl) => {
           try {
+
                const params = {
                     "userId": userDetails.id,
-                    "name": username,
-                    "gender": gender,
-                    "imageUrl": ProfilePic
+                    "name": userName,
+                    "gender": Gender,
+                    "imageUrl": imageUrl ?? userPic
                }
+
                console.log("params", params);
                const { data } = await updateProfile(params);
                console.log("data", data);
 
                if (data?.status === "SUCCESS") {
                     setuserdata(data?.response?.userDetails);
-                    localStorage.setItem('docuItToken', data?.response?.token);
+                    localStorage.clear();
                     localStorage.setItem('docuItuserDetails', JSON.stringify(data?.response?.userDetails));
-                    handleSnackbarOpen("Username is changed successfully", 'success');
+                    handleSnackbarOpen("Profile details updated successfully.", 'success');
+                    setSaveButtonDisabled(true);
                }
+
                else {
+                    console.log("Update failed:", data?.message);
                     handleSnackbarOpen("Invalid entry. Please try again!", 'error');
                }
 
-               console.log("data", data);
           } catch (err) {
-               console.error('Error inviting user:', err);
+               console.error('Error updating profile:', err);
+               handleSnackbarOpen('Error updating profile:', err);
+          }
+     };
+
+     // Snackbar handling function - message, type(severity), open-close
+     const handleSnackbarOpen = (message, type) => {
+          setSnackbarMessage(message);
+          setSnackbarType(type);
+          setSnackbarOpen(true);
+     };
+
+     // Name input textfield
+     const handleNameEdit = (e) => {
+          setUserName(e);
+          if (e === "") {
+               setSaveButtonDisabled(true);
+          }
+          else {
+               setSaveButtonDisabled(false);
           }
      }
 
+     // Gender select input field
      const selecthandleChange = (event) => {
           setGender(event.target.value);
-          console.log("gender value", event.target.value);
+          setSaveButtonDisabled(false);
      };
+
+     // For Avatar Profile picture uploading
+     const handleFileInputChange = async (e) => {
+          const file = e.target.files[0];
+          // const url = URL.createObjectURL(file);
+          // setSelectedFile(url);
+          // setUserPic(selectedFile);
+
+          const bodyFormData = new FormData();
+          bodyFormData.append('file', file);
+          try {
+               const { data } = await uploadDocuments(userDetails.id, bodyFormData);
+               if (data.documentUrl) {
+                    handleProfileEdit(e, data.documentUrl);
+               }
+               else {
+                    handleSnackbarOpen("Unable to upload Image. Please try again", 'error');
+               }
+          }
+          catch {
+               handleSnackbarOpen("Something went wrong please try again", 'error');
+          }
+     }
+
+     //Avatar profile name
+     const stringAvatar = (name) => {
+          const words = name.split(' ');
+          const initials = words.map(word => word.charAt(0).toUpperCase());
+          return initials.join('');
+     };
+
+     //Avatar Color
+     const stringToColor = (string) => {
+          if (!string) {
+               return '#000000';
+          }
+          let hash = 0;
+          for (let i = 0; i < string.length; i++) {
+               hash = string.charCodeAt(i) + ((hash << 5) - hash);
+          }
+          const color = Math.abs(hash).toString(16).substring(0, 6);
+          return `#${ '0'.repeat(6 - color.length) }${ color }`;
+     };
+
+     // Edit profile pic button/badge
+     const handleSmallAvatarClick = () => {
+          if (fileInputRef.current) {
+               fileInputRef.current.click();
+          }
+     };
+
+     // Upload profile pic button/badge styles
+     const SmallAvatar = styled(Avatar)(({ theme }) => ({
+          backgroundColor: '#44b700',
+          color: '#ffffff',
+          width: 26,
+          height: 26,
+          cursor: PointerEvent,
+
+     }));
 
      return (
           <DashboardLayout className='mainContent'>
@@ -108,7 +193,7 @@ function Profile() {
                          width: '80%',
                          m: 'auto'
                     }}>
-                    <Box component="form"
+                    <Box
                          sx={{
                               display: 'flex',
                               flexDirection: 'column',
@@ -118,10 +203,53 @@ function Profile() {
                               mt: 5
                          }}>
                          <h2>My Profile</h2>
-                         <Avatar sx={{ m: 1, width: 124, height: 124 }}
-                              alt={username} src={ProfilePic} />
-                    </Box>
 
+                         <Badge
+                              overlap="circular"
+                              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                              badgeContent={
+                                   <>
+                                        <IconButton onClick={handleSmallAvatarClick} component="div">
+                                             <SmallAvatar
+                                                  alt="Edit"
+                                                  sx={{ '& > button': { color: 'transparent', height: '100%', width: '100%' } }}
+                                             >
+                                                  <EditIcon />
+                                             </SmallAvatar>
+                                        </IconButton>
+                                        <input
+                                             id="fileInput"
+                                             type="file"
+                                             accept="image/jpeg, image/jpg"
+                                             ref={fileInputRef}
+                                             style={{ display: 'none' }}
+                                             onChange={handleFileInputChange}
+                                        />
+                                   </>
+                              }
+                         >
+                              <Avatar
+                                   sx={{
+                                        m: 1,
+                                        width: 124,
+                                        height: 124,
+                                        objectFit: 'cover',
+                                        '& > img': {
+                                             height: '100% !important',
+                                        },
+                                        bgcolor: stringToColor(userName),
+                                        fontSize: '4rem'
+                                   }}
+                                   style={{
+                                        border: '3px solid #2f53acbb',
+                                   }}
+                                   alt={userName}
+                                   src={userPic}
+                              >
+                                   {stringAvatar(userName)}
+                              </Avatar>
+                         </Badge>
+                    </Box>
                     <Grid
                          container
                          spacing={0}
@@ -131,9 +259,9 @@ function Profile() {
                          alignContent="center"
                          rowGap="1em"
                          wrap="nowrap"
+                         sx={{ mb: 4 }}
                     >
                          <Box
-                              component="form"
                               sx={{
                                    "& .MuiTextField-root": {
                                         m: 1,
@@ -144,40 +272,49 @@ function Profile() {
                                         width: "60ch",
                                    }
                               }}
-                              noValidate
-                              autoComplete="off"
                          >
                               <div>
                                    <TextField
                                         className="Editname"
                                         label="Name"
                                         type="text"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
+                                        value={userName}
+                                        onChange={(e) => {
+                                             handleNameEdit(e.target.value);
+                                        }}
                                    />
-                                   <FormHelperText
-                                        className="erroraddpopmsg"
-                                        style={{ color: 'red' }}
-                                   >
-                                        {popuperrormsg
-                                             ? "*Name cannot have numbers or special characters."
-                                             : ""}
-                                   </FormHelperText>
+
+                                   {userName.trim() !== "" && (
+                                        <FormHelperText
+                                             className="erroraddpopmsg"
+                                             style={{ color: 'red' }}
+                                        >
+                                             {popuperrormsg
+                                                  ? "*Name cannot have numbers or special characters."
+                                                  : ""}
+                                        </FormHelperText>
+                                   )}
                               </div>
                          </Box>
-                         <FormControl sx={{ m: 1, minWidth: "40ch" }}>
-                              <InputLabel id="demo-simple-select-autowidth-label">Gender</InputLabel>
+                         <FormControl sx={{ m: 1, maxWidth: "57ch", }}>
+
+                              <InputLabel>Gender</InputLabel>
                               <Select
                                    labelId="demo-simple-select-autowidth-label"
-                                   id="demo-simple-select-autowidth"
                                    onChange={selecthandleChange}
-                                   value={gender}
-                                   autoWidth
+                                   value={Gender}
                                    label="Gender"
-                                   sx={{ p: 1.5 }}
+                                   sx={{
+                                        minWidth: "57ch", pt: 1.2, pb: 1.2,
+                                        "& > input": {
+                                             color: 'transparent',
+                                             width: "100%",
+                                             height: "100%",
+                                        }
+                                   }}
                               >
                                    <MenuItem value="">
-                                        <em>None</em>
+                                        <em></em>
                                    </MenuItem>
                                    <MenuItem value="Male">Male</MenuItem>
                                    <MenuItem value="Female">Female</MenuItem>
@@ -185,16 +322,14 @@ function Profile() {
                                    <MenuItem value="Unspecified">Unspecified</MenuItem>
                               </Select>
                          </FormControl>
+
                          <Box
-                              component="form"
                               sx={{
                                    "& .MuiTextField-root": {
                                         m: 1,
                                         width: "40ch",
                                    },
                               }}
-                              noValidate
-                              autoComplete="off"
                          >
                               <div>
                                    <TextField
@@ -202,26 +337,17 @@ function Profile() {
                                         label="Email"
                                         type='email'
                                         disabled
-                                        value={useremail}
+                                        value={userEmail}
                                    />
-                                   <FormHelperText
-                                        className="errorpopupmsg"
-                                        sx={{ width: "280px" }}
-                                   >
-                                        {/* Display any error messages related to the name field */}
-                                   </FormHelperText>
                               </div>
                          </Box>
                          <Box
-                              component="form"
                               sx={{
                                    "& .MuiTextField-root": {
                                         m: 1,
                                         width: "40ch",
                                    },
                               }}
-                              noValidate
-                              autoComplete="off"
                          >
                               <div>
                                    <TextField
@@ -229,26 +355,27 @@ function Profile() {
                                         label="Phonenumber"
                                         type='text'
                                         disabled
-                                        value={userphone}
+                                        value={userPhone}
                                    />
-                                   <FormHelperText
-                                        className="errorpopupmsg"
-                                        sx={{ width: "280px" }}
-                                   >
-                                        {/* Display any error messages related to the name field */}
-                                   </FormHelperText>
                               </div>
                          </Box>
-                         <Button
+                         <Box
                               sx={{
-                                   m: 1,
-                              }}
-                              variant="contained"
-                              onClick={() => handleProfileEdit()}>
-                              Save</Button>
+                                   Width: "40ch"
+                              }}>
+                              <MDButton
+                                   sx={{
+                                        m: 1
+                                   }}
+                                   variant="contained"
+                                   color="success"
+                                   disabled={isSaveButtonDisabled}
+                                   onClick={() => handleProfileEdit()}>
+                                   Save</MDButton>
+                         </Box>
                     </Grid>
                </Card>
-          </DashboardLayout>
+          </DashboardLayout >
      );
 }
 

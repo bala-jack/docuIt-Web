@@ -40,7 +40,7 @@ function PendingInvites() {
                const { data } = await acceptInvite(values);
                console.log('acceptInvite--------->', data)
                if (data?.status === "SUCCESS") {
-                    
+
                     setHide(true);
                }
           } catch (err) {
@@ -52,20 +52,20 @@ function PendingInvites() {
      console.log('setInvitesPending', invitesPending);
      return (
           <DashboardLayout>
-            
+
                <DashboardNavbar />
                <MDBox className='mdbboxfamily'>
                     <h2>Pending Invites</h2>
-                    {Hide ? (
-                         <h3 style={{ display: Hide === true ? 'block' : 'none' }}>No Pending Invites</h3>
+                    {invitesPending.length === 0 ? (
+                         <Card className="noneData">
+                              <h4>No more Pending Invites</h4>
+                         </Card>
+
                     ) : (
                          <Table>
                               <MDBox className='pending-invites'>
                                    <Card>
                                         <thead>
-                                             {/* <tr>
-                                             <th>Invited but not accepted</th>
-                                        </tr> */}
                                         </thead>
                                         <tbody>
 

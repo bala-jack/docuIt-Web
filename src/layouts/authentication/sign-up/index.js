@@ -24,7 +24,7 @@ import 'react-dropdown/style.css';
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
 
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 
 import Alert from '@mui/material/Alert';
@@ -34,6 +34,7 @@ import Stack from '@mui/material/Stack';
 import { register } from "../../../services/index";
 import LoadingSpinner from "./LoadingSpinner";
 import { ProgressBar } from 'react-loader-spinner'
+import { DOCUIT_SIGNUP_SCREEN } from '../../../utilities/strings';
 
 function Basic() {
 
@@ -93,7 +94,7 @@ function Basic() {
     //   setLoginErrorMsg(err.response.data.message)
     // }
   };
- 
+
   return (
 
     <BasicLayout image={bgImage}>
@@ -107,7 +108,7 @@ function Basic() {
               <input
                 style={{
                   color: "grey",
-                  fontSize: 13, 
+                  fontSize: 13,
                   textAlign: "left",
                   width: "100%",
                   borderRadius: 5,
@@ -217,8 +218,8 @@ function Basic() {
 
 
             </MDBox> */}
-           {/* {isLoading && */}
-           {isLoading ? <LoadingSpinner />:             <MDBox mt={4} mb={1}>
+            {/* {isLoading && */}
+            {isLoading ? <LoadingSpinner /> : <MDBox mt={4} mb={1}>
               <MDButton
                 type="submit"
                 variant="contained"
@@ -235,19 +236,22 @@ function Basic() {
               >
                 sign up
               </MDButton>
-
+              <h1 style={{ color: "grey", fontSize: 13, textAlign: "center", paddingTop: '10px' }}>
+                {DOCUIT_SIGNUP_SCREEN.signin_detail}
+                <Link to="/signIn" style={{ color: "black", fontSize: 13 }}>{DOCUIT_SIGNUP_SCREEN.signin_string}</Link>
+              </h1>
 
             </MDBox>
-//               <ProgressBar
-//   height="80"
-//   width="80"
-//   ariaLabel="progress-bar-loading"
-//   wrapperStyle={{}}
-//   wrapperClass="progress-bar-wrapper"
-//   borderColor = '#A5BBCD'
-//   barColor = '#767676'
-// />
-//  <LoadingSpinner />
+              //               <ProgressBar
+              //   height="80"
+              //   width="80"
+              //   ariaLabel="progress-bar-loading"
+              //   wrapperStyle={{}}
+              //   wrapperClass="progress-bar-wrapper"
+              //   borderColor = '#A5BBCD'
+              //   barColor = '#767676'
+              // />
+              //  <LoadingSpinner />
             }
             {loginErrorMsg &&
               <Stack sx={{ width: '100%', marginTop: 4 }} spacing={4}>
@@ -265,7 +269,7 @@ function Basic() {
 
 
   );
-          
+
 }
 
 

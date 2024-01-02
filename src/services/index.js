@@ -277,3 +277,10 @@ export const userdashboard = async (params) => {
     return await axiosInstance.get(`document/getUserLastDocumentActivity?userId=` + params);
 }
 
+export const changePin = async (params) => {
+    const token = localStorage.getItem('docuItToken')
+    if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${ token }`) {
+        axiosInstance.defaults.headers['Authorization'] = `Bearer ${ token }`;
+    }
+    return await axiosInstance.post(`auth/changePin`, params);
+}

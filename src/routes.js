@@ -10,7 +10,7 @@ import Family from "layouts/family";
 import PendingInvites from "layouts/pendingInvites";
 import Documents from "layouts/Documents";
 import Profile from "layouts/Profile";
-
+import Settings from "layouts/settings";
 
 const routes = [
 
@@ -50,7 +50,7 @@ const routes = [
     key: "profile",
     // icon: <Icon fontSize="small">diversity_3</Icon>,
     route: "/profile",
-    component: <Profile  />,
+    component: <Profile />,
     role: 'User',
   },
   {
@@ -70,6 +70,14 @@ const routes = [
     // icon: <Icon fontSize="small">notifications</Icon>,
     route: "/pendinginvites",
     component: <PendingInvites />,
+    role: 'User',
+  },
+
+  {
+    key: "settings",
+    // icon: <Icon fontSize="small">diversity_3</Icon>,
+    route: "/settings",
+    component: <Settings />,
     role: 'User',
   },
 
