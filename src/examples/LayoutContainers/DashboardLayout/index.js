@@ -25,6 +25,7 @@ function DashboardLayout({ children }) {
     <MDBox
       sx={({ breakpoints, transitions, functions: { pxToRem } }) => ({
         p: 3,
+        mb:5,
         position: "relative",
 
         [breakpoints.up("xl")]: {

@@ -60,7 +60,6 @@ function PendingInvites() {
                          <Card className="noneData">
                               <h4>No more Pending Invites</h4>
                          </Card>
-
                     ) : (
                          <Table>
                               <MDBox className='pending-invites'>
@@ -79,31 +78,15 @@ function PendingInvites() {
                                                                  </Typography>
                                                                  <Button className="accept-invite" onClick={() => handleAccept(invite.family.id)}><Icon><h3>done</h3></Icon><span style={{ fontSize: '16px', paddingLeft: '5px' }}>Accept</span></Button>
                                                                  <Button className="reject-invite"><Icon><h3>close</h3></Icon><span style={{ fontSize: '16px', paddingLeft: '5px' }}>Reject</span></Button>
-
-                                                                 {/* <Typography variant="subtitle1" color="text.secondary" component="div">
-                                                                           Mac Miller
-                                                                      </Typography> */}
                                                             </CardContent>
-                                                            {/* <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', pl: 1, pb: 1 }}>
-                                                       <IconButton aria-label="previous">
-                                                           
-                                                       </IconButton>
-     
-                                                       <IconButton aria-label="next">
-                                                       </IconButton>
-                                                  </Box> */}
                                                        </Box>
                                                   </div>
                                              ))}
-
                                         </tbody>
                                    </Card>
                               </MDBox>
-
                          </Table>
                     )}
-
-
                </MDBox>
           </DashboardLayout>
      )

@@ -29,6 +29,7 @@ import Verify from './layouts/authentication/sign-up/verify.js'
 import Setpin from './layouts/authentication/sign-up/setpin.js'
 import Topnav from "examples/TopNav";
 import Profile from "layouts/Profile";
+import Footer from "examples/Footer/footer";
 
 
 export default function App() {
@@ -107,6 +108,7 @@ export default function App() {
             onMouseLeave={handleOnMouseLeave}
           />
           <Topnav />
+          <Footer />
         </>
 
       )}

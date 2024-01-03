@@ -151,7 +151,7 @@ function Profile() {
                hash = string.charCodeAt(i) + ((hash << 5) - hash);
           }
           const color = Math.abs(hash).toString(16).substring(0, 6);
-          return `#${ '0'.repeat(6 - color.length) }${ color }`;
+          return `#${'0'.repeat(6 - color.length)}${color}`;
      };
 
      // Edit profile pic button/badge
@@ -170,6 +170,12 @@ function Profile() {
           cursor: PointerEvent,
 
      }));
+
+     const handleBadgeClick = () => {
+          if (fileInputRef.current) {
+               fileInputRef.current.click();
+          }
+     };
 
      return (
           <DashboardLayout className='mainContent'>
@@ -209,7 +215,7 @@ function Profile() {
                               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                               badgeContent={
                                    <>
-                                        <IconButton onClick={handleSmallAvatarClick} component="div">
+                                        <IconButton onClick={handleBadgeClick} component="div">
                                              <SmallAvatar
                                                   alt="Edit"
                                                   sx={{ '& > button': { color: 'transparent', height: '100%', width: '100%' } }}
@@ -242,7 +248,9 @@ function Profile() {
                                    }}
                                    style={{
                                         border: '3px solid #2f53acbb',
+                                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
                                    }}
+                                   onClick={handleBadgeClick}
                                    alt={userName}
                                    src={userPic}
                               >

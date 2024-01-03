@@ -1,16 +1,14 @@
-// DocuIt React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import React, { useEffect, useState } from 'react';
 import { userdashboard } from "../../services/index";
-import { Card } from "@mui/material";
+import { Card, CardActionArea, CardContent, CardMedia, Grid, Typography } from "@mui/material";
 import Moment from 'react-moment';
 import 'moment-timezone';
 import { useAuth } from "context/AuthContext";
 //import { Document, Page } from 'react-pdf';
 import { pdfjs } from 'react-pdf';
-import './userdash.css';
-import './userdash.css';
+// import './userdash.css';
 import { Viewer, Worker } from '@react-pdf-viewer/core';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
@@ -38,50 +36,59 @@ function Dashboard() {
 
   }, [vals]);
 
+
   return (
     <>
       <DashboardLayout>
         <DashboardNavbar />
         <h2 className="card-head">Recent Activity</h2>
         {console.log('UDData>>>>>', datas)}
-
-        {datas.map((item, index) => (
-          <>
-            {console.log('PDF URL:', item.url)}
-            <Card key={index} style={{ marginTop: '40px', marginBottom: '40px' }}>
-              {console.log('Item:', item.id)}
-              <div className="thumbnail-container" key={item.id}>
-                <div className="recent-view">
-                  <div style={{ height: '96%' }}>
+        <Grid container spacing={2}>
+          {datas.map((item, index) => (
+            <Grid item key={index} xs={12} sm={6} md={4}>
+              <Card sx={{ height: '25rem' }}>
+                <CardActionArea sx={{ height: '100%' }}>
+                  <div className="thumbnail"
+                    style={{ height: '50%', margin: '10px', border: '3px, solid, #D3D3D3' }}>
                     <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}>
                       <Viewer
-                        fileUrl={item.url}
+                        //fileUrl={item.url}
+                        fileUrl='http://drive.google.com/file/d/1TYw28C8vT7rC8CwhkQAcJL0hk_DFENxY/view'
                         httpHeaders={{ Authorization: `Bearer ${isAuthenticated}`, 'Content-Type': 'application/pdf' }}
                         className="pdf-img"
-                        onError={(error) => console.error('PDF Viewer Error:', error)}
+                        onError={(error) => {
+                          console.error('PDF Viewer Error:', error);
+                          return (<div style={{ padding: '20px', textAlign: 'center' }}>Failed to fetch PDF</div>);
+                        }}
                       />
                     </Worker>
                   </div>
-                  <div className="doc-details">
-
-                    <h5>{item.documentName}</h5>
-                    <h5><Moment format="MMM D YYYY, hh:mm:ss a" >{item.createdAt}</Moment></h5>
-                    <h5>Size: {(item.documentSize / (1024 * 1024)).toFixed(2)}MB</h5>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </>
-        ))}
-        {/* <PDFViewer
-          document={{
-            url: 'https://arxiv.org/pdf/quant-ph/0410100.pdf',
-          }}
-        /> */}
-
+                  <CardContent>
+                    <Typography
+                      gutterBottom
+                      variant="h5"
+                      component="div"
+                      sx={{ minHeight: '5rem', overFlow: 'hidden' }}>
+                      {item.documentName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <span> Created At :
+                        <Moment format="MMM D YYYY, hh:mm:ss a">{item.createdAt}</Moment>
+                      </span>
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Size :{(item.documentSize / (1024 * 1024)).toFixed(2)}MB
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
       </DashboardLayout>
     </>
   );
 }
+
 
 export default Dashboard;
