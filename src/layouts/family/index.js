@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Icon, Input, Switch, Table, TableContainer, TableCell, TableHead, TableRow, TableBody, IconButton, MenuItem, Menu } from "@mui/material";
+import { Button, Card, Icon, Input, Switch, Table, TableContainer, TableCell, TableHead, TableRow, TableBody, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from "@mui/material";
 import MDBox from "components/MDBox";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -30,6 +30,9 @@ import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import Snackbar from '@mui/material/Snackbar';
 import Slide from '@mui/material/Slide';
 import Alert from '@mui/material/Alert';
+import { Grid } from "react-loader-spinner";
+import Backdrop from '@mui/material/Backdrop';
+
 
 
 
@@ -70,6 +73,11 @@ function Family() {
      const [snackbarOpen, setSnackbarOpen] = useState(false);
      const [snackbarMessage, setSnackbarMessage] = useState('');
      const [snackbarType, setSnackbarType] = useState('success');
+     const editDeleteIconSize = 18
+     const [isLoading, setIsLoading] = useState(false);
+     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+     const [deleteFamilyId, setDeleteFamilyId] = useState([])
+
 
 
      useEffect(() => {
@@ -101,7 +109,6 @@ function Family() {
                const { data } = await listFamilyMembers(familId);
                console.log('>>>>>>>>>>>>>', data);
                if (data?.status === 'SUCCESS') {
-                    // navigate(/family/${familyItem.name});
                     setsFamilyMember(true);
                     setHideListFamily(false);
                     setIsFamilyMembersPage(true);
@@ -139,6 +146,7 @@ function Family() {
 
      const handleSave = async () => {
           try {
+               setIsLoading(true)
                const isNameExistsoverall = familyData.find(
                     (item) =>
                          item.name.toLocaleLowerCase() === isEditing.toLocaleLowerCase()
@@ -149,10 +157,7 @@ function Family() {
                     isEditing.trim().toLocaleLowerCase()
                ) {
                     setShowPopup(false);
-                    // setErrorFlashMessage("Family name is already registered");
-                    // setTimeout(() => {
-                    //      setErrorFlashMessage("");
-                    // }, 1000);
+                    setIsLoading(false)
                     handleSnackbarOpen("Family name is already registered", 'error')
                     return;
                }
@@ -166,12 +171,12 @@ function Family() {
                const { data } = await editFamily(constructObject);
 
                if (data?.status === "SUCCESS") {
-                    handleSnackbarOpen(data.message);
                     setShowPopup(false);
-                    // setTimeout(() => {
-                    //      handleSnackbarOpen("");
-                    // }, 1000);
-                    fetchData();
+                    setTimeout(() => {
+                         setIsLoading(false);
+                         handleSnackbarOpen(`Family Name Changed Successfully`, 'success');
+                         fetchData();
+                    }, 1000);
                }
                else {
                     setShowPopup(false);
@@ -184,8 +189,14 @@ function Family() {
           } catch (err) {
                console.error("Error saving family:", err);
                setErrorFlashMessage(err.response.error.message);
+               setIsLoading(false);
           }
+          finally {
+
+          }
+
      };
+
 
      const toggleEdit = (id, name) => {
           setpopupindex(id);
@@ -202,24 +213,30 @@ function Family() {
      };
 
      const handleDelete = async (familyIdd) => {
-
+          console.log('handleDelete', familyIdd);
           try {
                const adminId = UserData.id;
+               // const familyId = familyIdd && familyIdd.family ? familyIdd.family.id : null;
                const familyId = familyIdd;
                const values = { familyId: familyId, adminId: adminId };
                const { data } = await deleteFamily(values);
+               setIsLoading(true);
                if (data?.status === 'SUCCESS') {
-                    setFamilyData(prevData => prevData.filter(item => item.id !== familyId));
-                    // setFlashMessage('Family Deleted successfully!');
-                    // setTimeout(() => {
-                    //      setFlashMessage('');
-                    // }, 1000);
-                    handleSnackbarOpen('Family deleted successfully', 'success');
+                    setTimeout(() => {
+                         setFamilyData(prevData => prevData.filter(item => item.id !== familyId));
+                         setIsLoading(false)
+                         handleSnackbarOpen('Family deleted successfully', 'success');
+                    }, 1000);
+
                } else {
                     // console.error('Failed to delete family.');
                }
           } catch (err) {
                console.error('Error deleting family:', err);
+          } finally {
+               setDeleteDialogOpen(false);
+               setDeleteFamilyId(null);
+
           }
      };
 
@@ -233,6 +250,7 @@ function Family() {
 
      const handleInviteSubmit = async (familyId) => {
           try {
+               setIsLoading(true)
                console.log('>>>>>>>>>>>memberinvite FamilyID', familyId)
                const invitedBy = UserData.id;
                const { data } = await inviteUser({ familyId, invitedBy, phoneNumbers: [phoneNumbers[0]] });
@@ -240,9 +258,10 @@ function Family() {
                if (data?.status === 'SUCCESS') {
                     setInvitePop(false);
                     setphoneNumbers('');
-                    setFlashMessage('User invited successfully');
+
                     setTimeout(() => {
-                         setFlashMessage('');
+                         setIsLoading(false);
+                         handleSnackbarOpen(`User Invited SuccessFully`, 'success');
                     }, 1000);
                } else {
                     console.error('Failed to invite user.', data.error);
@@ -258,14 +277,18 @@ function Family() {
 
      const handleAddsave = async () => {
           try {
+
+               setIsLoading(true)
+
                const adminIdAdd = Add;
 
                const isNameExistsoverall = familyData.find((item) => item.name.trim().toLocaleLowerCase() === Add.trim().toLocaleLowerCase());
 
                if (isNameExistsoverall?.name === Add.trim().toLocaleLowerCase()) {
                     setAddPop(false);
+
                     // setErrorFlashMessage("Family name is already registered");
-                    handleSnackbarOpen("Family name is already registered", 'error')
+                    handleSnackbarOpen(`Family name is already registered`, 'error')
                     setAdd("");
                     // setTimeout(() => {
                     //      setErrorFlashMessage("");
@@ -281,6 +304,7 @@ function Family() {
                     const newDetails = newFamily?.member[0].invitedBy
                     console.log("invitedby", newDetails)
                     setAddPop(false);
+
                     setFamilyData((prevData) => [...prevData, newFamily]);
                     setFamilyData((prevData) => [...prevData, newDetails])
                     // setFamilyData((prevData) => [...prevData, newDetails])
@@ -288,24 +312,32 @@ function Family() {
 
                     console.log(" familyData", newFamily)
                     // setFlashMessage(data?.message);
-                    handleSnackbarOpen(`Family Added Successfully `, 'success')
-                    setAdd("");
                     setTimeout(() => {
-                         setFlashMessage("");
-                    }, 1000);
+                         setIsLoading(false);
+                         handleSnackbarOpen(`Family Added SuccessFully`, 'success')
+                    }, 1000)
+
+
+
+
+                    setAdd("");
+
                     await fetchData();
                }
 
                else {
                     setAddPop(false);
-                    setErrorFlashMessage("Error. Please try again!!");
-                    setAdd("");
                     setTimeout(() => {
-                         setErrorFlashMessage("");
+                         setIsLoading(false)
+                         handleSnackbarOpen("Error. Please try again!!", 'error');
                     }, 1000);
+
+                    setAdd("");
+
                }
           } catch (error) {
                console.error("Error Save family:", error);
+               handleSnackbarOpen(`Error Save family`, 'error')
           }
      };
 
@@ -327,387 +359,390 @@ function Family() {
      const handleSnackbarClose = () => {
           setSnackbarOpen(false);
      };
-     return (<DashboardLayout className='mainContent'>
-          <DashboardNavbar />
-          <Card>
-               {/* Flash Message */}
-               {flashMessage && (
-                    <div>
-                         <div className="overlay">
-                              <div className="popup">
-                                   <div className="popup-content">
-                                        <div className='flash-message'>
-                                             {flashMessage}
-                                        </div>
-                                   </div>
+
+     const formatDate = (dateString) => {
+          const documentDate = new Date(dateString);
+
+          const day = documentDate.getDate();
+          const month = documentDate.toLocaleString('en-US', { month: 'long' });
+          const year = documentDate.getFullYear();
+
+          return `${day}-${month}-${year}`;
+     };
+
+     const openDeleteDialog = (familyId) => {
+          setDeleteFamilyId(familyId);
+          setDeleteDialogOpen(true);
+     };
+
+     const closeDeleteDialog = () => {
+          setDeleteDialogOpen(false);
+          setDeleteFamilyId(null);
+     };
+
+     return (
+          <DashboardLayout className='mainContent'>
+               <DashboardNavbar />
+
+               {isLoading && (
+                    <Backdrop
+                         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                         open={isLoading}
+                    >
+                         <Grid color='#FCC600' />
+                    </Backdrop>
+               )}
+               {hlistFamily && (
+                    <MDBox className="mdbboxfamily">
+                         <div className="addbtn">
+                              <h2>Family Management</h2>
+                              <div>
+                                   <Button variant="contained" onClick={handleAdd} className="btnfamilylist">Add + </Button>
                               </div>
                          </div>
-                    </div>
-               )}
-          </Card>
 
-          {hlistFamily && (
-               // Family Management Section
-               <MDBox className="mdbboxfamily">
-                    {/* Add Family Button */}
-                    <div className="addbtn">
-                         <h2>Family Management</h2>
-                         <div>
-                              <Button variant="contained" onClick={handleAdd} className="btnfamilylist">Add + </Button>
-                         </div>
-                    </div>
+                         <Card style={{ width: '100%' }}>
+                              <Card>
+                                   {/* Add Family Popup */}
+                                   {Addpop && (
+                                        <div>
+                                             <div className="overlay" onClick={closePopup}>
+                                                  <div className="popup" onClick={preventClose}>
+                                                       <div className="popup-content">
+                                                            <div className='pop-input-div'>
+                                                                 <h3 style={{ padding: '28px' }}>Enter Family Name</h3>
+                                                                 <div className='edit-Input'>
+                                                                      <Icon fontSize="small">diversity_3</Icon>
+                                                                      <Box
+                                                                           component="form"
+                                                                           sx={{
+                                                                                "& .MuiTextField-root": {
+                                                                                     m: 1,
+                                                                                     width: "25ch",
+                                                                                },
+                                                                           }}
+                                                                           noValidate
+                                                                           autoComplete="off"
+                                                                      >
+                                                                           <div>
+                                                                                <TextField
+                                                                                     className="pop-up-input"
+                                                                                     label="Enter family name"
+                                                                                     type="text"
+                                                                                     onChange={(e) => handleAddInput(e)}
+                                                                                     variant="standard"
+                                                                                />
 
-                    <Card style={{ width: '100%' }}>
-                         {/* Error Flash Message */}
-                         <Card>
-                              {ErrorflashMessage && (
-                                   <div>
-                                        <div className="overlay" onClick={closePopup}>
-                                             <div className="popup">
-                                                  <div className="popup-content">
-                                                       <div className='Errorflash-message'>
-                                                            {ErrorflashMessage}
-                                                       </div>
-                                                  </div>
-                                             </div>
-                                        </div>
-                                   </div>
-                              )}
-                         </Card>
-
-                         <Card>
-                              {/* Add Family Popup */}
-                              {Addpop && (
-                                   <div>
-                                        <div className="overlay" onClick={closePopup}>
-                                             <div className="popup" onClick={preventClose}>
-                                                  <div className="popup-content">
-                                                       <div className='pop-input-div'>
-                                                            {/* ... */}
-                                                            <h3 style={{ padding: '28px' }}>Enter Family Name</h3>
-                                                            <div className='edit-Input'>
-                                                                 <Icon fontSize="small">diversity_3</Icon>
-                                                                 <Box
-                                                                      component="form"
-                                                                      sx={{
-                                                                           "& .MuiTextField-root": {
-                                                                                m: 1,
-                                                                                width: "25ch",
-                                                                           },
-                                                                      }}
-                                                                      noValidate
-                                                                      autoComplete="off"
-                                                                 >
-                                                                      <div>
-                                                                           <TextField
-                                                                                className="pop-up-input"
-                                                                                label="Enter family name"
-                                                                                type="text"
-                                                                                onChange={(e) => handleAddInput(e)}
-                                                                                variant="standard"
-                                                                           />
-
-                                                                           {Add.trim() !== "" && (
-                                                                                <FormHelperText
-                                                                                     className="erroraddpopmsg"
-                                                                                     sx={{ width: "280px" }}
-                                                                                     style={{ color: 'red' }}
-                                                                                >
-                                                                                     {Addpoperrormsg
-                                                                                          ? "*Family name cannot have numbers or special characters."
-                                                                                          : ""}
-                                                                                </FormHelperText>
-                                                                           )}
-                                                                      </div>
-                                                                 </Box>
+                                                                                {Add.trim() !== "" && (
+                                                                                     <FormHelperText
+                                                                                          className="erroraddpopmsg"
+                                                                                          sx={{ width: "280px" }}
+                                                                                          style={{ color: 'red' }}
+                                                                                     >
+                                                                                          {Addpoperrormsg
+                                                                                               ? "*Family name cannot have numbers or special characters."
+                                                                                               : ""}
+                                                                                     </FormHelperText>
+                                                                                )}
+                                                                           </div>
+                                                                      </Box>
+                                                                 </div>
+                                                            </div>
+                                                            <div className='btn-pop'>
+                                                                 <MDButton variant="contained" color="error" onClick={togglePopup} className='btn-pop'>Close</MDButton>
+                                                                 {AddpopDisablebutton ? (
+                                                                      <MDButton
+                                                                           variant="contained"
+                                                                           disabled={AddpopDisablebutton}
+                                                                           color="success"
+                                                                      > Save </MDButton>
+                                                                 ) : (
+                                                                      <MDButton
+                                                                           variant="contained"
+                                                                           color="success"
+                                                                           onClick={() => handleAddsave()}
+                                                                      >Save</MDButton>
+                                                                 )}
                                                             </div>
                                                        </div>
-                                                       <div className='btn-pop'>
-                                                            <MDButton variant="contained" color="error" onClick={togglePopup} className='btn-pop'>Close</MDButton>
-                                                            {AddpopDisablebutton ? (
-                                                                 <MDButton
-                                                                      variant="contained"
-                                                                      disabled={AddpopDisablebutton}
-                                                                      color="success"
-                                                                 > Save </MDButton>
-                                                            ) : (
-                                                                 <MDButton
-                                                                      variant="contained"
-                                                                      color="success"
-                                                                      onClick={() => handleAddsave()}
-                                                                 >Save</MDButton>
-                                                            )}
-                                                       </div>
                                                   </div>
                                              </div>
                                         </div>
-                                   </div>
-                              )}
+                                   )}
+                              </Card>
+                              <TableContainer component={Paper} style={{ width: '100%' }} >
+                                   <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table"
+                                   >
+                                        <TableHead style={{ display: 'contents' }}>
+                                             <TableRow>
+                                                  <TableCell align="justify">Family Name</TableCell>
+                                                  <TableCell align="center">Created At</TableCell>
+                                                  <TableCell align="center">Created By</TableCell>
+                                                  <TableCell align="center">Actions</TableCell>
+                                             </TableRow>
+                                        </TableHead>
 
+                                        <TableBody style={{ color: 'black' }}>
+                                             {familyData.map((item, index) => (
+                                                  <TableRow key={index}>
+                                                       <TableCell align="justify">
+                                                            {showPopup && popupindex === item.id && (
+                                                                 <div>
+                                                                      <div className="overlay" onClick={closePopup}>
+                                                                           <div className="popup" onClick={preventClose}>
+                                                                                <div className="popup-content">
+                                                                                     <div className='pop-input-div'>
+                                                                                          <h3 style={{ padding: '28px' }}>Change Family Name</h3>
+                                                                                          <div className='edit-Input'>
+                                                                                               <Icon fontSize="small">diversity_3</Icon>
+                                                                                               <Box
+                                                                                                    component="form"
+                                                                                                    sx={{
+                                                                                                         "& .MuiTextField-root": {
+                                                                                                              m: 1,
+                                                                                                              width: "25ch",
+                                                                                                         },
+                                                                                                    }}
+                                                                                                    noValidate
+                                                                                                    autoComplete="off"
+                                                                                               >
 
-                         </Card>
+                                                                                                    <div>
+                                                                                                         <TextField
+                                                                                                              className="pop-up-input"
+                                                                                                              label="Family name"
+                                                                                                              type="text"
+                                                                                                              defaultValue={isEditing}
+                                                                                                              onChange={(e) => handleEditInput(index, e.target.value)}
+                                                                                                              variant="standard" />
 
-                         {/* Family Table */}
-                         <TableContainer component={Paper} style={{ width: '100%' }} >
-                              <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table"
-                              >
-                                   <TableHead style={{ display: 'contents' }}>
-                                        {/* Table Headers */}
-                                        <TableRow>
-                                             <TableCell align="justify">Family Name</TableCell>
-                                             <TableCell align="center">Created At</TableCell>
-                                             <TableCell align="center">Created By</TableCell>
-                                             {/* <TableCell align="center">View </TableCell> */}
-                                             <TableCell align="center">Actions</TableCell>
-                                        </TableRow>
-                                   </TableHead>
-
-                                   {/* Table Body */}
-                                   <TableBody style={{ color: 'black' }}>
-                                        {/* Mapping through familyData to create rows */}
-                                        {familyData.map((item, index) => (
-                                             <TableRow key={index}>
-                                                  {/* ... */}
-
-                                                  <TableCell align="justify">
-                                                       {showPopup && popupindex === item.id && (
-                                                            <div>
-                                                                 <div className="overlay" onClick={closePopup}>
-                                                                      <div className="popup" onClick={preventClose}>
-                                                                           <div className="popup-content">
-                                                                                <div className='pop-input-div'>
-                                                                                     <h3 style={{ padding: '28px' }}>Change Family Name</h3>
-                                                                                     <div className='edit-Input'>
-                                                                                          <Icon fontSize="small">diversity_3</Icon>
-                                                                                          <Box
-                                                                                               component="form"
-                                                                                               sx={{
-                                                                                                    "& .MuiTextField-root": {
-                                                                                                         m: 1,
-                                                                                                         width: "25ch",
-                                                                                                    },
-                                                                                               }}
-                                                                                               noValidate
-                                                                                               autoComplete="off"
-                                                                                          >
-
-                                                                                               <div>
-                                                                                                    <TextField
-                                                                                                         className="pop-up-input"
-                                                                                                         label="Family name"
-                                                                                                         type="text"
-                                                                                                         defaultValue={isEditing}
-                                                                                                         onChange={(e) => handleEditInput(index, e.target.value)}
-                                                                                                         variant="standard" />
-
-                                                                                                    {isEditing.trim() !== "" && (
-                                                                                                         <FormHelperText
-                                                                                                              className="errorpopupmsg"
-                                                                                                              sx={{ width: "280px" }}
-                                                                                                              style={{ color: popuperrormsg ? 'red' : 'success' }}
-                                                                                                         >
-                                                                                                              {popuperrormsg
-                                                                                                                   ? "*Family name cannot have numbers or special characters."
-                                                                                                                   : ""}
-                                                                                                         </FormHelperText>
-                                                                                                    )}
-                                                                                               </div>
-                                                                                          </Box>
+                                                                                                         {isEditing.trim() !== "" && (
+                                                                                                              <FormHelperText
+                                                                                                                   className="errorpopupmsg"
+                                                                                                                   sx={{ width: "280px" }}
+                                                                                                                   style={{ color: popuperrormsg ? 'red' : 'success' }}
+                                                                                                              >
+                                                                                                                   {popuperrormsg
+                                                                                                                        ? "*Family name cannot have numbers or special characters."
+                                                                                                                        : ""}
+                                                                                                              </FormHelperText>
+                                                                                                         )}
+                                                                                                    </div>
+                                                                                               </Box>
+                                                                                          </div>
+                                                                                     </div>
+                                                                                     {/* for Edit family member */}
+                                                                                     <div className="btn-pop">
+                                                                                          <MDButton
+                                                                                               variant="contained"
+                                                                                               color="error"
+                                                                                               onClick={togglePopup}
+                                                                                          >Close</MDButton>
+                                                                                          {isButtonDisabled ? (
+                                                                                               <MDButton
+                                                                                                    variant="contained"
+                                                                                                    disabled={isButtonDisabled}
+                                                                                                    color="success"
+                                                                                               > Save </MDButton>
+                                                                                          ) : (
+                                                                                               <MDButton
+                                                                                                    variant="contained"
+                                                                                                    color="success"
+                                                                                                    onClick={() => {
+                                                                                                         handleSave(item);
+                                                                                                    }}
+                                                                                               > Save </MDButton>)}
                                                                                      </div>
                                                                                 </div>
-                                                                                {/* for Edit family member */}
-                                                                                <div className="btn-pop">
-                                                                                     <MDButton
-                                                                                          variant="contained"
-                                                                                          color="error"
-                                                                                          onClick={togglePopup}
-                                                                                     >Close</MDButton>
-                                                                                     {isButtonDisabled ? (
-                                                                                          <MDButton
-                                                                                               variant="contained"
-                                                                                               disabled={isButtonDisabled}
-                                                                                               color="success"
-                                                                                          > Save </MDButton>
-                                                                                     ) : (
-                                                                                          <MDButton
-                                                                                               variant="contained"
-                                                                                               color="success"
-                                                                                               onClick={() => {
-                                                                                                    handleSave(item);
-                                                                                               }}
-                                                                                          > Save </MDButton>)}
-                                                                                </div>
-                                                                                <Card>
-                                                                                     {ErrorflashMessage && (
-                                                                                          <div>
-                                                                                               <div className="overlay" onClick={closePopup}>
-                                                                                                    <div className="popup">
-                                                                                                         <div className="popup-content">
-                                                                                                              <div className='Errorflash-message'>
-                                                                                                                   {ErrorflashMessage}
-                                                                                                              </div>
-                                                                                                         </div>
-                                                                                                    </div>
-                                                                                               </div>
-                                                                                          </div>
-                                                                                     )}
-                                                                                </Card>
                                                                            </div>
                                                                       </div>
                                                                  </div>
-                                                            </div>
-                                                       )}
-                                                       <div onClick={() => handleFamilyNameClick(item)} className='hover-click' >{item.name}</div>
-                                                  </TableCell>
-                                                  {/* <TableCell align='center'>{item.createdAt}</TableCell> */}
-                                                  <TableCell align='center'>
-                                                       {new Date(item.createdAt).toLocaleString('en-IN', {
-                                                            timeZone: 'Asia/Kolkata',
-                                                            hour12: false,
-                                                       })}
-                                                  </TableCell>
+                                                            )}
+                                                            <div onClick={() => handleFamilyNameClick(item)} className='hover-click' >{item.name}</div>
+                                                       </TableCell>
 
-                                                  <TableCell align='center'>
-                                                       {UserData.id === item.createdBy ? UserData.name : 'Others'}
-                                                  </TableCell>    <TableCell align="center" style={{ display: 'flex', justifyContent: 'center' }}>
-                                                       {item.createdBy === UserData.id ? (
-                                                            <>
-                                                                 <IconButton onClick={() => toggleEdit(item.id, item.name)}>
-                                                                      <EditIcon style={{ color: 'green' }} />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => handleDelete(item.id)}>
-                                                                      <DeleteIcon style={{ color: 'red' }} />
-                                                                 </IconButton>
+                                                       <TableCell align='center'>
+                                                            {formatDate(item.createdAt)}
+                                                       </TableCell>
+
+                                                       <TableCell align='center'>
+                                                            {UserData.id === item.createdBy ? UserData.name : 'Others'}
+                                                       </TableCell>
+                                                       <TableCell align="center" style={{ display: 'flex', justifyContent: 'center' }}>
+                                                            {item.createdBy === UserData.id ? (
+                                                                 <>
+
+                                                                      <Tooltip title="Edit" placement="top" sx={{ m: 1, cursor: 'pointer' }}>
+                                                                           <EditIcon style={{ color: 'black', fontSize: editDeleteIconSize }} onClick={() => toggleEdit(item.id, item.name)} />
+                                                                      </Tooltip>
 
 
-                                                            </>
-                                                       ) : (
-                                                            <Icon onClick={() => handleFamilyNameClick(item)} style={{ cursor: 'pointer', color: 'rgb(26,115,232)', margin: '6px 0px' }}>visibility</Icon>
-                                                       )}
-                                                  </TableCell>
-                                                  <Snackbar
-                                                       anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                                                       open={snackbarOpen}
-                                                       autoHideDuration={6000}
-                                                       onClose={handleSnackbarClose}
-                                                       TransitionComponent={(props) => <Slide {...props} direction="left" />}
-                                                  >
-                                                       <Alert
-                                                            severity={snackbarType}
-                                                            sx={{ width: '100%', color: '#ffffff', backgroundColor: snackbarType === 'success' ? '#236925' : '#b92525' }}
+                                                                      <Tooltip title="Delete" placement="top" sx={{ m: 1, cursor: 'pointer' }}>
+                                                                           <DeleteIcon style={{ color: 'black', fontSize: editDeleteIconSize }} onClick={() => openDeleteDialog(item.id)} />
+                                                                      </Tooltip>
+
+                                                                 </>
+                                                            ) : (
+                                                                 <Tooltip title="Visibility" placement="top">
+                                                                      <Icon onClick={() => handleFamilyNameClick(item)} style={{ cursor: 'pointer', color: 'black', margin: '6px 0px', fontSize: editDeleteIconSize }}>
+                                                                           visibility
+                                                                      </Icon>
+                                                                 </Tooltip>
+                                                            )}
+                                                       </TableCell>
+
+                                                       <Snackbar
+                                                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                                            open={snackbarOpen}
+                                                            autoHideDuration={2000}
+                                                            onClose={handleSnackbarClose}
+                                                            TransitionComponent={(props) => <Slide {...props} direction="left" />}
                                                        >
-                                                            {snackbarMessage}
-                                                       </Alert>
-                                                  </Snackbar>
-
-
-                                             </TableRow>
-
-                                        ))}
-                                   </TableBody>
-                              </Table>
-                         </TableContainer>
-                    </Card>
-               </MDBox>
-          )}    {sFamilyMember && (
-               <>
-                    <MDBox className="mdbboxfamily">
-                         <div className="addbtn">
-                              <h2>Family Users Management</h2>
-                              <div>
-                                   <Button variant="contained" className="btnfamilylist" onClick={handleInvite}>Invite + </Button>
-                              </div>
-                         </div>
-                         <Card style={{ width: '100%' }}>
-                              <div>
-                                   <TableContainer component={Paper}>
-                                        <Table aria-label="simple table">
-                                             <TableHead style={{ display: 'contents' }}>
-                                                  <TableRow>
-                                                       <TableCell align='center'>Family Member</TableCell>
-                                                       <TableCell align='center'>created at</TableCell>
-                                                       <TableCell align='center'>Action</TableCell>
+                                                            <Alert
+                                                                 severity={snackbarType}
+                                                                 sx={{ width: '100%', color: '#ffffff', backgroundColor: snackbarType === 'success' ? '#236925' : '#b92525' }}
+                                                            >
+                                                                 {snackbarMessage}
+                                                            </Alert>
+                                                       </Snackbar>
                                                   </TableRow>
-                                             </TableHead>
-                                             <TableBody>
-                                                  {familyMemberData.map((item, index) => (
-                                                       <TableRow key={index}>
-                                                            <TableCell align='center'>
-                                                                 {item.user.name}
-                                                            </TableCell>
-                                                            <TableCell align='center'>
-                                                                 {new Date(item.user.createdAt).toLocaleString('en-IN', {
-                                                                      timeZone: 'Asia/Kolkata',
-                                                                      hour12: false,
-                                                                 })}
-                                                            </TableCell>
-                                                            <TableCell align='center'>
-                                                                 {item.inviteStatus === 'Invited' ? (
-                                                                      <div>
-                                                                           <Button className="btn-delete"><Icon>add_reaction</Icon></Button>
-                                                                      </div>
-                                                                 ) : <span>-</span>}
-                                                                 {UserData.id === familyItems.createdBy && item.inviteStatus === 'Accepted' ? (
-                                                                      <div>
-                                                                           <Button className="btn-delete" onClick={() => handleDelete(item.id)}><Icon>delete</Icon></Button>
-                                                                      </div>
-                                                                 ) : null}
-                                                            </TableCell>
-                                                       </TableRow>
-                                                  ))}
-                                             </TableBody>
-                                        </Table>
-                                   </TableContainer>
-                              </div>
+                                             ))}
+                                        </TableBody>
+                                   </Table>
+
+                              </TableContainer>
+                              <Dialog
+                                   open={isDeleteDialogOpen}
+                                   onClose={closeDeleteDialog}
+                                   fullWidth
+                                   maxWidth="xs"
+                              >
+
+                                   <DialogTitle>Confirm Delete</DialogTitle>
+                                   <DialogContent>
+                                        Are you sure you want to delete this Family?
+                                   </DialogContent>
+                                   {console.log('DialogContent', deleteFamilyId)}
+                                   <DialogActions>
+                                        <Button onClick={closeDeleteDialog}>Cancel</Button>
+                                        <Button onClick={() => handleDelete(deleteFamilyId)}>Delete</Button>
+                                   </DialogActions>
+
+                              </Dialog>
+
                          </Card>
+
                     </MDBox>
-                    {invitePop && (
-                         <div className="overlay" onClick={closePopup}>
-                              <div className="popup" onClick={preventClose}>
-                                   <div className="popup-content">
-                                        <div className='pop-input-div'>
-                                             <form>
-                                                  <MDBox mb={2}>
-                                                       <h3>Invite User</h3>
-                                                       <Input
-                                                            placeholder="Phone Number"
-                                                            label="phoneNumbers"
-                                                            country={'in'}
-                                                            value={phoneNumbers}
-                                                            fullWidth
-                                                            onChange={(e) => handleInviteChange(e.target.value)}
-                                                            inputProps={{
-                                                                 required: true,
-                                                            }}
-                                                       />
-                                                  </MDBox>
-                                             </form>
-                                             <MDBox mt={4} mb={1}>
-                                                  {/* {familyData.length > 0 && ( */}
-                                                  <MDButton
-                                                       // key={familyData[0].id}
-                                                       type="submit"
-                                                       variant="gradient"
-                                                       onClick={() => handleInviteSubmit(familyData.id)}
-                                                       color="docuit"
-                                                       fullWidth
-                                                       disabled={!enabled}
-                                                  >
-                                                       Invite
-                                                  </MDButton>
-                                                  {/* // )} */}
-                                             </MDBox>
-                                        </div>
+               )}
+
+               {sFamilyMember && (
+                    <>
+                         <MDBox className="mdbboxfamily">
+                              <div className="addbtn">
+                                   {familyMemberData.length === 0 ? (
+                                        <h2>No Family Users</h2>
+                                   ) : (
+                                        <>
+                                             {familyMemberData.map((item, index) => (
+                                                  <h2 key={index}>{item.family.name}</h2>
+                                             ))}
+                                        </>
+                                   )}
+
+
+                                   <div>
+                                        <Button variant="contained" className="btnfamilylist" onClick={handleInvite}>Invite + </Button>
                                    </div>
                               </div>
-                         </div>
-                    )}
-               </>
-          )}
+                              <Card style={{ width: '100%' }}>
+                                   <div>
+                                        <TableContainer component={Paper}>
+                                             <Table aria-label="simple table">
+                                                  <TableHead style={{ display: 'contents' }}>
+                                                       <TableRow>
+                                                            <TableCell align='center'>Family Member</TableCell>
+                                                            <TableCell align='center'>created at</TableCell>
+                                                            <TableCell align='center'>Action</TableCell>
+                                                       </TableRow>
+                                                  </TableHead>
+                                                  <TableBody>
+                                                       {familyMemberData.map((item, index) => (
+                                                            <TableRow key={index}>
+                                                                 <TableCell align='center'>
+                                                                      {item.user.name}
+                                                                 </TableCell>
+                                                                 <TableCell align='center'>
+                                                                      {formatDate(item.user.createdAt)}
+                                                                 </TableCell>
+                                                                 <TableCell align='center'>
+                                                                      {console.log("item.inviteS", item.inviteStatus)}
+                                                                      {item.inviteStatus === 'Invited' ? (
+                                                                           <div>
+                                                                                <Button className="btn-delete"><Icon>add_reaction</Icon></Button>
+                                                                           </div>
+                                                                      ) : null}
+                                                                      {UserData.id === familyItems.createdBy && item.inviteStatus === 'Accepted' ? (
+                                                                           <div>
+                                                                                <Button className="btn-delete" onClick={() => handleDelete()}><Icon>delete</Icon></Button>
+                                                                           </div>
+                                                                      ) : null}
+                                                                 </TableCell>
+                                                            </TableRow>
+                                                       ))}
+                                                  </TableBody>
+                                             </Table>
+                                        </TableContainer>
+                                        {invitePop && (
+                                             <div className="overlay" onClick={closePopup}>
+                                                  <div className="popup" onClick={preventClose}>
+                                                       <div className="popup-content">
+                                                            <div className='pop-input-div'>
+                                                                 <form>
+                                                                      <MDBox mb={2}>
+                                                                           <h3>Invite User</h3>
+                                                                           <Input
+                                                                                placeholder="Phone Number"
+                                                                                label="phoneNumbers"
+                                                                                country={'in'}
+                                                                                value={phoneNumbers}
+                                                                                fullWidth
+                                                                                onChange={(e) => handleInviteChange(e.target.value)}
+                                                                                inputProps={{
+                                                                                     required: true,
+                                                                                }}
+                                                                           />
+                                                                      </MDBox>
+                                                                 </form>
+                                                                 <MDBox mt={4} mb={1}>
+                                                                      {familyData.length > 0 && (
+                                                                           <MDButton
+                                                                                key={familyData[0].id}
+                                                                                type="submit"
+                                                                                variant="gradient"
+                                                                                onClick={(e) => handleInviteSubmit(familyData.map((item) => item.id))}
+                                                                                color="docuit"
+                                                                                fullWidth
+                                                                                disabled={!enabled}
+                                                                           >
+                                                                                {console.log("familyData[0].id", familyData)}
+                                                                                Invite
+                                                                           </MDButton>
+                                                                      )}
+                                                                 </MDBox>
+                                                            </div>
+                                                       </div>
+                                                  </div>
+                                             </div>
+                                        )}
+                                   </div>
+                              </Card>
+                         </MDBox>
+                    </>
+               )}
 
 
 
-     </DashboardLayout>
+          </DashboardLayout>
      );
 }
 

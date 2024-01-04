@@ -184,6 +184,25 @@ function Documents() {
      //      handleUploadButtonClick(validFiles);
      // };
 
+     // const handleFileChange = (event) => {
+     //      event.preventDefault();
+
+     //      const files = event.target.files;
+     //      console.log('12415',files);
+     //      for (let i = 0; i < files.length; i++) {
+     //           const file = files[i];
+
+     //           // Check if the file type is PDF
+     //           if (file.type === 'application/pdf') {
+     //                // Call a function to handle the upload for each file
+     //                handleUploadButtonClick(file);
+     //                console.log('Handling file:', file);
+     //           } else {
+     //                console.log('Invalid file type:', file);
+     //           }
+     //      }
+     // };
+
      const handleFileChange = (event) => {
           event.preventDefault(event);
           console.log('handleFileChange Called')
@@ -631,9 +650,9 @@ function Documents() {
                     <h2>{category.categoryName}</h2>
                     <div>
                          <Button className="btnfamilylist" component="label" variant="contained" startIcon={<CloudUploadIcon />} onClick={() => inputFileRef.current.click()} >
+                              <Input style={{ visibility: 'hidden' }} hidden id="file-upload" type="file" multiple accept="application/pdf" onChange={(e) => handleFileChange(e)} ref={inputFileRef} />
                               Upload File
                          </Button>
-                         <Input style={{visibility:'hidden'}} hidden id="file-upload" type="file" multiple accept="application/pdf" onChange={(e) => handleFileChange(e)} />
                     </div>
                </div>
 
