@@ -46,7 +46,7 @@ const routes = [
   },
   {
     // type: "collapse",
-    // name: "Profile",
+    name: "Profile",
     key: "profile",
     // icon: <Icon fontSize="small">diversity_3</Icon>,
     route: "/profile",
@@ -74,6 +74,7 @@ const routes = [
   },
 
   {
+    name: "Settings",
     key: "settings",
     // icon: <Icon fontSize="small">diversity_3</Icon>,
     route: "/settings",

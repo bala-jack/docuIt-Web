@@ -7,31 +7,24 @@ import { listFamily, editFamily, deleteFamily, addFamily } from "services";
 import { useAuth } from "context/AuthContext";
 import '../family/listfamily.css';
 import '../family/family.scss';
-import { Form, Link, Navigate, Route, unstable_HistoryRouter, useParams } from 'react-router-dom';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { useNavigate, useHistory } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { listFamilyMembers } from 'services';
 import { inviteUser } from 'services';
-import { Label } from '@mui/icons-material';
-import MDInput from 'components/MDInput';
-import { useFormik } from "formik";
 import MDButton from 'components/MDButton';
-import * as yup from 'yup'
-import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import FormHelperText from '@mui/material/FormHelperText';
 import Paper from '@mui/material/Paper';
-import MoreVertIcon from '@mui/icons-material/MoreVert'
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import Snackbar from '@mui/material/Snackbar';
 import Slide from '@mui/material/Slide';
 import Alert from '@mui/material/Alert';
 import { Grid } from "react-loader-spinner";
 import Backdrop from '@mui/material/Backdrop';
+import { getFamilyWithMembers } from 'services';
 
 
 
@@ -48,7 +41,6 @@ function Family() {
      const [showPopup, setShowPopup] = useState(false);
      const [popupindex, setpopupindex] = useState('');
      const [isEditing, setIsEditing] = useState('');
-     const [flashMessage, setFlashMessage] = useState('');
      const [ErrorflashMessage, setErrorFlashMessage] = useState('');
      const [Addpop, setAddPop] = useState(false);
      const [Add, setAdd] = useState('');
@@ -86,14 +78,21 @@ function Family() {
 
      const fetchData = async () => {
           try {
+
+               const familyListResult = await getFamilyWithMembers(UserData.id);
                const { data } = await listFamily(UserData.id);
                if (data?.response?.familyList) {
-                    const extractedData = data.response.familyList.map((familyItem) => ({
-                         name: familyItem.name,
-                         id: familyItem.id,
-                         createdBy: familyItem.createdBy,
-                         createdAt: familyItem.createdAt
-                    }));
+                    const extractedData = data.response.familyList.map((familyItem) => {
+                         let familyInfo = familyListResult.data?.response?.familyListWithMembers?.find(findItem => findItem.id === familyItem.id)
+                         let familyOwner = familyInfo?.membersList?.find(memberItem => memberItem.user.id === familyItem.createdBy)
+                         return {
+                              name: familyItem.name,
+                              id: familyItem.id,
+                              createdBy: familyItem.createdBy,
+                              createdAt: familyItem.createdAt,
+                              familyOwnerName: familyOwner?.user.name ?? ''
+                         }
+                    });
                     setFamilyData(extractedData);
                     console.log('extractedDta', extractedData)
                     // setListFamily(extractedData);
@@ -244,32 +243,32 @@ function Family() {
           setAddPop(true);
      }
 
-     const handleInviteChange = (value) => {
-          setphoneNumbers([value]);
-     };
+     // const handleInviteChange = (value) => {
+     //      setphoneNumbers([value]);
+     // };
 
-     const handleInviteSubmit = async (familyId) => {
-          try {
-               setIsLoading(true)
-               console.log('>>>>>>>>>>>memberinvite FamilyID', familyId)
-               const invitedBy = UserData.id;
-               const { data } = await inviteUser({ familyId, invitedBy, phoneNumbers: [phoneNumbers[0]] });
-               console.log('Succes', data);
-               if (data?.status === 'SUCCESS') {
-                    setInvitePop(false);
-                    setphoneNumbers('');
+     // const handleInviteSubmit = async (familyId) => {
+     //      try {
+     //           setIsLoading(true)
+     //           console.log('>>>>>>>>>>>memberinvite FamilyID', familyId)
+     //           const invitedBy = UserData.id;
+     //           const { data } = await inviteUser({ familyId, invitedBy, phoneNumbers: [phoneNumbers[0]] });
+     //           console.log('Succes', data);
+     //           if (data?.status === 'SUCCESS') {
+     //                setInvitePop(false);
+     //                setphoneNumbers('');
 
-                    setTimeout(() => {
-                         setIsLoading(false);
-                         handleSnackbarOpen(`User Invited SuccessFully`, 'success');
-                    }, 1000);
-               } else {
-                    console.error('Failed to invite user.', data.error);
-               }
-          } catch (err) {
-               console.error('Error inviting user:', err);
-          }
-     }
+     //                setTimeout(() => {
+     //                     setIsLoading(false);
+     //                     handleSnackbarOpen(`User Invited SuccessFully`, 'success');
+     //                }, 1000);
+     //           } else {
+     //                console.error('Failed to invite user.', data.error);
+     //           }
+     //      } catch (err) {
+     //           console.error('Error inviting user:', err);
+     //      }
+     // }
 
      const handleAddInput = (e) => {
           setAdd(e.target.value);
@@ -379,6 +378,8 @@ function Family() {
           setDeleteDialogOpen(false);
           setDeleteFamilyId(null);
      };
+
+     const uniqueFamilyNames = Array.from(new Set(familyMemberData.map(item => item.family.name)))
 
      return (
           <DashboardLayout className='mainContent'>
@@ -566,7 +567,7 @@ function Family() {
                                                        </TableCell>
 
                                                        <TableCell align='center'>
-                                                            {UserData.id === item.createdBy ? UserData.name : 'Others'}
+                                                            {item.familyOwnerName}
                                                        </TableCell>
                                                        <TableCell align="center" style={{ display: 'flex', justifyContent: 'center' }}>
                                                             {item.createdBy === UserData.id ? (
@@ -643,16 +644,16 @@ function Family() {
                                         <h2>No Family Users</h2>
                                    ) : (
                                         <>
-                                             {familyMemberData.map((item, index) => (
-                                                  <h2 key={index}>{item.family.name}</h2>
+                                             {uniqueFamilyNames.map((name, index) => (
+                                                  <h2 key={index}>{name} User Management</h2>
                                              ))}
                                         </>
                                    )}
 
 
-                                   <div>
+                                   {/* <div>
                                         <Button variant="contained" className="btnfamilylist" onClick={handleInvite}>Invite + </Button>
-                                   </div>
+                                   </div> */}
                               </div>
                               <Card style={{ width: '100%' }}>
                                    <div>
@@ -678,7 +679,8 @@ function Family() {
                                                                       {console.log("item.inviteS", item.inviteStatus)}
                                                                       {item.inviteStatus === 'Invited' ? (
                                                                            <div>
-                                                                                <Button className="btn-delete"><Icon>add_reaction</Icon></Button>
+                                                                                {/* <Button className="btn-delete"><Icon>add_reaction</Icon></Button> */}
+                                                                                <span> - </span>
                                                                            </div>
                                                                       ) : null}
                                                                       {UserData.id === familyItems.createdBy && item.inviteStatus === 'Accepted' ? (
@@ -692,7 +694,7 @@ function Family() {
                                                   </TableBody>
                                              </Table>
                                         </TableContainer>
-                                        {invitePop && (
+                                        {/* {invitePop && (
                                              <div className="overlay" onClick={closePopup}>
                                                   <div className="popup" onClick={preventClose}>
                                                        <div className="popup-content">
@@ -733,7 +735,7 @@ function Family() {
                                                        </div>
                                                   </div>
                                              </div>
-                                        )}
+                                        )} */}
                                    </div>
                               </Card>
                          </MDBox>

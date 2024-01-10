@@ -78,12 +78,19 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
      The event listener that's calling the handleMiniSidenav function when resizing the window.
     */
     window.addEventListener("resize", handleMiniSidenav);
-
+    initializeSideNav();
     // Call the handleMiniSidenav function to set the state with the initial value.
     handleMiniSidenav();
     // Remove event listener on cleanup
     return () => window.removeEventListener("resize", handleMiniSidenav);
   }, [dispatch, location, findUser]);
+
+  const initializeSideNav = () => {
+    console.log('>>>>', 'called here')
+    if (location.pathname !== '/documents') {
+      setOpenCollapse(null);
+    }
+  }
 
   const handleSidenave = (name, route) => {
     if (route && route.route) {

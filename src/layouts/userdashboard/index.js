@@ -21,6 +21,12 @@ function Dashboard() {
   pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
   console.log(UserData?.id);
 
+  const truncateText = (text, maxLength) => {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return `${text.slice(0, maxLength)}...`;
+  };
 
   useEffect(() => {
     userdashboard(vals)
@@ -30,7 +36,7 @@ function Dashboard() {
           setData(data?.response);
         }
       })
-      .catch((err) => {
+      .catch((error) => {
         // Handle errors here
       });
 
@@ -49,36 +55,43 @@ function Dashboard() {
               <Card sx={{ height: '25rem' }}>
                 <CardActionArea sx={{ height: '100%' }}>
                   <div className="thumbnail"
-                    style={{ height: '50%', margin: '10px', border: '3px, solid, #D3D3D3' }}>
+                    style={{ height: '60%', margin: '10px', border: '3px, solid, #D3D3D3' }}>
                     <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}>
                       <Viewer
                         //fileUrl={item.url}
                         fileUrl='http://drive.google.com/file/d/1TYw28C8vT7rC8CwhkQAcJL0hk_DFENxY/view'
-                        httpHeaders={{ Authorization: `Bearer ${isAuthenticated}`, 'Content-Type': 'application/pdf' }}
+                        // httpHeaders={{ Authorization: `Bearer ${isAuthenticated}`, 'Content-Type': 'application/pdf' }}
                         className="pdf-img"
                         onError={(error) => {
                           console.error('PDF Viewer Error:', error);
-                          return (<div style={{ padding: '20px', textAlign: 'center' }}>Failed to fetch PDF</div>);
+                          return (<div style={{ padding: '20px', textAlign: 'center' }}>{error}</div>);
                         }}
                       />
                     </Worker>
                   </div>
                   <CardContent>
-                    <Typography
-                      gutterBottom
-                      variant="h5"
-                      component="div"
-                      sx={{ minHeight: '5rem', overFlow: 'hidden' }}>
-                      {item.documentName}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      <span> Created At :
-                        <Moment format="MMM D YYYY, hh:mm:ss a">{item.createdAt}</Moment>
-                      </span>
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Size :{(item.documentSize / (1024 * 1024)).toFixed(2)}MB
-                    </Typography>
+                    <div>
+                      <Typography
+                        gutterBottom
+                        variant="h5"
+                        component="div"
+
+                        sx={{ minHeight: '2em', overFlow: 'hidden', }}>
+                        {truncateText(item.documentName, 40)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        <span> Created At :
+                          <Moment format="MMM D YYYY, hh:mm:ss a">{item.createdAt}</Moment>
+                        </span>
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {item.documentSize >= 1024 * 1024
+                          ? `${(item.documentSize / (1024 * 1024)).toFixed(1)}MB`
+                          : item.documentSize >= 1024
+                            ? `${(item.documentSize / 1024).toFixed(1)}KB`
+                            : `${item.documentSize} Bytes`}
+                      </Typography>
+                    </div>
                   </CardContent>
                 </CardActionArea>
               </Card>

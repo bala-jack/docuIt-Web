@@ -114,10 +114,6 @@ function Profile() {
      // For Avatar Profile picture uploading
      const handleFileInputChange = async (e) => {
           const file = e.target.files[0];
-          // const url = URL.createObjectURL(file);
-          // setSelectedFile(url);
-          // setUserPic(selectedFile);
-
           const bodyFormData = new FormData();
           bodyFormData.append('file', file);
           try {
@@ -152,13 +148,6 @@ function Profile() {
           }
           const color = Math.abs(hash).toString(16).substring(0, 6);
           return `#${'0'.repeat(6 - color.length)}${color}`;
-     };
-
-     // Edit profile pic button/badge
-     const handleSmallAvatarClick = () => {
-          if (fileInputRef.current) {
-               fileInputRef.current.click();
-          }
      };
 
      // Upload profile pic button/badge styles

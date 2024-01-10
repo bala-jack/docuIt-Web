@@ -42,7 +42,7 @@ function Topnav({ avatar }) {
                hash = string.charCodeAt(i) + ((hash << 5) - hash);
           }
           const color = Math.abs(hash).toString(16).substring(0, 6);
-          return `#${ '0'.repeat(6 - color.length) }${ color }`;
+          return `#${'0'.repeat(6 - color.length)}${color}`;
      };
 
      // Useauth for getting details 
