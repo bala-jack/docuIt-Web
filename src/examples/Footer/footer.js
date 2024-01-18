@@ -10,7 +10,7 @@ function Footer() {
                paddingLeft: '250px',
                paddingRight: '10px',
                backgroundColor: 'rgb(30,30,31)',
-               justifyContent: 'flex-end',
+               justifyContent: 'center',
                position: 'fixed',
                bottom: 0,
                paddingTop: 10,
@@ -22,8 +22,11 @@ function Footer() {
                     variant="body2"
                     color="#9E9E9E"
                     fontSize='14px'
-                    fontStyle={'italic'}>
-                    <CopyrightIcon /> 2023 Dock.It All rights reserved.
+                    fontStyle={'italic'}
+                    style={{ display: 'inline-block', verticalAlign: 'middle', lineHeight: '14px' }}>
+                    <CopyrightIcon
+                         style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+                    <span> </span> 2023 Dock.It All rights reserved.
                </Typography>
           </footer>
      );

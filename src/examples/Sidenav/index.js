@@ -34,7 +34,7 @@ import {
 } from "context";
 import { logout } from "services";
 import { useAuth } from "context/AuthContext";
-import { Avatar, Collapse, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
+import { Collapse, ListItemButton } from "@mui/material";
 import { findUser } from "services";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import ListIcon from '@mui/icons-material/List';
@@ -45,14 +45,12 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
   const navigate = useNavigate();
   const location = useLocation();
   const collapseName = location.pathname.replace("/", "");
-  const { logoutSuccess, UserData } = useAuth()
+  const { logoutSuccess, UserData } = useAuth();
   //Praveen Change
   const [openCollapse, setOpenCollapse] = useState(null);
   const [categoryDetails, setCategoryDetails] = useState([]);
   const [activeCategory, setActiveCategory] = useState([]);
   const [activeMainMenu, setActiveMainMenu] = useState(null);
-  const [categoryy, setcategory] = useState(null);
-
 
 
   let textColor = "white";
@@ -64,6 +62,37 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
   }
 
   const closeSidenav = () => setMiniSidenav(dispatch, true);
+
+  // Working on this not to be deleted (18-01-2024)
+  // useEffect(() => {
+  //   if (sideBarCount) {
+  //     handleFileCount();
+  //   }
+
+  // },)
+
+  // const handleFileCount = async () => {
+  //   const userId = UserData?.id;
+  //   try {
+  //     const { data } = await findUser(userId);
+  //     if (data?.response?.categoryDetails) {
+  //       const extractedData = data.response.categoryDetails.map((categoryDetails) => ({
+  //         categoryId: categoryDetails.categoryId,
+  //         categoryName: categoryDetails.categoryName,
+  //         fileCount: categoryDetails.fileCount
+  //       }));
+  //       setCategoryDetails(extractedData);
+
+  //     }
+
+
+  //   } catch (err) {
+  //     console.error("API call failed:", err);
+  //   } finally {
+  //     // countUnsuccess();
+  //   }
+
+  // }
 
   useEffect(() => {
 
@@ -106,10 +135,6 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
       setActiveCategory(null);
       navigate(route);
     }
-    // if (name === 'Logout') {
-    //   logout()
-    //   logoutSuccess()
-    // }
 
     console.log(name)
   }

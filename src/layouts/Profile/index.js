@@ -9,6 +9,8 @@ import { updateProfile } from "services";
 import MDButton from 'components/MDButton';
 import EditIcon from '@mui/icons-material/Edit';
 import { uploadDocuments } from 'services';
+import { DOCUIT_PROFILE_SCREEN } from 'utilities/strings';
+
 
 function Profile() {
      // useauth.
@@ -21,7 +23,6 @@ function Profile() {
      const [userEmail, setUserEmail] = useState('');
      const [userPhone, setUserPhone] = useState('');
      const [userPic, setUserPic] = useState('');
-     const [selectedFile, setSelectedFile] = useState(null);
      const [isSaveButtonDisabled, setSaveButtonDisabled] = useState(true);
 
      // snackbar.
@@ -36,6 +37,7 @@ function Profile() {
 
      useEffect(() => {
           UserProfile();
+          // eslint-disable-next-line react-hooks/exhaustive-deps
      }, [UserData]);
 
      // Useauth for getting details 
@@ -51,7 +53,9 @@ function Profile() {
                setUserEmail(profiledetails.email)
                setUserPic(profiledetails.imageUrl)
           }
-     }
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+     };
+
 
      // API call for saving changes to server
      const handleProfileEdit = async (e, imageUrl) => {
@@ -72,18 +76,18 @@ function Profile() {
                     setuserdata(data?.response?.userDetails);
                     localStorage.clear();
                     localStorage.setItem('docuItuserDetails', JSON.stringify(data?.response?.userDetails));
-                    handleSnackbarOpen("Profile details updated successfully.", 'success');
+                    handleSnackbarOpen(DOCUIT_PROFILE_SCREEN.profile_updated_success, 'success');
                     setSaveButtonDisabled(true);
                }
 
                else {
                     console.log("Update failed:", data?.message);
-                    handleSnackbarOpen("Invalid entry. Please try again!", 'error');
+                    handleSnackbarOpen(DOCUIT_PROFILE_SCREEN.profile_updated_invalid, 'error')
                }
 
-          } catch (err) {
-               console.error('Error updating profile:', err);
-               handleSnackbarOpen('Error updating profile:', err);
+          } catch (error) {
+               console.error('Error updating profile:', error);
+               handleSnackbarOpen(DOCUIT_PROFILE_SCREEN.profile_updated_error, 'error');
           }
      };
 
@@ -122,11 +126,12 @@ function Profile() {
                     handleProfileEdit(e, data.documentUrl);
                }
                else {
-                    handleSnackbarOpen("Unable to upload Image. Please try again", 'error');
+                    handleSnackbarOpen(DOCUIT_PROFILE_SCREEN.profile_image_invalid, 'error');
                }
           }
-          catch {
-               handleSnackbarOpen("Something went wrong please try again", 'error');
+          catch (error) {
+               handleSnackbarOpen(DOCUIT_PROFILE_SCREEN.profile_image_error, 'error');
+               console.error('Upload failed :', error)
           }
      }
 
@@ -197,7 +202,7 @@ function Profile() {
                               m: 1,
                               mt: 5
                          }}>
-                         <h2>My Profile</h2>
+                         <h2>{DOCUIT_PROFILE_SCREEN.profile_header}</h2>
 
                          <Badge
                               overlap="circular"
@@ -273,7 +278,7 @@ function Profile() {
                               <div>
                                    <TextField
                                         className="Editname"
-                                        label="Name"
+                                        label={DOCUIT_PROFILE_SCREEN.profile_input_label}
                                         type="text"
                                         value={userName}
                                         onChange={(e) => {
@@ -287,7 +292,7 @@ function Profile() {
                                              style={{ color: 'red' }}
                                         >
                                              {popuperrormsg
-                                                  ? "*Name cannot have numbers or special characters."
+                                                  ? DOCUIT_PROFILE_SCREEN.profile_input_error
                                                   : ""}
                                         </FormHelperText>
                                    )}
@@ -295,12 +300,13 @@ function Profile() {
                          </Box>
                          <FormControl sx={{ m: 1, maxWidth: "57ch", }}>
 
-                              <InputLabel>Gender</InputLabel>
+                              <InputLabel>{DOCUIT_PROFILE_SCREEN.profile_gender_header}</InputLabel>
                               <Select
                                    labelId="demo-simple-select-autowidth-label"
                                    onChange={selecthandleChange}
                                    value={Gender}
-                                   label="Gender"
+                                   label={DOCUIT_PROFILE_SCREEN.profile_gender_label}
+
                                    sx={{
                                         minWidth: "57ch", pt: 1.2, pb: 1.2,
                                         "& > input": {
@@ -313,10 +319,10 @@ function Profile() {
                                    <MenuItem value="">
                                         <em></em>
                                    </MenuItem>
-                                   <MenuItem value="Male">Male</MenuItem>
-                                   <MenuItem value="Female">Female</MenuItem>
-                                   <MenuItem value="Other">Other</MenuItem>
-                                   <MenuItem value="Unspecified">Unspecified</MenuItem>
+                                   <MenuItem value="Male">{DOCUIT_PROFILE_SCREEN.profile_menu_male}</MenuItem>
+                                   <MenuItem value="Female">{DOCUIT_PROFILE_SCREEN.profile_menu_female}</MenuItem>
+                                   <MenuItem value="Other">{DOCUIT_PROFILE_SCREEN.profile_menu_other}</MenuItem>
+                                   <MenuItem value="Unspecified">{DOCUIT_PROFILE_SCREEN.profile_menu_Unspecified}</MenuItem>
                               </Select>
                          </FormControl>
 
@@ -331,7 +337,7 @@ function Profile() {
                               <div>
                                    <TextField
                                         className="Editemail"
-                                        label="Email"
+                                        label={DOCUIT_PROFILE_SCREEN.profile_email_label}
                                         type='email'
                                         disabled
                                         value={userEmail}
@@ -349,7 +355,7 @@ function Profile() {
                               <div>
                                    <TextField
                                         className="Editphno"
-                                        label="Phonenumber"
+                                        label={DOCUIT_PROFILE_SCREEN.profile_phone_label}
                                         type='text'
                                         disabled
                                         value={userPhone}

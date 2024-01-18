@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext();
 
@@ -13,7 +13,26 @@ export const AuthProvider = ({ children }) => {
     const [ListFamily, setListFamily] = useState(null);
     const [FamilyMemberData, setFamilyMemberData] = useState(null);
     const [category, setcategory] = useState(null);
+    const [sideBarCount, setSideBarCount] = useState(false);
 
+
+    useEffect(() => {
+        const checkSuccessFlags = () => {
+            const deleteApiSuccess = localStorage.getItem('deleteApiSuccess') === 'true';
+            const uploadApiSuccess = localStorage.getItem('uploadApiSuccess') === 'true';
+            const shareApiSuccess = localStorage.getItem('shareApiSuccess') === 'true';
+            const moveApiSuccess = localStorage.getItem('moveApiSuccess') === 'true';
+
+            if (deleteApiSuccess || uploadApiSuccess || shareApiSuccess || moveApiSuccess) {
+                setSideBarCount(true);
+            } else {
+                setSideBarCount(false);
+            }
+        };
+
+        // Call the function on component mount
+        checkSuccessFlags();
+    }, []);
 
     const loginSuccess = async () => {
         setIsAuthenticated(true);
@@ -25,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
     const value = {
         UserData,
-        ListFamily, 
+        ListFamily,
         setListFamily,
         category,
         setcategory,
@@ -35,6 +54,10 @@ export const AuthProvider = ({ children }) => {
         setuserdata,
         FamilyMemberData,
         setFamilyMemberData,
+        sideBarCount,
+        countSuccess: () => setSideBarCount(true),
+        countUnSuccess: () => setSideBarCount(false)
+
     };
 
     return (

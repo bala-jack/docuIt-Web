@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 // react-router-dom components
-import { Route, json, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // @mui material components
 import Card from "@mui/material/Card";
@@ -18,7 +18,7 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.png";
 import brandWhite from "assets/images/logo_dockit.png";
-import { listFamily, login, logout } from "../../../services/index";
+import { login } from "../../../services/index";
 
 import * as yup from 'yup'
 import { useFormik } from "formik";
@@ -27,10 +27,6 @@ import './signIn.css'
 import { useAuth } from "../../../context/AuthContext";
 import { Link } from "react-router-dom";
 import { DOCUIT_SIGNIN_SCREEN } from '../../../utilities/strings';
-import routes from "routes";
-import { Switch } from "@mui/material";
-import AdminDashboard from "layouts/dashboard";
-import Dashboard from "layouts/userdashboard";
 
 const validationSchema = yup.object().shape({
   phoneNumber: yup.string().required('*Email is required'),
@@ -40,7 +36,7 @@ const validationSchema = yup.object().shape({
 
 function Basic() {
 
-  const { loginSuccess, isAuthenticated, setuserdata, setFamilyMemberData } = useAuth();
+  const { loginSuccess, isAuthenticated, setuserdata, } = useAuth();
 
   const formik = useFormik({
     initialValues: {

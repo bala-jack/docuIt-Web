@@ -1,1 +1,1 @@
-export const BASE_URL = `http://13.234.66.106:8081/dockitservice`;
+export const BASE_URL = 'http://3.110.194.57:8081/dockitservice';

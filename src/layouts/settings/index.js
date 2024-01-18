@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import { Alert, Box, Card, Slide, Snackbar, TextField, Divider, FormHelperText } from '@mui/material';
+import { Alert, Box, Card, Slide, Snackbar, TextField, Divider, FormHelperText, CardActionArea } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -11,6 +11,7 @@ import { useAuth } from "context/AuthContext";
 import { changePin } from 'services';
 import MDButton from 'components/MDButton';
 import { logout } from "services";
+import { DOCUIT_SETTINGS_SCREEN } from 'utilities/strings';
 
 
 function Settings() {
@@ -93,10 +94,10 @@ function Settings() {
      function handleChangePin() {
 
           if (!isEnterPinValid || !isConfirmPinValid) {
-               handleSnackbarOpen("Pin must have numbers only.", 'error');
+               handleSnackbarOpen(DOCUIT_SETTINGS_SCREEN.setting_pin_error, 'error');
           }
           else if (UserPin !== ConfirmPin) {
-               handleSnackbarOpen("Pins do not match. Please Try again!", 'error');
+               handleSnackbarOpen(DOCUIT_SETTINGS_SCREEN.setting_pin_notmatch, 'error');
           }
           else if (UserPin === ConfirmPin) {
                userPinchange();
@@ -112,6 +113,14 @@ function Settings() {
      const closeDeleteDialog = () => {
           setDeleteDialogOpen(false);
      };
+
+     const termsandConditionsUrl = () => {
+          window.open('http://infeneo.com/terms', '_blank');
+     };
+
+     const privacyPolicyUrl = () => {
+          window.open('http://infeneo.com/terms', '_blank');
+     }
 
      return (
           <DashboardLayout className='mainContent'>
@@ -130,17 +139,17 @@ function Settings() {
                          {snackbarMessage}
                     </Alert>
                </Snackbar>
-               <h2 style={{ margin: 25 }}>General</h2>
+               <h2 style={{ margin: 25 }}>{DOCUIT_SETTINGS_SCREEN.setting_header}</h2>
                <form style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
                     <Card
                          sx={{ minWidth: '80%', display: "flex", flexDirection: "column", alignItems: "center" }}
                     >
-                         <h3 style={{ margin: 20 }}>Change pin</h3>
+                         <h3 style={{ margin: 20 }}>{DOCUIT_SETTINGS_SCREEN.settinf_changepin}</h3>
                          <Box sx={{ verticalAlign: "middle" }}>
                               <TextField
                                    sx={{ m: 3, width: '40ch' }}
                                    inputProps={{ maxLength: 4 }}
-                                   label="Enter PIN"
+                                   label={DOCUIT_SETTINGS_SCREEN.setting_enterpin_label}
                                    type={showEnterPin ? 'text' : 'password'}
                                    onChange={(e) => setUserPin(e.target.value)}
                                    InputProps={{
@@ -167,7 +176,7 @@ function Settings() {
                               <TextField
                                    sx={{ m: 3, width: '40ch' }}
                                    inputProps={{ maxLength: 4 }}
-                                   label="Confirm PIN"
+                                   label={DOCUIT_SETTINGS_SCREEN.setting_confirmpin_label}
                                    type={showConfirmPin ? 'text' : 'password'}
                                    onChange={(e) => {
                                         setConfirmPin(e.target.value);
@@ -206,9 +215,9 @@ function Settings() {
                               Submit
                          </MDButton>
                          <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
-                              <DialogTitle>Confirm pin change</DialogTitle>
+                              < DialogTitle > {DOCUIT_SETTINGS_SCREEN.setting_dialog_title}</DialogTitle >
                               <DialogContent>
-                                   Are you certain you wish to modify the PIN?
+                                   {DOCUIT_SETTINGS_SCREEN.setting_dialog_content}
                                    <br />
                                    <small>(Proceeding will terminate the current session, requiring you to sign in again.)</small>
                               </DialogContent>
@@ -219,14 +228,16 @@ function Settings() {
                          </Dialog>
                     </Card>
                </form>
-               <h2 style={{ margin: 25, }}>Terms & Conditions</h2>
+               < h2 style={{ margin: 25, }}> {DOCUIT_SETTINGS_SCREEN.setting_terms}</h2 >
                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
-                    <Card
-                         sx={{ minWidth: '80%', display: "flex", flexDirection: "column", alignItems: "left" }}
-                    >
-                         <h3 style={{ margin: 25 }}>* Terms & conditions</h3>
+                    <Card sx={{ minWidth: '80%', display: "flex", flexDirection: "column", alignItems: "left" }}>
+                         <CardActionArea onClick={termsandConditionsUrl}>
+                              <h2 style={{ margin: 25 }}>{DOCUIT_SETTINGS_SCREEN.setting_terms_header}</h2>
+                         </CardActionArea>
                          <Divider variant="middle" sx={{ m: 0 }} />
-                         <h3 style={{ margin: 25 }}>* Privacy policy</h3>
+                         <CardActionArea onClick={privacyPolicyUrl}>
+                              <h2 style={{ margin: 25 }}>{DOCUIT_SETTINGS_SCREEN.setting_privacy}</h2>
+                         </CardActionArea>
                     </Card>
                </div>
           </DashboardLayout >

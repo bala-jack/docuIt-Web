@@ -2,7 +2,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "../../examples/Navbars/DashboardNavbar";
 import React, { useEffect, useState } from 'react';
 import { userdashboard } from "../../services/index";
-import { Card, CardActionArea, CardContent, CardMedia, Grid, Typography } from "@mui/material";
+import { Card, CardActionArea, CardContent, Grid, Typography } from "@mui/material";
 import Moment from 'react-moment';
 import 'moment-timezone';
 import { useAuth } from "context/AuthContext";
@@ -12,11 +12,12 @@ import { pdfjs } from 'react-pdf';
 import { Viewer, Worker } from '@react-pdf-viewer/core';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import { DOCUIT_DASHBOARD_SCREEN } from "utilities/strings";
 
 
 function Dashboard() {
   const [datas, setData] = useState([]);
-  const { UserData, isAuthenticated } = useAuth();
+  const { UserData } = useAuth();
   const vals = UserData?.id;
   pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
   console.log(UserData?.id);
@@ -47,7 +48,7 @@ function Dashboard() {
     <>
       <DashboardLayout>
         <DashboardNavbar />
-        <h2 className="card-head">Recent Activity</h2>
+        <h2 className="card-head">{DOCUIT_DASHBOARD_SCREEN.userdashboard_header}</h2>
         {console.log('UDData>>>>>', datas)}
         <Grid container spacing={2}>
           {datas.map((item, index) => (
@@ -75,9 +76,8 @@ function Dashboard() {
                         gutterBottom
                         variant="h5"
                         component="div"
-
                         sx={{ minHeight: '2em', overFlow: 'hidden', }}>
-                        {truncateText(item.documentName, 40)}
+                        {truncateText(item.documentName, 30)}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         <span> Created At :

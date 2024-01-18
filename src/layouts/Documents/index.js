@@ -1,18 +1,14 @@
 import { useAuth } from "context/AuthContext";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { UsercategoryList } from "services";
-import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
-import { FormControl, Icon, Backdrop, Modal, Paper, Tooltip, Typography, Slide, Snackbar } from "@mui/material";
+import { Alert, Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { FormControl, Icon, Backdrop, Modal, Paper, Tooltip, Typography, Slide, Snackbar, Radio } from "@mui/material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import { useState } from "react";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Grid } from "react-loader-spinner";
-import Radio from "@mui/material/Radio";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { saveDocuments } from "services";
-import { uploadDocuments } from "services";
+import { saveDocuments, uploadDocuments, deleteDocument } from "services";
 import { pdfjs } from "react-pdf";
-import { deleteDocument } from "services";
 import { Link, useLocation } from "react-router-dom";
 import { findUser } from "services";
 import { updateDocument } from "services";
@@ -32,6 +28,9 @@ import TableRow from "@mui/material/TableRow";
 import { getDocumentDetails } from "services";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
+import NoDocumentsFoundImage from "assets/images/No_Documents_Found.webp";
+import { DOCUIT_DOCUMENT_SCREEN } from 'utilities/strings';
+
 
 const Accordion = styled((props) => (
   <MuiAccordion disableGutters elevation={0} square {...props} />
@@ -77,31 +76,32 @@ function arrayEquals(arr1, arr2) {
 }
 
 function Documents() {
-  const { UserData, ListFamily } = useAuth();
+  const { UserData, ListFamily, countSuccess, countUnSuccess } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [LifeData, setLifeData] = useState([]);
   const [targetCategory, setTargetCategory] = useState("");
-  const [tooltipOpen, setTooltipOpen] = useState(false);
   const [openMove, setopenMove] = useState(false);
-  const [openShare, setopenShare] = useState(false);
   const [openAfterShare, setOpenAfterShare] = useState(false);
   const [catListdata, setcatListdata] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [expanded, setExpanded] = React.useState`<String | false>('panel1')`;
   const [selectedFile, setmoveSelect] = useState(false);
-  const [FamilyListwithMembers, setFamilyListWithMembers] = useState([]);
-  const [FamilyMembers, setFamilyMembers] = useState([]);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDocumentId, setDeleteDocumentId] = useState([]);
   const [selectedFamilies, setSelectedFamilies] = useState([]);
-  const [selectedMembers, setSelectedMembers] = useState({});
+  // const [selectedMembers, setSelectedMembers] = useState({});
+  const [familydata, setFamilydata] = useState([]);
   let [expandedFamilies, setExpandedFamilies] = useState([]);
   let [selectedFamilyIds, setSelectedFamilyIds] = useState([]);
   let [addMembers, setAddMembers] = useState([]);
   let [revokeMembers, setRevokeMembers] = useState([]);
   const [memberData, setMembersData] = useState([]);
-  const [docDetails, setDocDetails] = useState([]);
   const [uploadFile, setUploadFile] = useState({});
+
+  // Sharedocuments
+  const [openShare, setopenShare] = useState(false);
+  const [FamilyListWithMembers, setFamilyListWithMembers] = useState([]);
+  const [FamilyMembers, setFamilyMembers] = useState([]);
+  const [docDetails, setDocDetails] = useState([]);
 
   // snackbar.
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -192,7 +192,7 @@ function Documents() {
       handleSnackbarOpen(error.message ?? "Error unable to upload documents. Please retry.", 'error');
       setIsLoading(false);
     }
-  }
+  };
 
   const handleUploadDocument = async (uploadfile, lastFileIndex, invalidFiles, validfilesLength) => {
     try {
@@ -230,8 +230,12 @@ function Documents() {
             documentType,
             url,
           };
-
+          countSuccess();
           setLifeData((prevLifeData) => [...prevLifeData, documentDetails]);
+          console.log("uploadData", [...LifeData, documentDetails]);
+          fetchData();
+          setOpenAfterShare(true);
+          localStorage.setItem('uploadApiSuccess', 'true')
 
           if (lastFileIndex) {
             console.log("documentDetails'.'.'.'.'.'.'.'.", documentDetails);
@@ -253,6 +257,7 @@ function Documents() {
     catch (error) {
       console.error(error.message ?? "File upload error, retry");
       handleSnackbarOpen(error.message ?? "File upload error, retry", 'error');
+      countUnSuccess();
     }
     finally {
       setIsLoading(false);
@@ -297,7 +302,6 @@ function Documents() {
         const { data } = await updateDocument(params);
         console.log('updateDocument"""""":', data);
         if (data.status === 'SUCCESS') {
-          setTooltipOpen(false);
           setopenMove(false);
           setTimeout(() => {
             setIsLoading(false);
@@ -316,7 +320,6 @@ function Documents() {
     setopenMove(true);
     setmoveSelect(item.documentId);
     setTargetCategory("");
-    setTooltipOpen(false);
     try {
       const userId = UserData?.id;
       const { data } = await findUser(userId);
@@ -327,10 +330,13 @@ function Documents() {
           categoryName: categoryDetails.categoryName,
           fileCount: categoryDetails.fileCount
         }));
+        countSuccess();
+        localStorage.setItem('moveApiSuccess', 'true');
         setcatListdata(extractedData);
       }
     } catch (err) {
       console.error("API call failed:", err);
+      countUnSuccess();
     }
   }
   console.log("LifeData::", LifeData);
@@ -341,10 +347,15 @@ function Documents() {
       const DocumentId = documentId.documentId;
       const { data } = await deleteDocument(DocumentId);
       if (data) {
-        setTooltipOpen(false);
+        countSuccess();
+        localStorage.setItem('deleteApiSuccess', 'true');
         const lifedata = LifeData.filter((card) => card.documentId !== DocumentId)
         setLifeData(lifedata)
         console.log("lifes", lifedata);
+        setTimeout(() => {
+          setIsLoading(false);
+          handleSnackbarOpen(DOCUIT_DOCUMENT_SCREEN.document_delete_success, 'success');
+        }, 1000);
       }
     } catch (err) {
       console.error("Error Upload Docs:", err);
@@ -361,7 +372,7 @@ function Documents() {
 
   const handleDownloadPDF = (docDetails) => {
     const PDFurl = docDetails.documentUrl;
-    console.log("PDFURL", PDFurl);
+    // console.log("PDFURL", PDFurl);
     const documentName = docDetails.documentName;
     fetch("https://cors-anywhere.herokuapp.com/" + PDFurl, {
       method: "GET",
@@ -385,10 +396,6 @@ function Documents() {
       });
   };
 
-  const toggleExpansion = (categoryId) => {
-    console.log("catIDExapmnd", categoryId.documentId);
-    setIsExpanded(!isExpanded);
-  };
 
   const truncateText = (text, maxLength) => {
     if (text.length <= maxLength) {
@@ -399,16 +406,19 @@ function Documents() {
   };
   console.log("ListFamily???", ListFamily);
 
+
+  // Get the saved document details to update document details (i.e) To share or unshare etc.,
   const getDocumentDetailsById = async (document) => {
-    // console.log('getDocumentDetails==========>>.><<<<>>><///',document.documentId)
+    // console.log('getDocumentDetails==========>>.><<<<>>><///', document.documentId)
     try {
       let response = await getDocumentDetails(document.documentId);
-      // console.log('response==>getDocumentDetails_____))____)_)_)_)))_',(response.data))
+      // console.log('response==>getDocumentDetails_____))____)_)_)_)))_', (response.data))
       if (response.data.code === 200) {
         let memberIdArray = response.data.response.memberIds;
         setAddMembers(memberIdArray);
         setMembersData(memberIdArray);
-        //    setFamilyData([...new Set(response.data.response.sharedDetails.map(item => item.member.family.id))])
+        // console.log(">>>>>>>1>>>>>", memberIdArray);
+        setFamilydata([...new Set(response.data.response.sharedDetails.map(item => item.member.family.id))])
         setSelectedFamilyIds([
           ...new Set(
             response.data.response.sharedDetails
@@ -416,23 +426,27 @@ function Documents() {
               .map((item) => item.member.family.id)
           ),
         ]);
-        setIsLoading(false);
+
       }
     } catch (error) {
       console.error("Error in listFamilyMembers:", error);
+
+    }
+    finally {
       setIsLoading(false);
     }
   };
+  console.log("this is revoked>>>>>>>>", revokeMembers);
 
+  // SHAREDOCS
   const handleShare = async (docDetails) => {
     console.log("docDetails::::::::::::", docDetails);
     setopenShare(true);
-    setTooltipOpen(false);
     setDocDetails(docDetails);
     try {
       getDocumentDetailsById(docDetails);
       const { data } = await getFamilyWithMembers(userId);
-      console.log("data??", data);
+      console.log(" getDocumentDetailsById???????????", data);
       if (data.status === "SUCCESS") {
         const getFamilyWithMembers = data.response.familyListWithMembers.map(
           (familyListWithMembers) => ({
@@ -477,9 +491,7 @@ function Documents() {
     }
   };
 
-  const handleChange = (index) => (event, newExpanded) => {
-    setExpanded(newExpanded ? index : false);
-  };
+  console.log(FamilyMembers);
 
   const openDeleteDialog = (documentId) => {
     setDeleteDocumentId(documentId);
@@ -527,29 +539,35 @@ function Documents() {
   };
 
   const handleMemberChange =
-    (familyIndex, memberId, familyDetail) => (event) => {
+    (memberId, familyDetail) => (e) => {
       let membersList = familyDetail.membersList.filter(
         (filterItem) => filterItem.user.id !== userId
       );
       // console.log('membersList',membersList,addMembers,item.name)
       if (addMembers.includes(`${memberId}`)) {
+        console.log("this if is called 1", "handleMemberChange");
         setAddMembers((prev) =>
-          prev.filter((filterItem) => filterItem != memberId)
+          prev.filter((filterItem) => filterItem !== memberId)
         );
-        let value = memberData.filter((itm) => itm.id != `${memberId}`);
+        let value = memberData.filter((itm) => itm.id !== `${memberId}`);
         if (value.includes(`${memberId}`)) {
+          // console.log("if this is called members are revoked", "handleMemberChange");
           setRevokeMembers((prevRevokeMembers) => [
             ...prevRevokeMembers,
             `${memberId}`,
           ]);
+          setSelectedFamilyIds(prev => prev.filter(selectedFamilyId => selectedFamilyId !== familyDetail.id));
         }
+        console.log(">>>>>>>>>", value, value.length)
+        console.log(value.length === 0 && selectedFamilyIds.includes(familyDetail.id));
         if (value.length === 0 && selectedFamilyIds.includes(familyDetail.id)) {
+          console.log("this if is called 3", "handleMemberChange", familyDetail.id);
           setSelectedFamilyIds((prev) =>
             prev.filter(
               (selectedFamilyId) => selectedFamilyId !== familyDetail.id
             )
           );
-          // setRevokeMembers(prev => prev.filter(filterItem => filterItem != memberId))
+          setRevokeMembers(prev => prev.filter(filterItem => filterItem !== memberId))
         }
         let isCheckWholeFamily =
           membersList.length &&
@@ -557,10 +575,11 @@ function Documents() {
         isCheckWholeFamily &&
           setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
       } else {
+        console.log("this else is called", "handleMemberChange");
         addMembers = [...addMembers, `${memberId}`];
         setAddMembers(addMembers);
         setRevokeMembers((prev) =>
-          prev.filter((filterItem) => filterItem != memberId)
+          prev.filter((filterItem) => filterItem !== memberId)
         );
         let isCheckWholeFamily =
           membersList.length &&
@@ -570,7 +589,7 @@ function Documents() {
         if (!selectedFamilyIds.includes(familyDetail.id)) {
           setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
           setRevokeMembers((prev) =>
-            prev.filter((filterItem) => filterItem != memberId)
+            prev.filter((filterItem) => filterItem !== memberId)
           );
         }
       }
@@ -580,43 +599,72 @@ function Documents() {
     return selectedFamilies.includes(familyIndex);
   };
 
-  const isMemberSelected = (familyIndex, memberId) => {
-    return (selectedMembers[familyIndex] || []).includes(memberId);
-  };
+  // const isMemberSelected = (familyIndex, memberId) => {
+  //   return (selectedMembers[familyIndex] || []).includes(memberId);
+  // };
+
+
+  // const handleCheckboxChange = (familyDetail) => {
+  //   let membersList = familyDetail.membersList.filter(
+  //     (filterItem) => filterItem.user.id !== userId
+  //   );
+
+  //   console.log('membersList', membersList, addMembers, item.name)
+  //   let isCheckWholeFamily =
+  //     membersList.length &&
+  //     membersList.every((memberItem) => addMembers.includes(memberItem.id));
+
+  //   let memberIds = familyDetail.membersList.map((item) => item.id);
+
+  //   if (selectedFamilyIds.includes(familyDetail.id)) {
+  //     let updatedFamilyIds = selectedFamilyIds.filter(
+  //       (familyItem) => familyItem != familyDetail.id
+  //     );
+  //     let updatedMemberIds = addMembers.filter(
+  //       (memberItem) => !memberIds.includes(memberItem)
+  //     );
+  //     setAddMembers(updatedMemberIds);
+  //     console.log("if state called >>>>>>> ")
+  //     setSelectedFamilyIds(updatedMemberIds);
+  //     setRevokeMembers((prevRevokeMembers) => [
+  //       ...prevRevokeMembers,
+  //       ...memberIds,
+  //     ]);
+  //     setSelectedFamilyIds(updatedFamilyIds);
+  //   } else {
+  //     console.log("else state called >>>>>>> ")
+  //     let updatedFamilyIds = [...selectedFamilyIds, familyDetail.id];
+  //     let updatedMemberIds = [...addMembers, ...memberIds];
+  //     setSelectedFamilyIds(updatedFamilyIds);
+  //     setAddMembers((prev) => (prev = [...prev, ...memberIds]));
+  //     setRevokeMembers((prevRevokeMembers) =>
+  //       prevRevokeMembers.filter(
+  //         (memberItem) => !memberIds.includes(memberItem)
+  //       )
+  //     );
+  //   }
+  // };
 
   const handleCheckboxChange = (familyDetail) => {
-    let membersList = familyDetail.membersList.filter(
-      (filterItem) => filterItem.user.id !== userId
-    );
-    // console.log('membersList',membersList,addMembers,item.name)
-    let isCheckWholeFamily =
-      membersList.length &&
-      membersList.every((memberItem) => addMembers.includes(memberItem.id));
-    let memberIds = familyDetail.membersList.map((item) => item.id);
+    const memberIds = familyDetail.membersList.map((item) => item.id);
 
     if (selectedFamilyIds.includes(familyDetail.id)) {
-      let updatedFamilyIds = selectedFamilyIds.filter(
-        (familyItem) => familyItem != familyDetail.id
-      );
-      let updatedMemberIds = addMembers.filter(
-        (memberItem) => !memberIds.includes(memberItem)
-      );
+      // Family is selected, unselect it
+      const updatedFamilyIds = selectedFamilyIds.filter((id) => id !== familyDetail.id);
+      const updatedMemberIds = addMembers.filter((memberId) => !memberIds.includes(memberId));
+
       setAddMembers(updatedMemberIds);
-      setSelectedFamilyIds(updatedMemberIds);
-      setRevokeMembers((prevRevokeMembers) => [
-        ...prevRevokeMembers,
-        ...memberIds,
-      ]);
       setSelectedFamilyIds(updatedFamilyIds);
+      setRevokeMembers((prevRevokeMembers) => [...prevRevokeMembers, ...memberIds]);
     } else {
-      let updatedFamilyIds = [...selectedFamilyIds, familyDetail.id];
-      let updatedMemberIds = [...addMembers, ...memberIds];
+      // Family is not selected, select it
+      const updatedFamilyIds = [...selectedFamilyIds, familyDetail.id];
+      const updatedMemberIds = [...addMembers, ...memberIds];
+
       setSelectedFamilyIds(updatedFamilyIds);
-      setAddMembers((prev) => (prev = [...prev, ...memberIds]));
+      setAddMembers(updatedMemberIds);
       setRevokeMembers((prevRevokeMembers) =>
-        prevRevokeMembers.filter(
-          (memberItem) => !memberIds.includes(memberItem)
-        )
+        prevRevokeMembers.filter((memberId) => !memberIds.includes(memberId))
       );
     }
   };
@@ -627,6 +675,8 @@ function Documents() {
       const uniqueFamilyIds = [...new Set(selectedFamilyIds)];
       const uniqueAddMembers = [...new Set(addMembers)];
       const uniqueRevokembers = [...new Set(revokeMembers)];
+      console.log("revokemembers........", revokeMembers, uniqueRevokembers);
+      console.log("addMembers........", addMembers, uniqueAddMembers);
       console.log("docdetialskkssssss", docDetails);
       const params = {
         familyId: uniqueFamilyIds,
@@ -637,16 +687,19 @@ function Documents() {
         documentName: docDetails.documentName,
         updatedBy: userId,
       };
-      console.log("params", params);
+      console.log("params>>>>>>>>>>", params);
       const { data } = await updateDocument(params);
       console.log('updateDocument"""""":', data);
       if (data.status === "SUCCESS") {
         setopenShare(false);
-        console.log("data-----updateDocument", data);
+        countSuccess();
+        localStorage.setItem('shareApiSuccess', 'true');
+        //   console.log("data-----updateDocument", data);
       }
     } catch (err) {
       console.error("Error Upload Docs:", err);
       setIsLoading(false);
+      countUnSuccess();
     }
   };
 
@@ -710,7 +763,7 @@ function Documents() {
 
       <Dialog open={openAfterShare} onClose={handleClose}>
         <DialogTitle>Share Document</DialogTitle>
-        <DialogContent>Do you want to share this { } documents?</DialogContent>
+        <DialogContent>Do you want to share this document?</DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleAfterUpload}>Share</Button>
@@ -718,7 +771,15 @@ function Documents() {
       </Dialog>
 
       {LifeData.length === 0 ? (
-        <h2>No Data Found</h2>
+        <Card sx={{ minWidth: '100%', minHeight: '50vh', textAlign: 'center', alignItems: 'center' }}>
+          <div style={{ margin: 'auto' }}>
+            <img style={{ maxHeight: 100, maxWidth: 100 }} src={NoDocumentsFoundImage} alt='No_Documents_Found_Image' />
+            <h2>No documents uploaded or shared yet</h2>
+            <span>
+              Upload documents to view and share them.
+            </span>
+          </div>
+        </Card>
       ) : (
         <>
           <Modal
@@ -756,7 +817,7 @@ function Documents() {
                   )}
                 </div>
                 <div>
-                  {FamilyListwithMembers.map((item, familyIndex) => (
+                  {FamilyListWithMembers.map((item, familyIndex) => (
                     <>
                       <div key={familyIndex}>
                         {/* {console.log('FamilyListwithMembers<<<<<<<<<<<', FamilyListwithMembers, selectedFamilyIds)} */}
