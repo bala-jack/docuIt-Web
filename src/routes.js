@@ -92,10 +92,10 @@ const routes = [
   //   role : 'admin',
   // },
   {
-    type: "collapse",
-    name: "Logout",
+    // type: "collapse",
+    // name: "Logout",
     key: "signIn",
-    icon: <Icon fontSize="small">login</Icon>,
+    // icon: <Icon fontSize="small">login</Icon>,
     route: "/signIn",
     component: <SignIn />,
     role: 'Comman',

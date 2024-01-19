@@ -247,7 +247,7 @@ function Documents() {
             if (invalidFiles?.length !== 0) {
               setTimeout(() => {
                 handleSnackbarOpen(`Unable to upload ${invalidFiles.map(item => `'${item.name}'`).join(', ')} due to size exceeding 5MB.`, 'warning');
-              }, 4000)
+              }, 2000)
             }
           }
         }
@@ -355,7 +355,7 @@ function Documents() {
         setTimeout(() => {
           setIsLoading(false);
           handleSnackbarOpen(DOCUIT_DOCUMENT_SCREEN.document_delete_success, 'success');
-        }, 1000);
+        }, 5000);
       }
     } catch (err) {
       console.error("Error Upload Docs:", err);
@@ -396,7 +396,6 @@ function Documents() {
       });
   };
 
-
   const truncateText = (text, maxLength) => {
     if (text.length <= maxLength) {
       return text;
@@ -412,7 +411,7 @@ function Documents() {
     // console.log('getDocumentDetails==========>>.><<<<>>><///', document.documentId)
     try {
       let response = await getDocumentDetails(document.documentId);
-      // console.log('response==>getDocumentDetails_____))____)_)_)_)))_', (response.data))
+      console.log('response==>getDocumentDetails_____))____)_)_)_)))_', (response.data))
       if (response.data.code === 200) {
         let memberIdArray = response.data.response.memberIds;
         setAddMembers(memberIdArray);
@@ -540,10 +539,11 @@ function Documents() {
 
   const handleMemberChange =
     (memberId, familyDetail) => (e) => {
+      console.log(familyDetail);
       let membersList = familyDetail.membersList.filter(
         (filterItem) => filterItem.user.id !== userId
       );
-      // console.log('membersList',membersList,addMembers,item.name)
+      console.log('membersList', membersList, addMembers)
       if (addMembers.includes(`${memberId}`)) {
         console.log("this if is called 1", "handleMemberChange");
         setAddMembers((prev) =>
@@ -722,7 +722,7 @@ function Documents() {
       <Snackbar
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         open={snackbarOpen}
-        autoHideDuration={5000}
+        autoHideDuration={7000}
         onClose={() => setSnackbarOpen(false)}
         TransitionComponent={(props) => <Slide {...props} direction="left" />}
       >
