@@ -45,7 +45,7 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
   const navigate = useNavigate();
   const location = useLocation();
   const collapseName = location.pathname.replace("/", "");
-  const { logoutSuccess, UserData } = useAuth();
+  const { logoutSuccess, UserData, sideBarCount } = useAuth();
   //Praveen Change
   const [openCollapse, setOpenCollapse] = useState(null);
   const [categoryDetails, setCategoryDetails] = useState([]);
@@ -64,35 +64,35 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
   const closeSidenav = () => setMiniSidenav(dispatch, true);
 
   // Working on this not to be deleted (18-01-2024)
-  // useEffect(() => {
-  //   if (sideBarCount) {
-  //     handleFileCount();
-  //   }
+  useEffect(() => {
+    if (sideBarCount) {
+      handleFileCount();
+    }
 
-  // },)
+  },)
 
-  // const handleFileCount = async () => {
-  //   const userId = UserData?.id;
-  //   try {
-  //     const { data } = await findUser(userId);
-  //     if (data?.response?.categoryDetails) {
-  //       const extractedData = data.response.categoryDetails.map((categoryDetails) => ({
-  //         categoryId: categoryDetails.categoryId,
-  //         categoryName: categoryDetails.categoryName,
-  //         fileCount: categoryDetails.fileCount
-  //       }));
-  //       setCategoryDetails(extractedData);
+  const handleFileCount = async () => {
+    const userId = UserData?.id;
+    try {
+      const { data } = await findUser(userId);
+      if (data?.response?.categoryDetails) {
+        const extractedData = data.response.categoryDetails.map((categoryDetails) => ({
+          categoryId: categoryDetails.categoryId,
+          categoryName: categoryDetails.categoryName,
+          fileCount: categoryDetails.fileCount
+        }));
+        setCategoryDetails(extractedData);
 
-  //     }
+      }
 
 
-  //   } catch (err) {
-  //     console.error("API call failed:", err);
-  //   } finally {
-  //     // countUnsuccess();
-  //   }
+    } catch (err) {
+      console.error("API call failed:", err);
+    } finally {
+      // countUnsuccess();
+    }
 
-  // }
+  }
 
   useEffect(() => {
 
