@@ -55,6 +55,7 @@ export const AuthProvider = ({ children }) => {
         FamilyMemberData,
         setFamilyMemberData,
         sideBarCount,
+        setSideBarCount,
         countSuccess: () => setSideBarCount(true),
         countUnSuccess: () => setSideBarCount(false)
 

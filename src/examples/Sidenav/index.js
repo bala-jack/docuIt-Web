@@ -45,7 +45,7 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
   const navigate = useNavigate();
   const location = useLocation();
   const collapseName = location.pathname.replace("/", "");
-  const { logoutSuccess, UserData, sideBarCount } = useAuth();
+  const { logoutSuccess, UserData, sideBarCount, setSideBarCount } = useAuth();
   //Praveen Change
   const [openCollapse, setOpenCollapse] = useState(null);
   const [categoryDetails, setCategoryDetails] = useState([]);
@@ -82,6 +82,7 @@ function Sidenav({ children, color, brand, brandName, routes, ...rest }) {
           fileCount: categoryDetails.fileCount
         }));
         setCategoryDetails(extractedData);
+        setSideBarCount(false);
 
       }
 
