@@ -35,7 +35,10 @@ export const DOCUIT_FAMILY_SCREEN = {
     family_familytable_actions: "Actions",
     family_usertable_member: "Family Member",
     family_usertable_createdat: "Created At",
-    family_usertable_actions: "Actions"
+    family_usertable_actions: "Actions",
+    family_usermanage_delete: "Memebers deleted successfully",
+    family_usermanage_deleteDialog: "Confirm Delete",
+    family_usermanage_deletecontent: "Are you sure you want to delete this Member?"
 }
 
 export const DOCUIT_PROFILE_SCREEN = {

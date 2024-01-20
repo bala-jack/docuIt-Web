@@ -1,8 +1,5 @@
 import axios from "axios"
 import { BASE_URL } from "./config"
-import { useAuth } from "context/AuthContext"
-
-
 
 const axiosInstance = axios.create({
     baseURL: BASE_URL,
@@ -159,13 +156,16 @@ export const listFamilyMembers = async (param) => {
     }
     return await axiosInstance.get(`family/listFamilyMembers?familyId=` + param);
 }
+
 export const removeFamilyMembers = async (params) => {
-    const token = localStorage.getItem('docuItToken')
-    if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
-        axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return await axiosInstance.get(`family/removeFamilyMembers`, params);
+    console.log("params", params);
+    // const token = localStorage.getItem('docuItToken')
+    // if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer${token}`) {
+    //     axiosInstance.defaults.headers['Authorization'] = `Bearer${token}`;
+    // }
+    return await axiosInstance.delete(`family/removeFamilyMembers`, { data: params });
 }
+
 export const inviteUser = async (params) => {
     const token = localStorage.getItem('docuItToken')
     if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
@@ -279,8 +279,8 @@ export const userdashboard = async (params) => {
 
 export const changePin = async (params) => {
     const token = localStorage.getItem('docuItToken')
-    if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${ token }`) {
-        axiosInstance.defaults.headers['Authorization'] = `Bearer ${ token }`;
+    if (token && axiosInstance.defaults.headers['Authorization'] !== `Bearer ${token}`) {
+        axiosInstance.defaults.headers['Authorization'] = `Bearer ${token}`;
     }
     return await axiosInstance.post(`auth/changePin`, params);
 }

@@ -7,7 +7,7 @@ import { listFamily, editFamily, deleteFamily, addFamily } from "services";
 import { useAuth } from "context/AuthContext";
 import '../family/listfamily.css';
 import '../family/family.scss';
-import { listFamilyMembers } from 'services';
+import { listFamilyMembers, removeFamilyMembers } from 'services';
 // import { inviteUser } from 'services';
 import MDButton from 'components/MDButton';
 import 'react-phone-input-2/lib/style.css'
@@ -24,6 +24,7 @@ import { Grid } from "react-loader-spinner";
 import Backdrop from '@mui/material/Backdrop';
 import { getFamilyWithMembers } from 'services';
 import familyIcon from "assets/images/family_icon.webp";
+import { DOCUIT_FAMILY_SCREEN } from 'utilities/strings'
 
 function Family() {
      const { UserData, setFamilyMemberData, FamilyMemberData, setListFamily } = useAuth();
@@ -55,6 +56,7 @@ function Family() {
      const [isLoading, setIsLoading] = useState(false);
      const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
      const [deleteFamilyId, setDeleteFamilyId] = useState([])
+     const [deleteMemberId, setDeleteMemberId] = useState([])
 
 
      useEffect(() => {
@@ -356,6 +358,41 @@ function Family() {
 
      const uniqueFamilyNames = Array.from(new Set(familyMemberData.map(item => item.family.name)))
 
+     const handleRemoveMembers = async (memberId) => {
+          setIsLoading(true)
+
+          try {
+               const payload = { memberIds: [memberId] };
+               console.log(payload);
+               const { data } = await removeFamilyMembers(payload)
+
+               if (data.status === 'SUCCESS') {
+                    setfamilyMemberData(prevData => prevData.filter(item => item.id !== memberId));
+                    setTimeout(() => {
+                         setIsLoading(false)
+                    }, 1000);
+                    handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_usermanage_delete, 'success')
+               }
+          } catch (err) {
+               console.log("error", err);
+               handleSnackbarOpen("Error member Delete", 'error')
+
+          } finally {
+               setDeleteDialogOpen(false);
+
+          }
+
+     }
+     const openDeleteDialogMember = (memberId) => {
+          setDeleteMemberId(memberId);
+          setDeleteDialogOpen(true);
+     }
+
+     const closeDeleteDialogMember = () => {
+          setDeleteDialogOpen(false);
+          setDeleteMemberId(null);
+     }
+
      return (
           <DashboardLayout className='mainContent'>
                <DashboardNavbar />
@@ -633,7 +670,21 @@ function Family() {
                          <MDBox className="mdbboxfamily">
                               <div className="addbtn">
                                    {familyMemberData.length === 0 ? (
-                                        <h2>No Family Users</h2>
+                                        <Card sx={{
+                                             minWidth: '100%', minHeight: '50vh',
+                                             textAlign: 'center', alignItems: 'center'
+                                        }}>
+                                             <div style={{ margin: 'auto' }}>
+                                                  <img style={{ maxHeight: 100, maxWidth: 100 }}
+                                                       src={familyIcon}
+                                                       alt='familyIcon' />
+                                                  <h2> No family members added yet </h2>
+                                                  <span>
+                                                       Invite members to your family for sharing your
+                                                  </span>
+                                             </div>
+                                        </Card>
+
                                    ) : (
                                         <>
                                              {uniqueFamilyNames.map((name, index) => (
@@ -668,66 +719,44 @@ function Family() {
                                                                       {formatDate(item.user.createdAt)}
                                                                  </TableCell>
                                                                  <TableCell align='center'>
-                                                                      {console.log("item.inviteS", item.inviteStatus)}
+                                                                      {console.log("item.inviteS", item)}
                                                                       {item.inviteStatus === 'Invited' ? (
-                                                                           <div>
-                                                                                {/* <Button className="btn-delete"><Icon>add_reaction</Icon></Button> */}
-                                                                                <span> - </span>
-                                                                           </div>
+                                                                           <Tooltip title="Invited" placement='top' sx={{ m: 1, cursor: 'pointer' }}>
+                                                                                <Icon style={{ color: 'black', fontSize: editDeleteIconSize }}>add_reaction</Icon>
+                                                                           </Tooltip>
                                                                       ) : null}
                                                                       {UserData.id === familyItems.createdBy && item.inviteStatus === 'Accepted' ? (
-                                                                           <div>
-                                                                                <Button className="btn-delete" onClick={() => handleDelete()}><Icon>delete</Icon></Button>
-                                                                           </div>
+                                                                           <Tooltip title="Delete" placement='top' sx={{ m: 1, cursor: 'pointer' }} >
+
+                                                                                <DeleteIcon style={{ color: 'black', fontSize: editDeleteIconSize }} onClick={() => openDeleteDialogMember(item.id)}></DeleteIcon>
+                                                                           </Tooltip>
                                                                       ) : null}
+
+
                                                                  </TableCell>
                                                             </TableRow>
                                                        ))}
                                                   </TableBody>
                                              </Table>
                                         </TableContainer>
-                                        {/* {invitePop && (
-                                             <div className="overlay" onClick={closePopup}>
-                                                  <div className="popup" onClick={preventClose}>
-                                                       <div className="popup-content">
-                                                            <div className='pop-input-div'>
-                                                                 <form>
-                                                                      <MDBox mb={2}>
-                                                                           <h3>Invite User</h3>
-                                                                           <Input
-                                                                                placeholder="Phone Number"
-                                                                                label="phoneNumbers"
-                                                                                country={'in'}
-                                                                                value={phoneNumbers}
-                                                                                fullWidth
-                                                                                onChange={(e) => handleInviteChange(e.target.value)}
-                                                                                inputProps={{
-                                                                                     required: true,
-                                                                                }}
-                                                                           />
-                                                                      </MDBox>
-                                                                 </form>
-                                                                 <MDBox mt={4} mb={1}>
-                                                                      {familyData.length > 0 && (
-                                                                           <MDButton
-                                                                                key={familyData[0].id}
-                                                                                type="submit"
-                                                                                variant="gradient"
-                                                                                onClick={(e) => handleInviteSubmit(familyData.map((item) => item.id))}
-                                                                                color="docuit"
-                                                                                fullWidth
-                                                                                disabled={!enabled}
-                                                                           >
-                                                                                {console.log("familyData[0].id", familyData)}
-                                                                                Invite
-                                                                           </MDButton>
-                                                                      )}
-                                                                 </MDBox>
-                                                            </div>
-                                                       </div>
-                                                  </div>
-                                             </div>
-                                        )} */}
+                                        <Dialog
+                                             open={isDeleteDialogOpen}
+                                             onClose={closeDeleteDialogMember}
+                                             fullWidth
+                                             maxWidth="xs"
+                                        >
+
+                                             <DialogTitle>{DOCUIT_FAMILY_SCREEN.family_usermanage_deleteDialog}</DialogTitle>
+                                             <DialogContent>
+                                                  {DOCUIT_FAMILY_SCREEN.family_usermanage_deletecontent}
+                                             </DialogContent>
+                                             <DialogActions>
+                                                  <Button onClick={closeDeleteDialogMember}>Cancel</Button>
+                                                  <Button onClick={() => handleRemoveMembers(deleteMemberId)}>Delete</Button>
+                                             </DialogActions>
+
+                                        </Dialog>
+
                                    </div>
                               </Card>
                          </MDBox>

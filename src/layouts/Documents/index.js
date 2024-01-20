@@ -90,11 +90,6 @@ function Documents() {
   const [selectedFamilies, setSelectedFamilies] = useState([]);
   // const [selectedMembers, setSelectedMembers] = useState({});
   const [familydata, setFamilydata] = useState([]);
-  let [expandedFamilies, setExpandedFamilies] = useState([]);
-  let [selectedFamilyIds, setSelectedFamilyIds] = useState([]);
-  let [addMembers, setAddMembers] = useState([]);
-  let [revokeMembers, setRevokeMembers] = useState([]);
-  const [memberData, setMembersData] = useState([]);
   const [uploadFile, setUploadFile] = useState({});
 
   // Sharedocuments
@@ -102,6 +97,12 @@ function Documents() {
   const [FamilyListWithMembers, setFamilyListWithMembers] = useState([]);
   const [FamilyMembers, setFamilyMembers] = useState([]);
   const [docDetails, setDocDetails] = useState([]);
+  let [expandedFamilies, setExpandedFamilies] = useState([]);
+  let [selectedFamilyIds, setSelectedFamilyIds] = useState([]);
+  let [unselectedfamilyIds, setUnselectedFamilyIds] = useState([]);
+  let [addMembers, setAddMembers] = useState([]);
+  let [revokeMembers, setRevokeMembers] = useState([]);
+  const [memberData, setMembersData] = useState([]);
 
   // snackbar.
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -514,11 +515,10 @@ function Documents() {
   const handleFamilyChange = (familyIndex, familyDetail) => () => {
     // Toggle the selected family
     const isSelected = selectedFamilies.includes(familyIndex);
-    setSelectedFamilies((prevSelected) =>
-      isSelected
-        ? prevSelected.filter((index) => index !== familyIndex)
-        : [...prevSelected, familyIndex]
-    );
+    setSelectedFamilies((prevSelected) => isSelected ? prevSelected.filter((index) => index !== familyIndex) : [...prevSelected, familyIndex]);
+    // Update unselectedFamilyIds based on the checkbox state
+    setUnselectedFamilyIds((prevUnselected) => isSelected ? [...prevUnselected, familyIndex] : prevUnselected.filter((index) => index !== familyIndex))
+
     // Assuming you have some state to track expanded families
     const newExpandedFamilies = [...expandedFamilies];
 
@@ -532,149 +532,201 @@ function Documents() {
         newExpandedFamilies.splice(indexToRemove, 1);
       }
     }
-
     // Update the state to reflect the changes
     setExpandedFamilies(newExpandedFamilies);
   };
 
-  const handleMemberChange =
-    (memberId, familyDetail) => (e) => {
-      console.log(familyDetail);
-      let membersList = familyDetail.membersList.filter(
-        (filterItem) => filterItem.user.id !== userId
+  // const handleMemberChange =
+  //   (familyIndex, memberId, familyDetail) => (e) => {
+  //     let membersList = familyDetail.membersList.filter(
+  //       (filterItem) => filterItem.user.id !== userId
+  //     );
+  //     console.log('membersList', membersList, addMembers)
+  //     if (addMembers.includes(`${memberId}`)) {
+  //       console.log("this if is called 1", "handleMemberChange");
+  //       setAddMembers((prev) =>
+  //         prev.filter((filterItem) => filterItem !== memberId)
+  //       );
+  //       let value = memberData.filter((itm) => itm.id !== `${memberId}`);
+  //       if (value.includes(`${memberId}`)) {
+  //         // console.log("if this is called members are revoked", "handleMemberChange");
+  //         setRevokeMembers((prevRevokeMembers) => [
+  //           ...prevRevokeMembers,
+  //           `${memberId}`,
+  //         ]);
+  //         setSelectedFamilyIds(prev => prev.filter(selectedFamilyId => selectedFamilyId !== familyDetail.id));
+  //         setUnselectedFamilyIds(prev => [...prev, familyDetail.id]);
+  //       }
+  //       console.log(">>>>>>>>>", value, value.length)
+  //       console.log(value.length === 0 && selectedFamilyIds.includes(familyDetail.id));
+  //       if (value.length === 0 && selectedFamilyIds.includes(familyDetail.id)) {
+  //         console.log("this if is called 3", "handleMemberChange", familyDetail.id);
+  //         setSelectedFamilyIds((prev) => prev.filter((selectedFamilyId) => selectedFamilyId !== familyDetail.id));
+  //         setUnselectedFamilyIds(prev => [...prev, familyDetail.id]);
+  //         setRevokeMembers(prev => prev.filter(filterItem => filterItem !== memberId));
+
+  //       }
+  //       let isCheckWholeFamily =
+  //         membersList.length &&
+  //         membersList.every((memberItem) => addMembers.includes(memberItem.id));
+  //       isCheckWholeFamily &&
+  //         setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
+  //           setUnselectedFamilyIds((prev) => prev.filter((unSelectedFamilyId) => unSelectedFamilyId !== familyDetail.id));
+  //     } else {
+  //       console.log("this else is called", "handleMemberChange");
+  //       addMembers = [...addMembers, `${memberId}`];
+  //       setAddMembers(addMembers);
+  //       setRevokeMembers((prev) =>
+  //         prev.filter((filterItem) => filterItem !== memberId)
+  //       );
+  //       let isCheckWholeFamily =
+  //         membersList.length &&
+  //         membersList.every((memberItem) => addMembers.includes(memberItem.id));
+  //       isCheckWholeFamily &&
+  //         setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
+  //       if (!selectedFamilyIds.includes(familyDetail.id)) {
+  //         setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
+  //         setRevokeMembers((prev) =>
+  //           prev.filter((filterItem) => filterItem !== memberId)
+  //         );
+  //       }
+  //     }
+  //   };
+
+  const handleMemberChange = (familyIndex, memberId, familyDetail) => (e) => {
+    let membersList = familyDetail.membersList.filter(
+      (filterItem) => filterItem.user.id !== userId
+    );
+    console.log('membersList', membersList, addMembers);
+
+    if (addMembers.includes(`${memberId}`)) {
+      console.log("this if is called 1", "handleMemberChange");
+
+      setAddMembers((prev) =>
+        prev.filter((filterItem) => filterItem !== memberId)
       );
-      console.log('membersList', membersList, addMembers)
-      if (addMembers.includes(`${memberId}`)) {
-        console.log("this if is called 1", "handleMemberChange");
-        setAddMembers((prev) =>
-          prev.filter((filterItem) => filterItem !== memberId)
+
+      let value = memberData.filter((itm) => itm.id !== `${memberId}`);
+
+      if (value.includes(`${memberId}`)) {
+        console.log("if this is called members are revoked", "handleMemberChange");
+
+        setRevokeMembers((prevRevokeMembers) => [
+          ...prevRevokeMembers,
+          `${memberId}`,
+        ]);
+
+        setSelectedFamilyIds((prev) =>
+          prev.filter((selectedFamilyId) => selectedFamilyId !== familyDetail.id)
         );
-        let value = memberData.filter((itm) => itm.id !== `${memberId}`);
-        if (value.includes(`${memberId}`)) {
-          // console.log("if this is called members are revoked", "handleMemberChange");
-          setRevokeMembers((prevRevokeMembers) => [
-            ...prevRevokeMembers,
-            `${memberId}`,
-          ]);
-          setSelectedFamilyIds(prev => prev.filter(selectedFamilyId => selectedFamilyId !== familyDetail.id));
-        }
-        console.log(">>>>>>>>>", value, value.length)
-        console.log(value.length === 0 && selectedFamilyIds.includes(familyDetail.id));
-        if (value.length === 0 && selectedFamilyIds.includes(familyDetail.id)) {
-          console.log("this if is called 3", "handleMemberChange", familyDetail.id);
-          setSelectedFamilyIds((prev) =>
-            prev.filter(
-              (selectedFamilyId) => selectedFamilyId !== familyDetail.id
-            )
-          );
-          setRevokeMembers(prev => prev.filter(filterItem => filterItem !== memberId))
-        }
-        let isCheckWholeFamily =
-          membersList.length &&
-          membersList.every((memberItem) => addMembers.includes(memberItem.id));
-        isCheckWholeFamily &&
-          setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
-      } else {
-        console.log("this else is called", "handleMemberChange");
-        addMembers = [...addMembers, `${memberId}`];
-        setAddMembers(addMembers);
+        setUnselectedFamilyIds((prev) => [...prev, familyDetail.id]);
+      }
+
+      console.log(">>>>>>>>>", value, value.length);
+
+      if (value.length === 0 && selectedFamilyIds.includes(familyDetail.id)) {
+        console.log("this if is called 3", "handleMemberChange", familyDetail.id);
+
+        setSelectedFamilyIds((prev) =>
+          prev.filter((selectedFamilyId) => selectedFamilyId !== familyDetail.id)
+        );
+        setUnselectedFamilyIds((prev) => [...prev, familyDetail.id]);
+
         setRevokeMembers((prev) =>
           prev.filter((filterItem) => filterItem !== memberId)
         );
-        let isCheckWholeFamily =
-          membersList.length &&
-          membersList.every((memberItem) => addMembers.includes(memberItem.id));
-        isCheckWholeFamily &&
-          setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
-        if (!selectedFamilyIds.includes(familyDetail.id)) {
-          setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
-          setRevokeMembers((prev) =>
-            prev.filter((filterItem) => filterItem !== memberId)
-          );
-        }
       }
-    };
+
+      let isCheckWholeFamily = membersList.length && membersList.every((memberItem) => addMembers.includes(memberItem.id));
+
+      if (isCheckWholeFamily) {
+        setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
+        setUnselectedFamilyIds((prev) => prev.filter((unSelectedFamilyId) => unSelectedFamilyId !== familyDetail.id));
+      }
+    }
+    else {
+      console.log("this else is called", "handleMemberChange");
+
+      addMembers = [...addMembers, `${memberId}`];
+      setAddMembers(addMembers);
+
+      setRevokeMembers((prev) =>
+        prev.filter((filterItem) => filterItem !== memberId)
+      );
+
+      let isCheckWholeFamily =
+        membersList.length &&
+        membersList.every((memberItem) => addMembers.includes(memberItem.id));
+
+      if (isCheckWholeFamily) {
+        setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
+        setUnselectedFamilyIds((prev) => prev.filter((unSelectedFamilyId) => unSelectedFamilyId !== familyDetail.id));
+      }
+
+      if (!selectedFamilyIds.includes(familyDetail.id)) {
+        setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
+        setUnselectedFamilyIds((prev) => prev.filter((unSelectedFamilyId) => unSelectedFamilyId !== familyDetail.id))
+        setRevokeMembers((prev) =>
+          prev.filter((filterItem) => filterItem !== memberId)
+        );
+      }
+    }
+  };
 
   const isFamilySelected = (familyIndex) => {
     return selectedFamilies.includes(familyIndex);
   };
 
-  // const isMemberSelected = (familyIndex, memberId) => {
-  //   return (selectedMembers[familyIndex] || []).includes(memberId);
-  // };
-
-
-  // const handleCheckboxChange = (familyDetail) => {
-  //   let membersList = familyDetail.membersList.filter(
-  //     (filterItem) => filterItem.user.id !== userId
-  //   );
-
-  //   console.log('membersList', membersList, addMembers, item.name)
-  //   let isCheckWholeFamily =
-  //     membersList.length &&
-  //     membersList.every((memberItem) => addMembers.includes(memberItem.id));
-
-  //   let memberIds = familyDetail.membersList.map((item) => item.id);
-
-  //   if (selectedFamilyIds.includes(familyDetail.id)) {
-  //     let updatedFamilyIds = selectedFamilyIds.filter(
-  //       (familyItem) => familyItem != familyDetail.id
-  //     );
-  //     let updatedMemberIds = addMembers.filter(
-  //       (memberItem) => !memberIds.includes(memberItem)
-  //     );
-  //     setAddMembers(updatedMemberIds);
-  //     console.log("if state called >>>>>>> ")
-  //     setSelectedFamilyIds(updatedMemberIds);
-  //     setRevokeMembers((prevRevokeMembers) => [
-  //       ...prevRevokeMembers,
-  //       ...memberIds,
-  //     ]);
-  //     setSelectedFamilyIds(updatedFamilyIds);
-  //   } else {
-  //     console.log("else state called >>>>>>> ")
-  //     let updatedFamilyIds = [...selectedFamilyIds, familyDetail.id];
-  //     let updatedMemberIds = [...addMembers, ...memberIds];
-  //     setSelectedFamilyIds(updatedFamilyIds);
-  //     setAddMembers((prev) => (prev = [...prev, ...memberIds]));
-  //     setRevokeMembers((prevRevokeMembers) =>
-  //       prevRevokeMembers.filter(
-  //         (memberItem) => !memberIds.includes(memberItem)
-  //       )
-  //     );
-  //   }
-  // };
 
   const handleCheckboxChange = (familyDetail) => {
-    const memberIds = familyDetail.membersList.map((item) => item.id);
+    let membersList = familyDetail.membersList.filter(
+      (filterItem) => filterItem.user.id !== userId
+    );
+    console.log('membersList', membersList, addMembers)
+    // let isCheckWholeFamily =
+    //   membersList.length &&
+    //   membersList.every((memberItem) => addMembers.includes(memberItem.id));
+    let memberIds = familyDetail.membersList.map((item) => item.id);
 
     if (selectedFamilyIds.includes(familyDetail.id)) {
-      // Family is selected, unselect it
+      // Family is selected, unselect it.
       const updatedFamilyIds = selectedFamilyIds.filter((id) => id !== familyDetail.id);
+      const removedFamilyIds = selectedFamilyIds.filter((id) => !updatedFamilyIds.includes(id));
       const updatedMemberIds = addMembers.filter((memberId) => !memberIds.includes(memberId));
+      const removedMemberIds = addMembers.filter((memberId) => !updatedMemberIds.includes(memberId));
 
       setAddMembers(updatedMemberIds);
+      setSelectedFamilyIds(updatedMemberIds);
+      setUnselectedFamilyIds(removedMemberIds)
+      setRevokeMembers((prevRevokeMembers) => [...prevRevokeMembers, ...memberIds,]);
       setSelectedFamilyIds(updatedFamilyIds);
-      setRevokeMembers((prevRevokeMembers) => [...prevRevokeMembers, ...memberIds]);
+      setUnselectedFamilyIds(removedFamilyIds);
     } else {
       // Family is not selected, select it
-      const updatedFamilyIds = [...selectedFamilyIds, familyDetail.id];
-      const updatedMemberIds = [...addMembers, ...memberIds];
+      let updatedFamilyIds = [...selectedFamilyIds, familyDetail.id];
+      const removedFamilyIds = selectedFamilyIds.filter((id) => !updatedFamilyIds.includes(id));
+      let updatedMemberIds = [...addMembers, ...memberIds];
 
       setSelectedFamilyIds(updatedFamilyIds);
+      setUnselectedFamilyIds(removedFamilyIds);
       setAddMembers(updatedMemberIds);
+      setAddMembers((prev) => (prev = [...prev, ...memberIds]));
       setRevokeMembers((prevRevokeMembers) =>
         prevRevokeMembers.filter((memberId) => !memberIds.includes(memberId))
       );
     }
   };
 
+  console.log("unSelectedFamilyIds.....", unselectedfamilyIds);
+
   const handleShareDoc = async () => {
     try {
       const userId = UserData?.id;
-      const uniqueFamilyIds = [...new Set(selectedFamilyIds)];
+      const uniqueFamilyIdsSet = new Set([...selectedFamilyIds, ...unselectedfamilyIds]);
+      const uniqueFamilyIds = [...uniqueFamilyIdsSet];
       const uniqueAddMembers = [...new Set(addMembers)];
       const uniqueRevokembers = [...new Set(revokeMembers)];
+      console.log("uniqueFamilyIds..........", uniqueFamilyIds);
       console.log("revokemembers........", revokeMembers, uniqueRevokembers);
       console.log("addMembers........", addMembers, uniqueAddMembers);
       console.log("docdetialskkssssss", docDetails);
@@ -692,14 +744,11 @@ function Documents() {
       console.log('updateDocument"""""":', data);
       if (data.status === "SUCCESS") {
         setopenShare(false);
-        countSuccess();
-        localStorage.setItem('shareApiSuccess', 'true');
-        //   console.log("data-----updateDocument", data);
+        console.log("data-----updateDocument", data);
       }
     } catch (err) {
       console.error("Error Upload Docs:", err);
       setIsLoading(false);
-      countUnSuccess();
     }
   };
 
