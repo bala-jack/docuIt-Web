@@ -34,16 +34,16 @@ import { DOCUIT_DOCUMENT_SCREEN } from 'utilities/strings';
 
 const Accordion = styled((props) => (
   <MuiAccordion disableGutters elevation={0} square {...props} />
-))
-  (({ theme }) => ({
-    border: `1px solid ${theme.palette.divider}`,
-    "&:not(:last-child)": {
-      borderBottom: 0,
-    },
-    "&:before": {
-      display: "none",
-    },
-  }));
+))(({ theme }) => ({
+  border: `1px solid ${theme.palette.divider}`,
+  "&:not(:last-child)": {
+    borderBottom: 0,
+  },
+  "&:before": {
+    content: "none",
+  },
+}));
+
 
 const AccordionSummary = styled((props) => (
   <MuiAccordionSummary
@@ -142,7 +142,7 @@ function Documents() {
     handleShareDoc();
   }, [userId, category]);
 
-  const fetchData = async () => {
+  const fetchData = (async () => {
     try {
       const categoryId = category.categoryId;
       console.log("categoryIds >>>>", category);
@@ -156,7 +156,7 @@ function Documents() {
     } catch (error) {
       console.error("API call failed:", error);
     }
-  };
+  });
 
   const handleFileChange = async (event) => {
     let files;
@@ -171,9 +171,9 @@ function Documents() {
       }
 
       let validFiles = files.filter(file => file.size <= 5 * 1024 * 1024);
-      console.log("filterList:: ::::::::", validFiles);
+      // console.log("filterList:: ::::::::", validFiles);
       let invalidFiles = files.filter(file => file.size > 5 * 1024 * 1024);
-      console.log("invalidFiles:: ::::::::", invalidFiles);
+      // console.log("invalidFiles:: ::::::::", invalidFiles);
 
       if (validFiles && validFiles.length !== 0 && files.length <= 5) {
         for (let index = 0; index < validFiles.length; index++) {
@@ -185,12 +185,12 @@ function Documents() {
       }
 
       else {
-        throw new Error("More than 5 files selected. Please select up to 5 files.");
+        throw new Error(DOCUIT_DOCUMENT_SCREEN.document_filesize_warning);
       }
     }
     catch (error) {
-      console.error(error.message ?? "Error unable to upload documents. Please retry.");
-      handleSnackbarOpen(error.message ?? "Error unable to upload documents. Please retry.", 'error');
+      console.error(error.message ?? DOCUIT_DOCUMENT_SCREEN.document_upload_error);
+      handleSnackbarOpen(error.message ?? DOCUIT_DOCUMENT_SCREEN.document_upload_error, 'error');
       setIsLoading(false);
     }
   };
@@ -248,7 +248,7 @@ function Documents() {
             if (invalidFiles?.length !== 0) {
               setTimeout(() => {
                 handleSnackbarOpen(`Unable to upload ${invalidFiles.map(item => `'${item.name}'`).join(', ')} due to size exceeding 5MB.`, 'warning');
-              }, 2000)
+              }, 3000)
             }
           }
         }
@@ -257,7 +257,7 @@ function Documents() {
     }
     catch (error) {
       console.error(error.message ?? "File upload error, retry");
-      handleSnackbarOpen(error.message ?? "File upload error, retry", 'error');
+      handleSnackbarOpen(error.message ?? DOCUIT_DOCUMENT_SCREEN.document_upload_error, 'error');
       countUnSuccess();
     }
     finally {
@@ -283,7 +283,7 @@ function Documents() {
   const handleMove = async (item) => {
     setIsLoading(true);
     if (!item || !targetCategory) {
-      handleSnackbarOpen("Please select a document and a target category.", 'error');
+      handleSnackbarOpen(DOCUIT_DOCUMENT_SCREEN.document_move_selectfile_error, 'error');
       return;
     } else {
       try {
@@ -306,12 +306,16 @@ function Documents() {
           setopenMove(false);
           setTimeout(() => {
             setIsLoading(false);
+            handleSnackbarOpen(DOCUIT_DOCUMENT_SCREEN.document_move_success, 'success');
           }, 1000);
           fetchData();
         }
       } catch (error) {
         console.error("Error Upload Docs:", error);
-        setIsLoading(false);
+        setTimeout(() => {
+          setIsLoading(false);
+          handleSnackbarOpen(DOCUIT_DOCUMENT_SCREEN.document_move_error, 'error');
+        }, 1000);
       }
     }
   }
@@ -344,6 +348,7 @@ function Documents() {
 
   const handleDelete = async (documentId) => {
     try {
+      setIsLoading(true);
       console.log("Item>>>", documentId);
       const DocumentId = documentId.documentId;
       const { data } = await deleteDocument(DocumentId);
@@ -356,7 +361,8 @@ function Documents() {
         setTimeout(() => {
           setIsLoading(false);
           handleSnackbarOpen(DOCUIT_DOCUMENT_SCREEN.document_delete_success, 'success');
-        }, 5000);
+        }, 1000);
+
       }
     } catch (err) {
       console.error("Error Upload Docs:", err);
@@ -419,6 +425,7 @@ function Documents() {
         setMembersData(memberIdArray);
         // console.log(">>>>>>>1>>>>>", memberIdArray);
         setFamilydata([...new Set(response.data.response.sharedDetails.map(item => item.member.family.id))])
+        console.log(familydata);
         setSelectedFamilyIds([
           ...new Set(
             response.data.response.sharedDetails
@@ -535,63 +542,6 @@ function Documents() {
     // Update the state to reflect the changes
     setExpandedFamilies(newExpandedFamilies);
   };
-
-  // const handleMemberChange =
-  //   (familyIndex, memberId, familyDetail) => (e) => {
-  //     let membersList = familyDetail.membersList.filter(
-  //       (filterItem) => filterItem.user.id !== userId
-  //     );
-  //     console.log('membersList', membersList, addMembers)
-  //     if (addMembers.includes(`${memberId}`)) {
-  //       console.log("this if is called 1", "handleMemberChange");
-  //       setAddMembers((prev) =>
-  //         prev.filter((filterItem) => filterItem !== memberId)
-  //       );
-  //       let value = memberData.filter((itm) => itm.id !== `${memberId}`);
-  //       if (value.includes(`${memberId}`)) {
-  //         // console.log("if this is called members are revoked", "handleMemberChange");
-  //         setRevokeMembers((prevRevokeMembers) => [
-  //           ...prevRevokeMembers,
-  //           `${memberId}`,
-  //         ]);
-  //         setSelectedFamilyIds(prev => prev.filter(selectedFamilyId => selectedFamilyId !== familyDetail.id));
-  //         setUnselectedFamilyIds(prev => [...prev, familyDetail.id]);
-  //       }
-  //       console.log(">>>>>>>>>", value, value.length)
-  //       console.log(value.length === 0 && selectedFamilyIds.includes(familyDetail.id));
-  //       if (value.length === 0 && selectedFamilyIds.includes(familyDetail.id)) {
-  //         console.log("this if is called 3", "handleMemberChange", familyDetail.id);
-  //         setSelectedFamilyIds((prev) => prev.filter((selectedFamilyId) => selectedFamilyId !== familyDetail.id));
-  //         setUnselectedFamilyIds(prev => [...prev, familyDetail.id]);
-  //         setRevokeMembers(prev => prev.filter(filterItem => filterItem !== memberId));
-
-  //       }
-  //       let isCheckWholeFamily =
-  //         membersList.length &&
-  //         membersList.every((memberItem) => addMembers.includes(memberItem.id));
-  //       isCheckWholeFamily &&
-  //         setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
-  //           setUnselectedFamilyIds((prev) => prev.filter((unSelectedFamilyId) => unSelectedFamilyId !== familyDetail.id));
-  //     } else {
-  //       console.log("this else is called", "handleMemberChange");
-  //       addMembers = [...addMembers, `${memberId}`];
-  //       setAddMembers(addMembers);
-  //       setRevokeMembers((prev) =>
-  //         prev.filter((filterItem) => filterItem !== memberId)
-  //       );
-  //       let isCheckWholeFamily =
-  //         membersList.length &&
-  //         membersList.every((memberItem) => addMembers.includes(memberItem.id));
-  //       isCheckWholeFamily &&
-  //         setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
-  //       if (!selectedFamilyIds.includes(familyDetail.id)) {
-  //         setSelectedFamilyIds((prev) => [...prev, familyDetail.id]);
-  //         setRevokeMembers((prev) =>
-  //           prev.filter((filterItem) => filterItem !== memberId)
-  //         );
-  //       }
-  //     }
-  //   };
 
   const handleMemberChange = (familyIndex, memberId, familyDetail) => (e) => {
     let membersList = familyDetail.membersList.filter(
@@ -811,8 +761,8 @@ function Documents() {
       </div>
 
       <Dialog open={openAfterShare} onClose={handleClose}>
-        <DialogTitle>Share Document</DialogTitle>
-        <DialogContent>Do you want to share this document?</DialogContent>
+        <DialogTitle>{DOCUIT_DOCUMENT_SCREEN.document_dialog_title}</DialogTitle>
+        <DialogContent>{DOCUIT_DOCUMENT_SCREEN.document_sharepopup_content}</DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleAfterUpload}>Share</Button>
@@ -823,9 +773,9 @@ function Documents() {
         <Card sx={{ minWidth: '100%', minHeight: '50vh', textAlign: 'center', alignItems: 'center' }}>
           <div style={{ margin: 'auto' }}>
             <img style={{ maxHeight: 100, maxWidth: 100 }} src={NoDocumentsFoundImage} alt='No_Documents_Found_Image' />
-            <h2>No documents uploaded or shared yet</h2>
+            <h2>{DOCUIT_DOCUMENT_SCREEN.document_nodocs_head}</h2>
             <span>
-              Upload documents to view and share them.
+              {DOCUIT_DOCUMENT_SCREEN.document_nodocs_msg}
             </span>
           </div>
         </Card>
@@ -871,6 +821,7 @@ function Documents() {
                       <div key={familyIndex}>
                         {/* {console.log('FamilyListwithMembers<<<<<<<<<<<', FamilyListwithMembers, selectedFamilyIds)} */}
                         <Accordion
+                          onClick={(setIsExpanded)}
                           expanded={isFamilySelected(familyIndex)}
                           onChange={handleFamilyChange(familyIndex)}
                         >
@@ -1152,9 +1103,9 @@ function Documents() {
                   </TableRow>
                 ))}
                 <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog}>
-                  <DialogTitle>Confirm Delete</DialogTitle>
+                  <DialogTitle>{DOCUIT_DOCUMENT_SCREEN.document_delete_dialog}</DialogTitle>
                   <DialogContent>
-                    Are you sure you want to delete this document?
+                    {DOCUIT_DOCUMENT_SCREEN.document_delete_content}
                   </DialogContent>
                   <DialogActions>
                     <Button onClick={closeDeleteDialog}>Cancel</Button>

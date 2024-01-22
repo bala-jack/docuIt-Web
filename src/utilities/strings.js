@@ -16,18 +16,22 @@ export const DOCUIT_SIGNUP_SCREEN = {
 }
 
 export const DOCUIT_FAMILY_SCREEN = {
+    family_nofamilies_display: "No families created yet",
+    family_nofamilies_msg: "Create a family to share your critical data.",
     family_header: "Family Management",
     family_popupname: "Enter Family Name",
     family_popuperror: "*Family name cannot have numbers or special characters.",
     family_save_name_changed: "Family Name Changed Successfully",
+    family_changename_pop: "Change familyname",
     family_delete_success: "Family deleted successfully",
     family_common_error: "Error. Please try again!!",
     family_nameAlready_error: "Family name is already registered",
-    family_added_success: "Family Added SuccessFully",
+    family_added_success: "New family created SuccessFully",
     family_save_error: "Error saving family",
     family_delete_dialogTilte: "Confirm Delete",
     family_delete_dialogcontent: "Are you sure you want to delete this Family?",
-    family_usermanage_nousers: "No Family Users",
+    family_usermanage_nousers: "No Family created yet",
+    family_usermanage_nousersmsg: "Invite members to your family for sharing your documents",
     family_usermanage_name: "User Management",
     family_familytable_name: "Family Name",
     family_familytable_createdat: "Created At",
@@ -58,7 +62,6 @@ export const DOCUIT_PROFILE_SCREEN = {
     profile_menu_Unspecified: "Unspecified",
     profile_email_label: "Email",
     profile_phone_label: "Phonenumber"
-
 }
 
 export const DOCUIT_DOCUMENT_SCREEN = {
@@ -69,7 +72,10 @@ export const DOCUIT_DOCUMENT_SCREEN = {
     document_table_share: "Share",
     document_table_actions: "Actions",
     document_upload_success: "Document Upload SuccessFully",
+    document_filesize_warning: "More than 5 files selected. Please select up to 5 files.",
+    document_upload_error: "Error unable to upload documents. Please retry.",
     document_move_success: "Document Moved Successfully",
+    document_move_selectfile_error: "Please select a document and a target category.",
     document_move_error: "Error Moving Documents",
     document_movepop_error: "Something went wrong",
     document_delete_success: "Document Removed Successfully",
@@ -77,12 +83,13 @@ export const DOCUIT_DOCUMENT_SCREEN = {
     document_share: "Error while fetching document details",
     document_share_error: "Error while fetching family members",
     document_sharedoc_error: "Error shared Docs",
-    document_dialog_title: "Want to Share the Document",
-    document_sharepopup_content: "  Are you want to Share this document?",
-    document_nouser_card: "No Data Found",
+    document_dialog_title: "Share this Document",
+    document_sharepopup_content: "Are you want to Share this document?",
     document_share_header: "Share Document",
     document_delete_dialog: "Confirm Delete",
-    document_delete_content: "Are you sure you want to delete this document?"
+    document_delete_content: "Are you sure you want to delete this document?",
+    document_nodocs_head: "No documents uploaded or shared yet",
+    document_nodocs_msg: "Upload documents to view and share them.",
 
 }
 

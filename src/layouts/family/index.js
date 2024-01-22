@@ -24,7 +24,9 @@ import { Grid } from "react-loader-spinner";
 import Backdrop from '@mui/material/Backdrop';
 import { getFamilyWithMembers } from 'services';
 import familyIcon from "assets/images/family_icon.webp";
-import { DOCUIT_FAMILY_SCREEN } from 'utilities/strings'
+import { DOCUIT_FAMILY_SCREEN } from 'utilities/strings';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
+
 
 function Family() {
      const { UserData, setFamilyMemberData, FamilyMemberData, setListFamily } = useAuth();
@@ -118,19 +120,11 @@ function Family() {
           }
      };
 
-     // const handleInvite = () => {
-     //      setInvitePop(true);
-     // }
-
      const handleEditInput = (index, value) => {
           // const updatedData = [...familyData];
           // updatedData[index].name = value;
           setIsEditing(value);
      };
-
-     // const handleInviteUser = async (i) => {
-     //      console.log('cliked-inviteUser')
-     // }
 
      const handleSave = async () => {
           try {
@@ -145,8 +139,9 @@ function Family() {
                     isEditing.trim().toLocaleLowerCase()
                ) {
                     setShowPopup(false);
-                    setIsLoading(false)
-                    handleSnackbarOpen("Family name is already registered", 'error')
+                    setIsLoading(false);
+
+                    handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_nameAlready_error, 'error')
                     return;
                }
 
@@ -162,17 +157,17 @@ function Family() {
                     setShowPopup(false);
                     setTimeout(() => {
                          setIsLoading(false);
-                         handleSnackbarOpen(`Family Name Changed Successfully`, 'success');
+                         handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_save_name_changed, 'success');
                          fetchData();
                     }, 1000);
                }
                else {
                     setShowPopup(false);
-                    handleSnackbarOpen("Error. Please try again!", 'error');
+                    handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_common_error, 'error');
                     return;
                }
           } catch (err) {
-               console.error("Error saving family:", err);
+               console.error(DOCUIT_FAMILY_SCREEN.family_common_error, err);
                handleSnackbarOpen(err.response.error.message, 'error');
                setIsLoading(false);
           }
@@ -204,7 +199,7 @@ function Family() {
                     setTimeout(() => {
                          setFamilyData(prevData => prevData.filter(item => item.id !== familyId));
                          setIsLoading(false)
-                         handleSnackbarOpen('Family deleted successfully', 'success');
+                         handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_delete_success, 'success');
                     }, 1000);
 
                } else {
@@ -212,6 +207,7 @@ function Family() {
                }
           } catch (err) {
                console.error('Error deleting family:', err);
+               handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_common_error, "error")
           } finally {
                setDeleteDialogOpen(false);
                setDeleteFamilyId(null);
@@ -266,8 +262,7 @@ function Family() {
                if (isNameExistsoverall?.name === Add.trim().toLocaleLowerCase()) {
                     setAddPop(false);
 
-                    // setErrorFlashMessage("Family name is already registered");
-                    handleSnackbarOpen(`Family name is already registered`, 'error')
+                    handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_nameAlready_error, 'error')
                     setAdd("");
                     // setTimeout(() => {
                     //      setErrorFlashMessage("");
@@ -293,7 +288,7 @@ function Family() {
                     // setFlashMessage(data?.message);
                     setTimeout(() => {
                          setIsLoading(false);
-                         handleSnackbarOpen(`Family Added SuccessFully`, 'success')
+                         handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_added_success, 'success')
                     }, 1000)
 
                     setAdd("");
@@ -305,7 +300,7 @@ function Family() {
                     setAddPop(false);
                     setTimeout(() => {
                          setIsLoading(false)
-                         handleSnackbarOpen("Error. Please try again!!", 'error');
+                         handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_common_error, 'error');
                     }, 1000);
 
                     setAdd("");
@@ -313,7 +308,7 @@ function Family() {
                }
           } catch (error) {
                console.error("Error Save family:", error);
-               handleSnackbarOpen(`Error Save family`, 'error')
+               handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_save_error, 'error')
           }
      };
 
@@ -370,8 +365,9 @@ function Family() {
                     setfamilyMemberData(prevData => prevData.filter(item => item.id !== memberId));
                     setTimeout(() => {
                          setIsLoading(false)
+                         handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_usermanage_delete, 'success')
                     }, 1000);
-                    handleSnackbarOpen(DOCUIT_FAMILY_SCREEN.family_usermanage_delete, 'success')
+
                }
           } catch (err) {
                console.log("error", err);
@@ -423,7 +419,8 @@ function Family() {
                                                   <div className="popup" onClick={preventClose}>
                                                        <div className="popup-content">
                                                             <div className='pop-input-div'>
-                                                                 <h3 style={{ padding: '28px' }}>Enter Family Name</h3>
+                                                                 <h3 style={{ padding: '28px' }}>{DOCUIT_FAMILY_SCREEN.family_popupname}</h3>
+
                                                                  <div className='edit-Input'>
                                                                       <Icon fontSize="small">diversity_3</Icon>
                                                                       <Box
@@ -492,9 +489,9 @@ function Family() {
                                              <img style={{ maxHeight: 100, maxWidth: 100 }}
                                                   src={familyIcon}
                                                   alt='familyIcon' />
-                                             <h2> No families created yet </h2>
+                                             <h2> {DOCUIT_FAMILY_SCREEN.family_nofamilies_display} </h2>
                                              <span>
-                                                  Create a family to share your critical data.
+                                                  {DOCUIT_FAMILY_SCREEN.family_nofamilies_msg}
                                              </span>
                                         </div>
                                    </Card>
@@ -504,10 +501,10 @@ function Family() {
                                              >
                                                   <TableHead style={{ display: 'contents' }}>
                                                        <TableRow>
-                                                            <TableCell align="justify">Family Name</TableCell>
-                                                            <TableCell align="center">Created At</TableCell>
-                                                            <TableCell align="center">Created By</TableCell>
-                                                            <TableCell align="center">Actions</TableCell>
+                                                            <TableCell align="justify">{DOCUIT_FAMILY_SCREEN.family_familytable_name}</TableCell>
+                                                            <TableCell align="center">{DOCUIT_FAMILY_SCREEN.family_familytable_createdat}</TableCell>
+                                                            <TableCell align="center">{DOCUIT_FAMILY_SCREEN.family_familytable_createdby}</TableCell>
+                                                            <TableCell align="center">{DOCUIT_FAMILY_SCREEN.family_familytable_actions}</TableCell>
                                                        </TableRow>
                                                   </TableHead>
 
@@ -521,7 +518,7 @@ function Family() {
                                                                                      <div className="popup" onClick={preventClose}>
                                                                                           <div className="popup-content">
                                                                                                <div className='pop-input-div'>
-                                                                                                    <h3 style={{ padding: '28px' }}>Change Family Name</h3>
+                                                                                                    <h3 style={{ padding: '28px' }}>{DOCUIT_FAMILY_SCREEN.family_changename_pop}</h3>
                                                                                                     <div className='edit-Input'>
                                                                                                          <Icon fontSize="small">diversity_3</Icon>
                                                                                                          <Box
@@ -552,7 +549,7 @@ function Family() {
                                                                                                                              style={{ color: popuperrormsg ? 'red' : 'success' }}
                                                                                                                         >
                                                                                                                              {popuperrormsg
-                                                                                                                                  ? "*Family name cannot have numbers or special characters."
+                                                                                                                                  ? `${DOCUIT_FAMILY_SCREEN.family_popuperror}`
                                                                                                                                   : ""}
                                                                                                                         </FormHelperText>
                                                                                                                    )}
@@ -648,9 +645,9 @@ function Family() {
                                    maxWidth="xs"
                               >
 
-                                   <DialogTitle>Confirm Delete</DialogTitle>
+                                   <DialogTitle>{DOCUIT_FAMILY_SCREEN.family_delete_dialogTilte}</DialogTitle>
                                    <DialogContent>
-                                        Are you sure you want to delete this Family?
+                                        {DOCUIT_FAMILY_SCREEN.family_delete_dialogcontent}
                                    </DialogContent>
                                    {console.log('DialogContent', deleteFamilyId)}
                                    <DialogActions>
@@ -664,107 +661,103 @@ function Family() {
 
                     </MDBox>
                )}
-
                {sFamilyMember && (
-                    <>
-                         <MDBox className="mdbboxfamily">
-                              <div className="addbtn">
-                                   {familyMemberData.length === 0 ? (
-                                        <Card sx={{
-                                             minWidth: '100%', minHeight: '50vh',
-                                             textAlign: 'center', alignItems: 'center'
-                                        }}>
-                                             <div style={{ margin: 'auto' }}>
-                                                  <img style={{ maxHeight: 100, maxWidth: 100 }}
-                                                       src={familyIcon}
-                                                       alt='familyIcon' />
-                                                  <h2> No family members added yet </h2>
-                                                  <span>
-                                                       Invite members to your family for sharing your
-                                                  </span>
-                                             </div>
-                                        </Card>
-
-                                   ) : (
-                                        <>
-                                             {uniqueFamilyNames.map((name, index) => (
-                                                  <h2 key={index}>{name} User Management</h2>
-                                             ))}
-                                        </>
-                                   )}
-
-
-                                   {/* <div>
-                                        <Button variant="contained" className="btnfamilylist" onClick={handleInvite}>Invite + </Button>
-                                   </div> */}
+                    familyMemberData.length === 0 ? (
+                         <Card sx={{
+                              minWidth: '100%', minHeight: '50vh',
+                              textAlign: 'center', alignItems: 'center'
+                         }}>
+                              <div style={{ margin: 'auto' }}>
+                                   <img style={{ maxHeight: 100, maxWidth: 100 }}
+                                        src={familyIcon}
+                                        alt='familyIcon' />
+                                   <h2>{DOCUIT_FAMILY_SCREEN.family_usermanage_nousers}</h2>
+                                   <span>
+                                        {DOCUIT_FAMILY_SCREEN.family_usermanage_nousersmsg}
+                                   </span>
                               </div>
-                              <Card style={{ width: '100%' }}>
-                                   <div>
-                                        <TableContainer component={Paper}>
-                                             <Table aria-label="simple table">
-                                                  <TableHead style={{ display: 'contents' }}>
-                                                       <TableRow>
-                                                            <TableCell align='center'>Family Member</TableCell>
-                                                            <TableCell align='center'>created at</TableCell>
-                                                            <TableCell align='center'>Action</TableCell>
-                                                       </TableRow>
-                                                  </TableHead>
-                                                  <TableBody>
-                                                       {familyMemberData.map((item, index) => (
-                                                            <TableRow key={index}>
-                                                                 <TableCell align='center'>
-                                                                      {item.user.name}
-                                                                 </TableCell>
-                                                                 <TableCell align='center'>
-                                                                      {formatDate(item.user.createdAt)}
-                                                                 </TableCell>
-                                                                 <TableCell align='center'>
-                                                                      {console.log("item.inviteS", item)}
-                                                                      {item.inviteStatus === 'Invited' ? (
-                                                                           <Tooltip title="Invited" placement='top' sx={{ m: 1, cursor: 'pointer' }}>
-                                                                                <Icon style={{ color: 'black', fontSize: editDeleteIconSize }}>add_reaction</Icon>
-                                                                           </Tooltip>
-                                                                      ) : null}
-                                                                      {UserData.id === familyItems.createdBy && item.inviteStatus === 'Accepted' ? (
-                                                                           <Tooltip title="Delete" placement='top' sx={{ m: 1, cursor: 'pointer' }} >
-
-                                                                                <DeleteIcon style={{ color: 'black', fontSize: editDeleteIconSize }} onClick={() => openDeleteDialogMember(item.id)}></DeleteIcon>
-                                                                           </Tooltip>
-                                                                      ) : null}
-
-
-                                                                 </TableCell>
-                                                            </TableRow>
-                                                       ))}
-                                                  </TableBody>
-                                             </Table>
-                                        </TableContainer>
-                                        <Dialog
-                                             open={isDeleteDialogOpen}
-                                             onClose={closeDeleteDialogMember}
-                                             fullWidth
-                                             maxWidth="xs"
-                                        >
-
-                                             <DialogTitle>{DOCUIT_FAMILY_SCREEN.family_usermanage_deleteDialog}</DialogTitle>
-                                             <DialogContent>
-                                                  {DOCUIT_FAMILY_SCREEN.family_usermanage_deletecontent}
-                                             </DialogContent>
-                                             <DialogActions>
-                                                  <Button onClick={closeDeleteDialogMember}>Cancel</Button>
-                                                  <Button onClick={() => handleRemoveMembers(deleteMemberId)}>Delete</Button>
-                                             </DialogActions>
-
-                                        </Dialog>
-
+                         </Card>
+                    ) : (
+                         <>
+                              <MDBox className="mdbboxfamily">
+                                   <div className="addbtn">
+                                        {uniqueFamilyNames.map((name, index) => (
+                                             <h2 key={index}>{name} User Management</h2>
+                                        ))}
                                    </div>
-                              </Card>
-                         </MDBox>
-                    </>
+                                   <Card style={{ width: '100%' }}>
+                                        <div>
+                                             <TableContainer component={Paper}>
+                                                  <Table aria-label="simple table">
+                                                       <TableHead style={{ display: 'contents' }}>
+                                                            <TableRow>
+                                                                 <TableCell align='center'>{DOCUIT_FAMILY_SCREEN.family_usertable_member}</TableCell>
+                                                                 <TableCell align='center'>{DOCUIT_FAMILY_SCREEN.family_usertable_createdat}</TableCell>
+                                                                 <TableCell align='center'>{DOCUIT_FAMILY_SCREEN.family_usertable_actions}</TableCell>
+                                                            </TableRow>
+                                                       </TableHead>
+                                                       <TableBody>
+                                                            {familyMemberData.map((item, index) => (
+                                                                 <TableRow key={index}>
+                                                                      <TableCell align='center'>
+                                                                           {item.user.name}
+                                                                      </TableCell>
+                                                                      <TableCell align='center'>
+                                                                           {formatDate(item.user.createdAt)}
+                                                                      </TableCell>
+                                                                      <TableCell align='center'>
+                                                                           {console.log("item.inviteS", item)}
+                                                                           {item.inviteStatus === 'Invited' ? (
+                                                                                <Tooltip title="Invited" placement='top' sx={{ m: 1, cursor: 'pointer' }}>
+                                                                                     <GroupAddIcon style={{ color: 'black', fontSize: editDeleteIconSize }} ></GroupAddIcon>
+                                                                                </Tooltip>
+                                                                           ) : null}
+                                                                           {UserData.id === familyItems.createdBy && item.inviteStatus === 'Accepted' ? (
+                                                                                <Tooltip title="Delete" placement='top' sx={{ m: 1, cursor: 'pointer' }} >
+                                                                                     <DeleteIcon style={{ color: 'black', fontSize: editDeleteIconSize }} onClick={() => openDeleteDialogMember(item.id)}></DeleteIcon>
+                                                                                </Tooltip>
+                                                                           ) : null}
+                                                                      </TableCell>
+                                                                 </TableRow>
+                                                            ))}
+                                                       </TableBody>
+                                                  </Table>
+                                             </TableContainer>
+                                             <Dialog
+                                                  open={isDeleteDialogOpen}
+                                                  onClose={closeDeleteDialogMember}
+                                                  fullWidth
+                                                  maxWidth="xs"
+                                             >
+                                                  <DialogTitle>{DOCUIT_FAMILY_SCREEN.family_usermanage_deleteDialog}</DialogTitle>
+                                                  <DialogContent>
+                                                       {DOCUIT_FAMILY_SCREEN.family_usermanage_deletecontent}
+                                                  </DialogContent>
+                                                  <DialogActions>
+                                                       <Button onClick={closeDeleteDialogMember}>Cancel</Button>
+                                                       <Button onClick={() => handleRemoveMembers(deleteMemberId)}>Delete</Button>
+                                                  </DialogActions>
+                                             </Dialog>
+                                             <Snackbar
+                                                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                                  open={snackbarOpen}
+                                                  autoHideDuration={2000}
+                                                  onClose={handleSnackbarClose}
+                                                  TransitionComponent={(props) => <Slide {...props} direction="left" />}
+                                             >
+                                                  <Alert
+                                                       severity={snackbarType}
+                                                       sx={{ width: '100%', color: '#ffffff', backgroundColor: snackbarType === 'success' ? '#236925' : '#b92525' }}
+                                                  >
+                                                       {snackbarMessage}
+                                                  </Alert>
+                                             </Snackbar>
+                                        </div>
+                                   </Card>
+                              </MDBox>
+                         </>
+                    )
                )}
-
-
-
           </DashboardLayout>
      );
 }
