@@ -694,6 +694,10 @@ function Documents() {
       console.log('updateDocument"""""":', data);
       if (data.status === "SUCCESS") {
         setopenShare(false);
+        setTimeout(() => {
+          setIsLoading(false);
+          handleSnackbarOpen(DOCUIT_DOCUMENT_SCREEN.document_share_success, 'success');
+        }, 1000);
         console.log("data-----updateDocument", data);
       }
     } catch (err) {

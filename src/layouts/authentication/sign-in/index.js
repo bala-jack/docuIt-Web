@@ -29,7 +29,7 @@ import { Link } from "react-router-dom";
 import { DOCUIT_SIGNIN_SCREEN } from '../../../utilities/strings';
 
 const validationSchema = yup.object().shape({
-  phoneNumber: yup.string().required('*Email is required'),
+  phoneNumber: yup.string().required('*Phone number is required'),
   password: yup.string().required('*Password is required'),
 });
 
@@ -74,11 +74,11 @@ function Basic() {
             // }));
             navigate('/dashboard');
           } else {
-            formik.setStatus('*Incorrect email or password*')
+            formik.setStatus('*Incorrect phone number or password*')
           }
         })
         .catch(() => {
-          formik.setStatus('*Incorrect email or password*');
+          formik.setStatus('*Incorrect phone number or password*');
         });
     }
   });

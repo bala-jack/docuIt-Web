@@ -90,6 +90,7 @@ export const DOCUIT_DOCUMENT_SCREEN = {
     document_delete_content: "Are you sure you want to delete this document?",
     document_nodocs_head: "No documents uploaded or shared yet",
     document_nodocs_msg: "Upload documents to view and share them.",
+    document_share_success: 'Document shared successfully'
 
 }
 
